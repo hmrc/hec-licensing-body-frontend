@@ -15,6 +15,7 @@
     @govukInput(Input(
       id = "taxCheckCode",
       name = "taxCheckCode",
+      value = form("taxCheckCode").value,
       label = Label(
         isPageHeading = true,
         classes = "govuk-label--xl",
@@ -31,6 +32,6 @@
     ))
   }
 
-  <p>Got value @{form.value}</p>
+  <p>Got value @{form("taxCheckCode").value}</p>
   <p>Submit is @routes.HECTaxCheckCodeController.hecTaxCheckCodeSubmit()</p>
 }
