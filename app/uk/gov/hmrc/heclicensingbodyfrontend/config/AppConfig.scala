@@ -22,10 +22,13 @@ import play.api.Configuration
 @Singleton
 class AppConfig @Inject() (config: Configuration) {
 
+  val contactFrontendUrl: String   = config.get[String]("microservice.services.contact-frontend.url")
+  val contactFormServiceIdentifier = "hec-lb"
+
   val welshLanguageSupportEnabled: Boolean =
     config.getOptional[Boolean]("features.welsh-language-support").getOrElse(false)
 
-  val betaFeedbackUrl: String = config.get[String]("beta-feedback-url")
+  val betaFeedbackUrl: String = s"$contactFrontendUrl/contact/beta-feedback?service=$contactFormServiceIdentifier"
 
   val taxCheckGuidanceUrl: String = config.get[String]("external-url.tax-check-guidance")
 
