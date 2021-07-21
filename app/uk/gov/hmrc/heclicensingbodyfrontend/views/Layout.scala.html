@@ -15,7 +15,8 @@
         hmrcStandardHeader: HmrcStandardHeader,
         hmrcStandardFooter: HmrcStandardFooter,
         hmrcScripts: HmrcScripts,
-        hmrcLanguageSelectHelper: HmrcLanguageSelectHelper
+        hmrcLanguageSelectHelper: HmrcLanguageSelectHelper,
+        hmrcReportTechnicalIssueHelper: HmrcReportTechnicalIssueHelper
 )
 @(pageTitle: Option[String] = None,
         headBlock: Option[Html] = None,
@@ -31,9 +32,17 @@
         tag = Some(Tag(
             content = Text("beta")
         )),
-        content = HtmlContent(messages("phaseBanner.beta.text", "#"))
+        content = HtmlContent(messages("phaseBanner.beta.text", appConfig.taxCheckGuidanceUrl))
     ))
     @if(appConfig.welshLanguageSupportEnabled) { @hmrcLanguageSelectHelper() }
+}
+@content = {
+
+    <div class="govuk-!-margin-bottom-6">
+        @contentBlock
+    </div>
+
+    @hmrcReportTechnicalIssueHelper()
 }
 @govukLayout(
     pageTitle = Some(documentTitle),
@@ -42,4 +51,4 @@
     scriptsBlock = Some(hmrcScripts(scriptsBlock = scriptsBlock, nonce = CSPNonce.get)),
     beforeContentBlock = Some(beforeContent),
     footerBlock = Some(hmrcStandardFooter())
-)(contentBlock)
+)(content)
