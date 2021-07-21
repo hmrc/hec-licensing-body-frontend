@@ -5,13 +5,20 @@
 @import uk.gov.hmrc.heclicensingbodyfrontend.controllers.routes
 @import uk.gov.hmrc.govukfrontend.views.html.components._
 
-@this(layout: Layout, govukInput: GovukInput, govukButton: GovukButton, formWithCSRF: FormWithCSRF)
+@this(layout: Layout, govukInput: GovukInput, govukButton: GovukButton, formWithCSRF: FormWithCSRF, govukErrorSummary : GovukErrorSummary)
 
 @(form: Form[models.HECTaxCheckCode])(implicit request: Request[_], messages: Messages)
 @key = @{"taxCheckCode"}
 @title = @{messages(s"${key}.title")}
 
 @layout(pageTitle = Some(title), hasErrors = form.hasErrors) {
+  @if(form.errors.nonEmpty) {
+    @govukErrorSummary(ErrorSummary(errorList = form.errors.map(e => ErrorLink(
+      href = Some(s"#${e.key}}"),
+      content = Text(s"${messages(s"$key.${e.message}")}")
+    )), title = Text(messages("generic.errorSummary"))))
+  }
+
   @formWithCSRF(action = routes.HECTaxCheckCodeController.hecTaxCheckCodeSubmit()) {
     @govukInput(Input(
       id = key,
@@ -36,7 +43,4 @@
     ))
   }
 
-  <p>Got value @{form(key).value}</p>
-  <p>Submit is @routes.HECTaxCheckCodeController.hecTaxCheckCodeSubmit()</p>
-  <p>Errors: @{form.errors}</p>
 }

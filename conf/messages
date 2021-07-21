@@ -3,6 +3,7 @@ service.name = Confirm an applicant has done a tax check
 service.text = This is your new service
 
 generic.errorPrefix = Error:
+generic.errorSummary = There is a problem
 
 button.continue = Continue
 
