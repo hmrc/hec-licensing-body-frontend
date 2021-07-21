@@ -8,14 +8,15 @@
 @this(layout: Layout, govukInput: GovukInput, govukButton: GovukButton, formWithCSRF: FormWithCSRF)
 
 @(form: Form[models.HECTaxCheckCode])(implicit request: Request[_], messages: Messages)
-@title = @{messages("taxCheckCode.title")}
+@key = @{"taxCheckCode"}
+@title = @{messages(s"${key}.title")}
 
 @layout(pageTitle = Some(title), hasErrors = form.hasErrors) {
   @formWithCSRF(action = routes.HECTaxCheckCodeController.hecTaxCheckCodeSubmit()) {
     @govukInput(Input(
-      id = "taxCheckCode",
-      name = "taxCheckCode",
-      value = form("taxCheckCode").value,
+      id = key,
+      name = key,
+      value = form(key).value,
       label = Label(
         isPageHeading = true,
         classes = "govuk-label--xl",
@@ -23,7 +24,7 @@
       ),
       classes = "govuk-!-width-one-third",
       hint = Some(Hint(
-        content = Text(messages("taxCheckCode.hint"))
+        content = Text(messages(s"${key}.hint"))
       ))
     ))
 
@@ -32,6 +33,6 @@
     ))
   }
 
-  <p>Got value @{form("taxCheckCode").value}</p>
+  <p>Got value @{form(key).value}</p>
   <p>Submit is @routes.HECTaxCheckCodeController.hecTaxCheckCodeSubmit()</p>
 }
