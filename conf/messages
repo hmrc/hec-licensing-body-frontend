@@ -1,2 +1,12 @@
-service.name = hec-licensing-body-frontend
+gov.uk = GOV.UK
+service.name = Confirm an applicant has done a tax check
 service.text = This is your new service
+
+generic.errorPrefix = Error:
+
+button.continue = Continue
+
+taxCheckCode.title = What is the applicant’s tax check code?
+taxCheckCode.hint = It is 9 characters, for example ‘266 RLR TK6’.
+
+

@@ -3,14 +3,34 @@
 @import play.api.mvc.Request
 @import uk.gov.hmrc.heclicensingbodyfrontend.models
 @import uk.gov.hmrc.heclicensingbodyfrontend.controllers.routes
+@import uk.gov.hmrc.govukfrontend.views.html.components._
 
-@this(layout: Layout)
+@this(layout: Layout, govukInput: GovukInput, govukButton: GovukButton, formWithCSRF: FormWithCSRF)
 
 @(form: Form[models.HECTaxCheckCode])(implicit request: Request[_], messages: Messages)
 @title = @{messages("taxCheckCode.title")}
 
-@layout(pageTitle = Some(title)) {
-    <h1 class="govuk-heading-xl">@title</h1>
+@layout(pageTitle = Some(title), hasErrors = form.hasErrors) {
+  @formWithCSRF(action = routes.HECTaxCheckCodeController.hecTaxCheckCodeSubmit()) {
+    @govukInput(Input(
+      id = "taxCheckCode",
+      name = "taxCheckCode",
+      label = Label(
+        isPageHeading = true,
+        classes = "govuk-label--xl",
+        content = Text(title)
+      ),
+      classes = "govuk-!-width-one-third",
+      hint = Some(Hint(
+        content = Text(messages("taxCheckCode.hint"))
+      ))
+    ))
+
+    @govukButton(Button(
+      content = Text(messages("button.continue"))
+    ))
+  }
+
   <p>Got value @{form.value}</p>
   <p>Submit is @routes.HECTaxCheckCodeController.hecTaxCheckCodeSubmit()</p>
 }

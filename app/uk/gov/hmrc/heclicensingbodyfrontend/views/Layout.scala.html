@@ -17,12 +17,17 @@
         hmrcLanguageSelectHelper: HmrcLanguageSelectHelper
 )
 @(pageTitle: Option[String] = None,
-  headBlock: Option[Html] = None,
-  scriptsBlock: Option[Html] = None
+        headBlock: Option[Html] = None,
+        scriptsBlock: Option[Html] = None,
+        hasErrors: Boolean = false
 )(contentBlock: Html)(implicit request: Request[_], messages: Messages)
 
+@serviceNameAndHeading = @{pageTitle.fold(messages("service.name"))(t => s"""$t - ${messages("service.name")}""")}
+@govTitle = @{serviceNameAndHeading + " - " + messages("gov.uk")}
+@documentTitle = @{if(hasErrors) { messages("generic.errorPrefix") + " " + govTitle } else { govTitle }}
+
 @govukLayout(
-    pageTitle = pageTitle,
+    pageTitle = Some(documentTitle),
     headBlock = Some(hmrcHead(headBlock = headBlock, nonce = CSPNonce.get)),
     headerBlock = Some(hmrcStandardHeader()),
     scriptsBlock = Some(hmrcScripts(scriptsBlock = scriptsBlock, nonce = CSPNonce.get)),
