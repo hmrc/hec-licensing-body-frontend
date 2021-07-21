@@ -9,6 +9,7 @@ button.continue = Continue
 
 taxCheckCode.title = What is the applicant’s tax check code?
 taxCheckCode.hint = It is 9 characters, for example ‘266 RLR TK6’.
+taxCheckCode.link = Find out how applicants can get a tax check code (opens in new tab)
 taxCheckCode.error.required = Enter the applicant’s tax check code
 taxCheckCode.error.tooLong = The applicant’s tax check code must be 9 characters
 taxCheckCode.error.tooShort = The applicant’s tax check code must be 9 characters
