@@ -32,7 +32,7 @@
         tag = Some(Tag(
             content = Text("beta")
         )),
-        content = HtmlContent(messages("phaseBanner.beta.text", appConfig.taxCheckGuidanceUrl))
+        content = HtmlContent(messages("phaseBanner.beta.text", appConfig.betaFeedbackUrl))
     ))
     @if(appConfig.welshLanguageSupportEnabled) { @hmrcLanguageSelectHelper() }
 }
