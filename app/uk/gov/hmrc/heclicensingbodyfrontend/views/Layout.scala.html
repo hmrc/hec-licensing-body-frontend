@@ -10,6 +10,7 @@
 @this(
         appConfig: AppConfig,
         govukLayout: GovukLayout,
+        govukPhaseBanner : GovukPhaseBanner,
         hmrcHead: HmrcHead,
         hmrcStandardHeader: HmrcStandardHeader,
         hmrcStandardFooter: HmrcStandardFooter,
@@ -25,12 +26,20 @@
 @serviceNameAndHeading = @{pageTitle.fold(messages("service.name"))(t => s"""$t - ${messages("service.name")}""")}
 @govTitle = @{serviceNameAndHeading + " - " + messages("gov.uk")}
 @documentTitle = @{if(hasErrors) { messages("generic.errorPrefix") + " " + govTitle } else { govTitle }}
-
+@beforeContent = {
+    @govukPhaseBanner(PhaseBanner(
+        tag = Some(Tag(
+            content = Text("beta")
+        )),
+        content = HtmlContent(messages("phaseBanner.beta.text", "#"))
+    ))
+    @if(appConfig.welshLanguageSupportEnabled) { @hmrcLanguageSelectHelper() }
+}
 @govukLayout(
     pageTitle = Some(documentTitle),
     headBlock = Some(hmrcHead(headBlock = headBlock, nonce = CSPNonce.get)),
     headerBlock = Some(hmrcStandardHeader()),
     scriptsBlock = Some(hmrcScripts(scriptsBlock = scriptsBlock, nonce = CSPNonce.get)),
-    beforeContentBlock = if(appConfig.welshLanguageSupportEnabled) Some(hmrcLanguageSelectHelper()) else None,
+    beforeContentBlock = Some(beforeContent),
     footerBlock = Some(hmrcStandardFooter())
 )(contentBlock)
