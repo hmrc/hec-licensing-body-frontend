@@ -22,7 +22,13 @@ lazy val wartremoverSettings =
       (Compile / routes).value ++
         (baseDirectory.value ** "*.sc").get ++
         Seq(sourceManaged.value / "main" / "sbt-buildinfo" / "BuildInfo.scala"),
-    (Test / compile / wartremoverErrors) --= Seq(Wart.Any, Wart.NonUnitStatements, Wart.Null, Wart.PublicInference)
+    (Test / compile / wartremoverErrors) --= Seq(
+      Wart.Any,
+      Wart.GlobalExecutionContext,
+      Wart.NonUnitStatements,
+      Wart.Null,
+      Wart.PublicInference
+    )
   )
 
 lazy val scoverageSettings =
@@ -34,7 +40,13 @@ lazy val scoverageSettings =
   )
 
 lazy val microservice = Project(appName, file("."))
-  .enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin)
+  .enablePlugins(
+    play.sbt.PlayScala,
+    SbtAutoBuildPlugin,
+    SbtGitVersioning,
+    SbtDistributablesPlugin
+  )
+  .settings(addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.10.3"))
   .settings(
     majorVersion                     := 0,
     scalaVersion                     := "2.12.13",

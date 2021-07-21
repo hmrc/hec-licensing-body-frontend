@@ -2,5 +2,9 @@
 
 ->         /govuk-frontend          govuk.Routes
 ->         /hmrc-frontend           hmrcfrontend.Routes
-GET        /                        uk.gov.hmrc.heclicensingbodyfrontend.controllers.HelloWorldController.helloWorld
 GET        /assets/*file            controllers.Assets.versioned(path = "/public", file: controllers.Assets.Asset)
+
+GET        /start                   uk.gov.hmrc.heclicensingbodyfrontend.controllers.StartController.start
+
+GET        /tax-check-code          uk.gov.hmrc.heclicensingbodyfrontend.controllers.HECTaxCheckCodeController.hecTaxCheckCode
+POST       /tax-check-code          uk.gov.hmrc.heclicensingbodyfrontend.controllers.HECTaxCheckCodeController.hecTaxCheckCodeSubmit

@@ -1,0 +1,16 @@
+@import play.api.data.Form
+@import play.api.i18n.Messages
+@import play.api.mvc.Request
+@import uk.gov.hmrc.heclicensingbodyfrontend.models
+@import uk.gov.hmrc.heclicensingbodyfrontend.controllers.routes
+
+@this(layout: Layout)
+
+@(form: Form[models.HECTaxCheckCode])(implicit request: Request[_], messages: Messages)
+@title = @{messages("taxCheckCode.title")}
+
+@layout(pageTitle = Some(title)) {
+    <h1 class="govuk-heading-xl">@title</h1>
+  <p>Got value @{form.value}</p>
+  <p>Submit is @routes.HECTaxCheckCodeController.hecTaxCheckCodeSubmit()</p>
+}

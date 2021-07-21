@@ -14,20 +14,22 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.heclicensingbodyfrontend.controllers
+package uk.gov.hmrc.heclicensingbodyfrontend.util
 
-import uk.gov.hmrc.heclicensingbodyfrontend.views.html.HelloWorldPage
-import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import javax.inject.{Inject, Singleton}
-import scala.concurrent.Future
+import com.google.inject.{ImplementedBy, Singleton}
+
+import java.util.UUID
+
+@ImplementedBy(classOf[UUIDGeneratorImpl])
+trait UUIDGenerator {
+
+  def next(): UUID
+
+}
 
 @Singleton
-class HelloWorldController @Inject() (mcc: MessagesControllerComponents, helloWorldPage: HelloWorldPage)
-    extends FrontendController(mcc) {
+class UUIDGeneratorImpl extends UUIDGenerator {
 
-  val helloWorld: Action[AnyContent] = Action.async { implicit request =>
-    Future.successful(Ok(helloWorldPage()))
-  }
+  override def next(): UUID = UUID.randomUUID()
 
 }
