@@ -4,10 +4,12 @@
 @import uk.gov.hmrc.heclicensingbodyfrontend.models
 @import uk.gov.hmrc.heclicensingbodyfrontend.controllers.routes
 @import uk.gov.hmrc.govukfrontend.views.html.components._
+@import uk.gov.hmrc.heclicensingbodyfrontend.config.AppConfig
 
 @this(layout: Layout, govukInput: GovukInput, govukButton: GovukButton, formWithCSRF: FormWithCSRF, govukErrorSummary : GovukErrorSummary)
 
-@(form: Form[models.HECTaxCheckCode])(implicit request: Request[_], messages: Messages)
+
+@(form: Form[models.HECTaxCheckCode])(implicit request: Request[_], messages: Messages, appConfig: AppConfig)
 @key = @{"taxCheckCode"}
 @title = @{messages(s"${key}.title")}
 
@@ -39,7 +41,7 @@
     ))
 
     <p class="govuk-body">
-      <a class="govuk-link" href="#" target="_blank">@{messages(s"$key.link")}</a>
+      <a class="govuk-link" href="@{appConfig.taxCheckGuidanceUrl}" target="_blank">@{messages(s"$key.link")}</a>
     </p>
 
     @govukButton(Button(

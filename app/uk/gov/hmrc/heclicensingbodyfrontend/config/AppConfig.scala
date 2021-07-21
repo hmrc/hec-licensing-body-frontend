@@ -25,4 +25,6 @@ class AppConfig @Inject() (config: Configuration) {
   val welshLanguageSupportEnabled: Boolean =
     config.getOptional[Boolean]("features.welsh-language-support").getOrElse(false)
 
+  val taxCheckGuidanceUrl: String = config.get[String]("external-url.tax-check-guidance")
+
 }

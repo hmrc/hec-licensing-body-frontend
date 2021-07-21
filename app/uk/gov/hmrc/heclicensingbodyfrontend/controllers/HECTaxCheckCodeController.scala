@@ -21,6 +21,7 @@ import play.api.data.Form
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import play.api.data.Forms.{mapping, nonEmptyText}
+import uk.gov.hmrc.heclicensingbodyfrontend.config.AppConfig
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.SessionDataAction
 import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckCode
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging
@@ -32,7 +33,8 @@ class HECTaxCheckCodeController @Inject() (
   sessionDataAction: SessionDataAction,
   hecTaxCheckCodePage: html.HECTaxCheckCode,
   mcc: MessagesControllerComponents
-) extends FrontendController(mcc)
+)(implicit appConfig: AppConfig)
+    extends FrontendController(mcc)
     with I18nSupport
     with Logging {
 
