@@ -20,7 +20,7 @@ import com.google.inject.Inject
 import play.api.data.Form
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import play.api.data.Forms.nonEmptyText
+import play.api.data.Forms.{mapping, nonEmptyText}
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.SessionDataAction
 import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckCode
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging
@@ -57,12 +57,15 @@ class HECTaxCheckCodeController @Inject() (
 
 object HECTaxCheckCodeController {
 
-  val taxCheckCodeForm: Form[HECTaxCheckCode] = Form(
-    nonEmptyText
-      .transform[HECTaxCheckCode](s => HECTaxCheckCode(s.removeWhitespace), _.value)
-      .verifying("error.tooLong", _.value.length > 9)
-      .verifying("error.tooShort", _.value.length < 9)
-      .verifying("error.pattern", _.value.exists(!_.isLetterOrDigit))
-  )
+  val taxCheckCodeForm: Form[HECTaxCheckCode] =
+    Form(
+      mapping(
+        "taxCheckCode" -> nonEmptyText
+          .transform[HECTaxCheckCode](s => HECTaxCheckCode(s.removeWhitespace), _.value)
+          .verifying("error.tooLong", c => !(c.value.length > 9))
+          .verifying("error.tooShort", c => !(c.value.length < 9))
+          .verifying("error.pattern", _.value.forall(_.isLetterOrDigit))
+      )(identity)(Some(_))
+    )
 
 }
