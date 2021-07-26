@@ -69,8 +69,8 @@ class HECTaxCheckCodeControllerSpec
               val button = doc.select("form")
               button.attr("action") shouldBe routes.HECTaxCheckCodeController.hecTaxCheckCodeSubmit().url
 
-              val link = doc.select(".govuk-link")
-              link.attr("href") shouldBe "#"
+              val link = doc.select("p > .govuk-link")
+              link.text shouldBe messageFromMessageKey("taxCheckCode.link")
 
               val input = doc.select(".govuk-input")
               input.attr("value") shouldBe taxCheckCode.value
