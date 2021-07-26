@@ -16,11 +16,16 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.models
 
+import cats.Eq
+import monocle.macros.Lenses
 import play.api.libs.json.{Json, OFormat}
 
+@Lenses
 final case class HECSession(userAnswers: UserAnswers)
 
 object HECSession {
+
+  implicit val eq: Eq[HECSession] = Eq.fromUniversalEquals
 
   implicit val format: OFormat[HECSession] = Json.format
 

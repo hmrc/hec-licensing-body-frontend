@@ -16,32 +16,16 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.models
 
-import julienrf.json.derived
-import play.api.libs.json.Format
+import monocle.macros.Lenses
+import play.api.libs.json.{Format, Json}
 
-sealed trait UserAnswers
+@Lenses
+final case class UserAnswers(taxCheckCode: Option[HECTaxCheckCode])
 
 object UserAnswers {
 
-  final case class IncompleteUserAnswers(taxCheckCode: Option[HECTaxCheckCode]) extends UserAnswers
+  val empty: UserAnswers = UserAnswers(None)
 
-  final case class CompleteUserAnswers(taxCheckCode: HECTaxCheckCode) extends UserAnswers
-
-  object IncompleteUserAnswers {
-
-    val empty: IncompleteUserAnswers = IncompleteUserAnswers(None)
-
-  }
-
-  implicit class UserAnswersOps(private val u: UserAnswers) extends AnyVal {
-
-    def fold[A](ifIncomplete: IncompleteUserAnswers => A, ifComplete: CompleteUserAnswers => A): A = u match {
-      case i: IncompleteUserAnswers => ifIncomplete(i)
-      case c: CompleteUserAnswers   => ifComplete(c)
-    }
-
-  }
-
-  implicit val format: Format[UserAnswers] = derived.oformat()
+  implicit val format: Format[UserAnswers] = Json.format
 
 }

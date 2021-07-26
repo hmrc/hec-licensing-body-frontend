@@ -20,8 +20,7 @@ import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECSession}
-import uk.gov.hmrc.heclicensingbodyfrontend.models.UserAnswers.IncompleteUserAnswers
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECSession, UserAnswers}
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -41,7 +40,7 @@ class StartControllerSpec extends ControllerSpec with SessionSupport {
 
       def performAction() = controller.start(FakeRequest())
 
-      val newSession = HECSession(IncompleteUserAnswers.empty)
+      val newSession = HECSession(UserAnswers.empty)
 
       "show an error page" when {
 
@@ -58,7 +57,7 @@ class StartControllerSpec extends ControllerSpec with SessionSupport {
         "a new session has been created and stored for the session" in {
           mockStoreSession(newSession)(Right(()))
 
-          checkIsRedirect(performAction(), routes.ApplicantDetailsController.applicantType())
+          checkIsRedirect(performAction(), routes.HECTaxCheckCodeController.hecTaxCheckCode())
         }
 
       }

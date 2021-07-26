@@ -16,36 +16,21 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.controllers
 
-import cats.instances.future._
 import com.google.inject.{Inject, Singleton}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{HECSession, UserAnswers}
-import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
+import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.SessionDataAction
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging
-import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging.LoggerOps
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
-import scala.concurrent.ExecutionContext
-
 @Singleton
-class StartController @Inject() (
-  sessionStore: SessionStore,
+class LicenceTypeController @Inject() (
+  sessionDataAction: SessionDataAction,
   mcc: MessagesControllerComponents
-)(implicit ec: ExecutionContext)
-    extends FrontendController(mcc)
+) extends FrontendController(mcc)
     with Logging {
 
-  val start: Action[AnyContent] = Action.async { implicit request =>
-    val newSession = HECSession(UserAnswers.empty)
-    sessionStore
-      .store(newSession)
-      .fold(
-        { e =>
-          logger.warn("Could not store session", e)
-          InternalServerError
-        },
-        _ => Redirect(routes.HECTaxCheckCodeController.hecTaxCheckCode())
-      )
+  val licenceType: Action[AnyContent] = sessionDataAction { implicit request =>
+    Ok(s"Session is ${request.sessionData}")
   }
 
 }

@@ -8,3 +8,5 @@ GET        /start                   uk.gov.hmrc.heclicensingbodyfrontend.control
 
 GET        /tax-check-code          uk.gov.hmrc.heclicensingbodyfrontend.controllers.HECTaxCheckCodeController.hecTaxCheckCode
 POST       /tax-check-code          uk.gov.hmrc.heclicensingbodyfrontend.controllers.HECTaxCheckCodeController.hecTaxCheckCodeSubmit
+
+GET        /licence-type            uk.gov.hmrc.heclicensingbodyfrontend.controllers.LicenceTypeController.licenceType

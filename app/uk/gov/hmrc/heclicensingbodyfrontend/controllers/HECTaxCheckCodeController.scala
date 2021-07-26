@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.controllers
 
+import cats.instances.future._
 import com.google.inject.Inject
 import play.api.data.Form
 import play.api.i18n.I18nSupport
@@ -23,17 +24,23 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import play.api.data.Forms.{mapping, nonEmptyText}
 import uk.gov.hmrc.heclicensingbodyfrontend.config.AppConfig
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.SessionDataAction
-import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckCode
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{HECSession, HECTaxCheckCode, UserAnswers}
+import uk.gov.hmrc.heclicensingbodyfrontend.services.JourneyService
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging
+import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging.LoggerOps
 import uk.gov.hmrc.heclicensingbodyfrontend.util.StringUtils.StringOps
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import uk.gov.hmrc.heclicensingbodyfrontend.views.html
 
+import java.util.Locale
+import scala.concurrent.ExecutionContext
+
 class HECTaxCheckCodeController @Inject() (
   sessionDataAction: SessionDataAction,
+  journeyService: JourneyService,
   hecTaxCheckCodePage: html.HECTaxCheckCode,
   mcc: MessagesControllerComponents
-)(implicit appConfig: AppConfig)
+)(implicit appConfig: AppConfig, ec: ExecutionContext)
     extends FrontendController(mcc)
     with I18nSupport
     with Logging {
@@ -41,17 +48,30 @@ class HECTaxCheckCodeController @Inject() (
   import HECTaxCheckCodeController._
 
   val hecTaxCheckCode: Action[AnyContent] = sessionDataAction { implicit request =>
-    val taxCheckCode = request.sessionData.userAnswers.fold(_.taxCheckCode, c => Some(c.taxCheckCode))
+    val taxCheckCode = request.sessionData.userAnswers.taxCheckCode
     val form         = taxCheckCode.fold(taxCheckCodeForm)(taxCheckCodeForm.fill)
     Ok(hecTaxCheckCodePage(form))
   }
 
-  val hecTaxCheckCodeSubmit: Action[AnyContent] = sessionDataAction { implicit request =>
+  val hecTaxCheckCodeSubmit: Action[AnyContent] = sessionDataAction.async { implicit request =>
     taxCheckCodeForm
       .bindFromRequest()
       .fold(
         formWithErrors => Ok(hecTaxCheckCodePage(formWithErrors)),
-        taxCheckCode => Ok(s"$taxCheckCode is valid!")
+        taxCheckCode =>
+          journeyService
+            .updateAndNext(
+              routes.HECTaxCheckCodeController.hecTaxCheckCode(),
+              (HECSession.userAnswers composeLens UserAnswers.taxCheckCode)
+                .set(Some(taxCheckCode))(request.sessionData)
+            )
+            .fold(
+              { e =>
+                logger.warn("Could not store session and find next location", e)
+                InternalServerError
+              },
+              Redirect
+            )
       )
   }
 
@@ -63,7 +83,10 @@ object HECTaxCheckCodeController {
     Form(
       mapping(
         "taxCheckCode" -> nonEmptyText
-          .transform[HECTaxCheckCode](s => HECTaxCheckCode(s.removeWhitespace), _.value)
+          .transform[HECTaxCheckCode](
+            s => HECTaxCheckCode(s.removeWhitespace.toUpperCase(Locale.UK)),
+            _.value
+          )
           .verifying("error.tooLong", c => !(c.value.length > 9))
           .verifying("error.tooShort", c => !(c.value.length < 9))
           .verifying("error.pattern", _.value.forall(_.isLetterOrDigit))
