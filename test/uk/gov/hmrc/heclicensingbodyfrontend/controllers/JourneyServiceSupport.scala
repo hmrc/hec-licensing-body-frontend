@@ -43,7 +43,7 @@ trait JourneyServiceSupport { this: ControllerSpec =>
       })
       .returning(EitherT.fromEither(result))
 
-  def mockJourneyServiceGetPrevious(currentPage: Call, currentSession: HECSession)(result: Either[Error, Call]) =
+  def mockJourneyServiceGetPrevious(currentPage: Call, currentSession: HECSession)(result: Call) =
     (mockJourneyService
       .previous(_: Call)(_: RequestWithSessionData[_]))
       .expects(where { case (c, r) =>
@@ -51,6 +51,11 @@ trait JourneyServiceSupport { this: ControllerSpec =>
         assert(r.sessionData === currentSession)
         true
       })
+      .returning(result)
+
+  def mockFirstPge(result: Call) =
+    (mockJourneyService.firstPage _)
+      .expects()
       .returning(result)
 
 }

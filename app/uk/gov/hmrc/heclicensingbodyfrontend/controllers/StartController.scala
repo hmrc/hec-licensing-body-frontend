@@ -21,6 +21,7 @@ import com.google.inject.{Inject, Singleton}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{HECSession, UserAnswers}
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
+import uk.gov.hmrc.heclicensingbodyfrontend.services.JourneyService
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging.LoggerOps
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
@@ -30,6 +31,7 @@ import scala.concurrent.ExecutionContext
 @Singleton
 class StartController @Inject() (
   sessionStore: SessionStore,
+  journeyService: JourneyService,
   mcc: MessagesControllerComponents
 )(implicit ec: ExecutionContext)
     extends FrontendController(mcc)
@@ -37,6 +39,7 @@ class StartController @Inject() (
 
   val start: Action[AnyContent] = Action.async { implicit request =>
     val newSession = HECSession(UserAnswers.empty)
+
     sessionStore
       .store(newSession)
       .fold(
@@ -44,7 +47,7 @@ class StartController @Inject() (
           logger.warn("Could not store session", e)
           InternalServerError
         },
-        _ => Redirect(routes.HECTaxCheckCodeController.hecTaxCheckCode())
+        _ => Redirect(journeyService.firstPage)
       )
   }
 

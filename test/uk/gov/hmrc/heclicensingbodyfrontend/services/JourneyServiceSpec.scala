@@ -38,6 +38,14 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
 
   "JourneyServiceImpl" when {
 
+    "handling calls to 'firstPage'" must {
+
+      "return the correct call" in {
+        journeyService.firstPage shouldBe routes.HECTaxCheckCodeController.hecTaxCheckCode()
+      }
+
+    }
+
     "handling calls to 'updateAndNext'" must {
 
       "return an error" when {
@@ -48,7 +56,7 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
             requestWithSessionData(session)
 
           val result = journeyService.updateAndNext(
-            routes.StartController.start(),
+            routes.HECTaxCheckCodeController.hecTaxCheckCodeSubmit(),
             session
           )
 
@@ -114,8 +122,20 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
 
       "return the correct previous page" when afterWord("the current page is") {
 
+        "the start endpoint" in {
+          val session                                     = HECSession(UserAnswers.empty)
+          implicit val request: RequestWithSessionData[_] =
+            requestWithSessionData(session)
+
+          val result = journeyService.previous(
+            routes.StartController.start()
+          )
+
+          result shouldBe routes.StartController.start()
+        }
+
         "the tax check code page" in {
-          val session                                     = HECSession(UserAnswers.empty.copy(taxCheckCode = Some(HECTaxCheckCode(""))))
+          val session                                     = HECSession(UserAnswers.empty)
           implicit val request: RequestWithSessionData[_] =
             requestWithSessionData(session)
 
@@ -123,7 +143,7 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
             routes.HECTaxCheckCodeController.hecTaxCheckCode()
           )
 
-          result shouldBe Right(routes.HECTaxCheckCodeController.hecTaxCheckCode())
+          result shouldBe routes.StartController.start()
         }
 
       }

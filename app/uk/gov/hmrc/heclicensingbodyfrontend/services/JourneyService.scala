@@ -20,7 +20,6 @@ import cats.Eq
 import cats.data.EitherT
 import cats.instances.string._
 import cats.instances.future._
-import cats.syntax.either._
 import cats.syntax.eq._
 import com.google.inject.{ImplementedBy, Inject, Singleton}
 import play.api.mvc.Call
@@ -41,7 +40,9 @@ trait JourneyService {
     hc: HeaderCarrier
   ): EitherT[Future, Error, Call]
 
-  def previous(current: Call)(implicit r: RequestWithSessionData[_]): Either[Error, Call]
+  def previous(current: Call)(implicit r: RequestWithSessionData[_]): Call
+
+  def firstPage: Call
 
 }
 
@@ -51,8 +52,11 @@ class JourneyServiceImpl @Inject() (sessionStore: SessionStore)(implicit ex: Exe
   implicit val callEq: Eq[Call] = Eq.instance(_.url === _.url)
 
   lazy val paths: Map[Call, HECSession => Call] = Map(
+    routes.StartController.start()                     -> (_ => firstPage),
     routes.HECTaxCheckCodeController.hecTaxCheckCode() -> (_ => routes.LicenceTypeController.licenceType())
   )
+
+  lazy val firstPage: Call = routes.HECTaxCheckCodeController.hecTaxCheckCode()
 
   override def updateAndNext(current: Call, updatedSession: HECSession)(implicit
     r: RequestWithSessionData[_],
@@ -70,7 +74,7 @@ class JourneyServiceImpl @Inject() (sessionStore: SessionStore)(implicit ex: Exe
 
   override def previous(current: Call)(implicit
     r: RequestWithSessionData[_]
-  ): Either[Error, Call] = {
+  ): Call = {
     @tailrec
     def loop(previous: Call): Option[Call] =
       paths.get(previous) match {
@@ -81,13 +85,11 @@ class JourneyServiceImpl @Inject() (sessionStore: SessionStore)(implicit ex: Exe
         case _                   => None
       }
 
-    if (current === routes.HECTaxCheckCodeController.hecTaxCheckCode())
-      Right(current)
+    if (current === routes.StartController.start())
+      current
     else
-      Either.fromOption(
-        loop(routes.HECTaxCheckCodeController.hecTaxCheckCode()),
-        Error(s"Could not find previous for $current")
-      )
+      loop(routes.StartController.start())
+        .getOrElse(sys.error(s"Could not find previous for $current"))
   }
 
 }

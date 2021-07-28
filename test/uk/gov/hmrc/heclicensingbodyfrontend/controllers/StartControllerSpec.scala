@@ -18,18 +18,21 @@ package uk.gov.hmrc.heclicensingbodyfrontend.controllers
 
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
+import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECSession, UserAnswers}
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
+import uk.gov.hmrc.heclicensingbodyfrontend.services.JourneyService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class StartControllerSpec extends ControllerSpec with SessionSupport {
+class StartControllerSpec extends ControllerSpec with SessionSupport with JourneyServiceSupport {
 
   override val overrideBindings =
     List[GuiceableModule](
-      bind[SessionStore].toInstance(mockSessionStore)
+      bind[SessionStore].toInstance(mockSessionStore),
+      bind[JourneyService].toInstance(mockJourneyService)
     )
 
   val controller = instanceOf[StartController]
@@ -55,9 +58,14 @@ class StartControllerSpec extends ControllerSpec with SessionSupport {
       "redirect to the first page of the journey" when {
 
         "a new session has been created and stored for the session" in {
-          mockStoreSession(newSession)(Right(()))
+          val firstPage = Call("", "/first")
 
-          checkIsRedirect(performAction(), routes.HECTaxCheckCodeController.hecTaxCheckCode())
+          inSequence {
+            mockStoreSession(newSession)(Right(()))
+            mockFirstPge(firstPage)
+          }
+
+          checkIsRedirect(performAction(), firstPage)
         }
 
       }
