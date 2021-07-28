@@ -30,6 +30,10 @@ trait JourneyServiceSupport { this: ControllerSpec =>
 
   val mockJourneyService: JourneyService = mock[JourneyService]
 
+  val mockNextCall: Call = Call("", "/next")
+
+  val mockPreviousCall: Call = Call("", "/previous")
+
   def mockJourneyServiceUpdateAndNext(currentPage: Call, currentSession: HECSession, updatedSession: HECSession)(
     result: Either[Error, Call]
   ) =

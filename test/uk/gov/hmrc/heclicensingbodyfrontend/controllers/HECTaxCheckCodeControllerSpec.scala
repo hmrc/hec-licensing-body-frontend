@@ -18,7 +18,7 @@ package uk.gov.hmrc.heclicensingbodyfrontend.controllers
 
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.mvc.{Call, Result}
+import play.api.mvc.Result
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECSession, HECTaxCheckCode, UserAnswers}
@@ -159,7 +159,6 @@ class HECTaxCheckCodeControllerSpec
 
         "valid data is submitted and updating and getting the next page is successful" in {
           val taxCheckCode = HECTaxCheckCode("123ABC789")
-          val next         = Call("", "/next")
 
           inSequence {
             mockGetSession(currentSession)
@@ -167,12 +166,12 @@ class HECTaxCheckCodeControllerSpec
               routes.HECTaxCheckCodeController.hecTaxCheckCode(),
               currentSession,
               currentSession.copy(userAnswers = currentSession.userAnswers.copy(taxCheckCode = Some(taxCheckCode)))
-            )(Right(next))
+            )(Right(mockNextCall))
           }
 
           checkIsRedirect(
             performAction("taxCheckCode" -> "  123 Ab c  7 89  "),
-            next
+            mockNextCall
           )
         }
 
