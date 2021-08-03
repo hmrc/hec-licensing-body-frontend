@@ -18,18 +18,19 @@ package uk.gov.hmrc.heclicensingbodyfrontend.config
 
 import javax.inject.{Inject, Singleton}
 import play.api.Configuration
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 @Singleton
-class AppConfig @Inject() (config: Configuration) {
+class AppConfig @Inject() (config: Configuration) extends ServicesConfig(config) {
 
-  val contactFrontendUrl: String           = config.get[String]("microservice.services.contact-frontend.url")
-  val contactFormServiceIdentifier: String = config.get[String]("contact-frontend.serviceId")
+  val contactFrontendUrl: String           = baseUrl("contact-frontend")
+  val contactFormServiceIdentifier: String = getString("contact-frontend.serviceId")
 
   val welshLanguageSupportEnabled: Boolean =
-    config.getOptional[Boolean]("features.welsh-language-support").getOrElse(false)
+    getConfBool("features.welsh-language-support", false)
 
   val betaFeedbackUrl: String = s"$contactFrontendUrl/contact/beta-feedback?service=$contactFormServiceIdentifier"
 
-  val taxCheckGuidanceUrl: String = config.get[String]("external-url.tax-check-guidance")
+  val taxCheckGuidanceUrl: String = getString("external-url.tax-check-guidance")
 
 }
