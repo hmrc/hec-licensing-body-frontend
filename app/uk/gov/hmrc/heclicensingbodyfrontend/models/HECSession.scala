@@ -17,10 +17,8 @@
 package uk.gov.hmrc.heclicensingbodyfrontend.models
 
 import cats.Eq
-import monocle.macros.Lenses
 import play.api.libs.json.{Json, OFormat}
 
-@Lenses
 final case class HECSession(userAnswers: UserAnswers)
 
 object HECSession {

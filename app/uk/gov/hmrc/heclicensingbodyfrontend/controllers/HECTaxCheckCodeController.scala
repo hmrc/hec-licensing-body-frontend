@@ -20,11 +20,12 @@ import cats.instances.future._
 import com.google.inject.Inject
 import play.api.data.Form
 import play.api.i18n.I18nSupport
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import play.api.data.Forms.{mapping, nonEmptyText}
+import play.api.data.validation.{Constraint, Invalid, Valid}
 import uk.gov.hmrc.heclicensingbodyfrontend.config.AppConfig
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.SessionDataAction
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{HECSession, HECTaxCheckCode, UserAnswers}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckCode
 import uk.gov.hmrc.heclicensingbodyfrontend.services.JourneyService
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging.LoggerOps
@@ -33,7 +34,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import uk.gov.hmrc.heclicensingbodyfrontend.views.html
 
 import java.util.Locale
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class HECTaxCheckCodeController @Inject() (
   sessionDataAction: SessionDataAction,
@@ -54,30 +55,44 @@ class HECTaxCheckCodeController @Inject() (
   }
 
   val hecTaxCheckCodeSubmit: Action[AnyContent] = sessionDataAction.async { implicit request =>
+    def handleValidTaxCheckCode(taxCheckCode: HECTaxCheckCode): Future[Result] = {
+      val updatedAnswers = request.sessionData.userAnswers.copy(taxCheckCode = Some(taxCheckCode))
+      val updatedSession = request.sessionData.copy(userAnswers = updatedAnswers)
+
+      journeyService
+        .updateAndNext(routes.HECTaxCheckCodeController.hecTaxCheckCode(), updatedSession)
+        .fold(
+          { e =>
+            logger.warn("Could not store session and find next location", e)
+            InternalServerError
+          },
+          Redirect
+        )
+    }
+
     taxCheckCodeForm
       .bindFromRequest()
       .fold(
         formWithErrors => Ok(hecTaxCheckCodePage(formWithErrors)),
-        taxCheckCode =>
-          journeyService
-            .updateAndNext(
-              routes.HECTaxCheckCodeController.hecTaxCheckCode(),
-              (HECSession.userAnswers composeLens UserAnswers.taxCheckCode)
-                .set(Some(taxCheckCode))(request.sessionData)
-            )
-            .fold(
-              { e =>
-                logger.warn("Could not store session and find next location", e)
-                InternalServerError
-              },
-              Redirect
-            )
+        handleValidTaxCheckCode
       )
   }
 
 }
 
 object HECTaxCheckCodeController {
+
+  private val invalidAlphanumericChars: List[Char] =
+    List('I', 'O', 'S', 'U', 'V', 'W', '0', '1', '5')
+
+  private val taxCheckCodeConstraint: Constraint[HECTaxCheckCode] =
+    Constraint(code =>
+      if (code.value.length > 9) Invalid("error.tooLong")
+      else if (code.value.length < 9) Invalid("error.tooShort")
+      else if (!code.value.forall(_.isLetterOrDigit)) Invalid("error.nonAlphanumericChars")
+      else if (code.value.intersect(invalidAlphanumericChars).nonEmpty) Invalid("error.invalidAlphanumericChars")
+      else Valid
+    )
 
   val taxCheckCodeForm: Form[HECTaxCheckCode] =
     Form(
@@ -87,9 +102,7 @@ object HECTaxCheckCodeController {
             s => HECTaxCheckCode(s.removeWhitespace.toUpperCase(Locale.UK)),
             _.value
           )
-          .verifying("error.tooLong", c => !(c.value.length > 9))
-          .verifying("error.tooShort", c => !(c.value.length < 9))
-          .verifying("error.pattern", _.value.forall(_.isLetterOrDigit))
+          .verifying(taxCheckCodeConstraint)
       )(identity)(Some(_))
     )
 

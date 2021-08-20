@@ -14,7 +14,8 @@ taxCheckCode.link = Find out how applicants can get a tax check code (opens in n
 taxCheckCode.error.required = Enter the applicant’s tax check code
 taxCheckCode.error.tooLong = The applicant’s tax check code must be 9 characters
 taxCheckCode.error.tooShort = The applicant’s tax check code must be 9 characters
-taxCheckCode.error.pattern = Tax check code must only include letters and numbers
+taxCheckCode.error.nonAlphanumericChars = Tax check code must only include letters and numbers
+taxCheckCode.error.invalidAlphanumericChars = Enter a real Tax check code
 
 
 

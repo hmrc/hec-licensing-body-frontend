@@ -16,10 +16,8 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.models
 
-import monocle.macros.Lenses
 import play.api.libs.json.{Format, Json}
 
-@Lenses
 final case class UserAnswers(taxCheckCode: Option[HECTaxCheckCode])
 
 object UserAnswers {

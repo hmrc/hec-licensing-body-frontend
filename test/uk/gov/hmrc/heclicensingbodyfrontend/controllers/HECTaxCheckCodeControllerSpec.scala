@@ -130,8 +130,25 @@ class HECTaxCheckCodeControllerSpec
           checkFormErrorIsDisplayed(
             performAction("taxCheckCode" -> "12345678="),
             messageFromMessageKey("taxCheckCode.title"),
-            messageFromMessageKey("taxCheckCode.error.pattern")
+            messageFromMessageKey("taxCheckCode.error.nonAlphanumericChars")
           )
+        }
+
+        "th submitted value contains all alphanumeric characters but some of them are invalid" in {
+          List('I', 'O', 'S', 'U', 'V', 'W', '0', '1', '5').foreach { invalidChar =>
+            withClue(s"For char '$invalidChar': '") {
+              val value = s"ABCABCAB$invalidChar"
+
+              mockGetSession(currentSession)
+
+              checkFormErrorIsDisplayed(
+                performAction("taxCheckCode" -> value),
+                messageFromMessageKey("taxCheckCode.title"),
+                messageFromMessageKey("taxCheckCode.error.invalidAlphanumericChars")
+              )
+
+            }
+          }
         }
 
       }
@@ -139,7 +156,7 @@ class HECTaxCheckCodeControllerSpec
       "show an error page" when {
 
         "valid data is submitted but there is a problem updating and getting the next page" in {
-          val taxCheckCode = HECTaxCheckCode("123ABC789")
+          val taxCheckCode = HECTaxCheckCode("223ABC789")
 
           inSequence {
             mockGetSession(currentSession)
@@ -158,7 +175,7 @@ class HECTaxCheckCodeControllerSpec
       "continue to the next page" when {
 
         "valid data is submitted and updating and getting the next page is successful" in {
-          val taxCheckCode = HECTaxCheckCode("123ABC789")
+          val taxCheckCode = HECTaxCheckCode("223ABC789")
 
           inSequence {
             mockGetSession(currentSession)
@@ -170,7 +187,7 @@ class HECTaxCheckCodeControllerSpec
           }
 
           checkIsRedirect(
-            performAction("taxCheckCode" -> "  123 Ab c  7 89  "),
+            performAction("taxCheckCode" -> "  223 Ab c  7 89  "),
             mockNextCall
           )
         }
