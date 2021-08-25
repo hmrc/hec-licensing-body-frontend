@@ -26,7 +26,7 @@ import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging.LoggerOps
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class StartController @Inject() (
