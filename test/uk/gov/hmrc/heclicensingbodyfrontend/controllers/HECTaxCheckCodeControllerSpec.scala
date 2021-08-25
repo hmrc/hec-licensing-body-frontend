@@ -21,6 +21,7 @@ import play.api.inject.guice.GuiceableModule
 import play.api.mvc.Result
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import uk.gov.hmrc.heclicensingbodyfrontend.config.AppConfig
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECSession, HECTaxCheckCode, UserAnswers}
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
 import uk.gov.hmrc.heclicensingbodyfrontend.services.JourneyService
@@ -42,6 +43,8 @@ class HECTaxCheckCodeControllerSpec
 
   val controller = instanceOf[HECTaxCheckCodeController]
 
+  val appConfig = instanceOf[AppConfig]
+
   "HECTaxCheckCodeController" when {
 
     "handling requests to display the tax check code page" must {
@@ -54,18 +57,26 @@ class HECTaxCheckCodeControllerSpec
 
         "session data is found" in {
           val taxCheckCode = HECTaxCheckCode("ABC DEF 123")
-          mockGetSession(
+          val session      =
             HECSession(
               UserAnswers.empty.copy(
                 taxCheckCode = Some(taxCheckCode)
               )
             )
-          )
+
+          inSequence {
+            mockGetSession(session)
+            mockJourneyServiceGetPrevious(routes.HECTaxCheckCodeController.hecTaxCheckCode(), session)(
+              routes.StartController.start()
+            )
+          }
 
           checkPageIsDisplayed(
             performAction(),
             messageFromMessageKey("taxCheckCode.title"),
             { doc =>
+              doc.select("#back").attr("href") shouldBe appConfig.licencingBodyStartUrl
+
               val button = doc.select("form")
               button.attr("action") shouldBe routes.HECTaxCheckCodeController.hecTaxCheckCodeSubmit().url
 
@@ -95,7 +106,12 @@ class HECTaxCheckCodeControllerSpec
       "show a form error" when {
 
         "nothing has been submitted" in {
-          mockGetSession(currentSession)
+          inSequence {
+            mockGetSession(currentSession)
+            mockJourneyServiceGetPrevious(routes.HECTaxCheckCodeController.hecTaxCheckCode(), currentSession)(
+              mockPreviousCall
+            )
+          }
 
           checkFormErrorIsDisplayed(
             performAction(),
@@ -105,7 +121,12 @@ class HECTaxCheckCodeControllerSpec
         }
 
         "the submitted value is too long" in {
-          mockGetSession(currentSession)
+          inSequence {
+            mockGetSession(currentSession)
+            mockJourneyServiceGetPrevious(routes.HECTaxCheckCodeController.hecTaxCheckCode(), currentSession)(
+              mockPreviousCall
+            )
+          }
 
           checkFormErrorIsDisplayed(
             performAction("taxCheckCode" -> "1234567890"),
@@ -115,7 +136,12 @@ class HECTaxCheckCodeControllerSpec
         }
 
         "the submitted value is too short" in {
-          mockGetSession(currentSession)
+          inSequence {
+            mockGetSession(currentSession)
+            mockJourneyServiceGetPrevious(routes.HECTaxCheckCodeController.hecTaxCheckCode(), currentSession)(
+              mockPreviousCall
+            )
+          }
 
           checkFormErrorIsDisplayed(
             performAction("taxCheckCode" -> "12345678"),
@@ -125,7 +151,12 @@ class HECTaxCheckCodeControllerSpec
         }
 
         "the submitted value contains characters which are not letters or digits" in {
-          mockGetSession(currentSession)
+          inSequence {
+            mockGetSession(currentSession)
+            mockJourneyServiceGetPrevious(routes.HECTaxCheckCodeController.hecTaxCheckCode(), currentSession)(
+              mockPreviousCall
+            )
+          }
 
           checkFormErrorIsDisplayed(
             performAction("taxCheckCode" -> "12345678="),
@@ -139,7 +170,12 @@ class HECTaxCheckCodeControllerSpec
             withClue(s"For char '$invalidChar': '") {
               val value = s"ABCABCAB$invalidChar"
 
-              mockGetSession(currentSession)
+              inSequence {
+                mockGetSession(currentSession)
+                mockJourneyServiceGetPrevious(routes.HECTaxCheckCodeController.hecTaxCheckCode(), currentSession)(
+                  mockPreviousCall
+                )
+              }
 
               checkFormErrorIsDisplayed(
                 performAction("taxCheckCode" -> value),

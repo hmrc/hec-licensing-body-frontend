@@ -41,7 +41,7 @@ class HECTaxCheckCodeController @Inject() (
   journeyService: JourneyService,
   hecTaxCheckCodePage: html.HECTaxCheckCode,
   mcc: MessagesControllerComponents
-)(implicit appConfig: AppConfig, ec: ExecutionContext)
+)(implicit ec: ExecutionContext, appConfig: AppConfig)
     extends FrontendController(mcc)
     with I18nSupport
     with Logging {
@@ -51,7 +51,8 @@ class HECTaxCheckCodeController @Inject() (
   val hecTaxCheckCode: Action[AnyContent] = sessionDataAction { implicit request =>
     val taxCheckCode = request.sessionData.userAnswers.taxCheckCode
     val form         = taxCheckCode.fold(taxCheckCodeForm)(taxCheckCodeForm.fill)
-    Ok(hecTaxCheckCodePage(form))
+    val back         = journeyService.previous(routes.HECTaxCheckCodeController.hecTaxCheckCode())
+    Ok(hecTaxCheckCodePage(form, back))
   }
 
   val hecTaxCheckCodeSubmit: Action[AnyContent] = sessionDataAction.async { implicit request =>
@@ -73,7 +74,13 @@ class HECTaxCheckCodeController @Inject() (
     taxCheckCodeForm
       .bindFromRequest()
       .fold(
-        formWithErrors => Ok(hecTaxCheckCodePage(formWithErrors)),
+        formWithErrors =>
+          Ok(
+            hecTaxCheckCodePage(
+              formWithErrors,
+              journeyService.previous(routes.HECTaxCheckCodeController.hecTaxCheckCode())
+            )
+          ),
         handleValidTaxCheckCode
       )
   }
