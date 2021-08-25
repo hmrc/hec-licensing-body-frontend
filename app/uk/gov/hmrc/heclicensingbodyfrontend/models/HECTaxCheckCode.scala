@@ -18,7 +18,7 @@ package uk.gov.hmrc.heclicensingbodyfrontend.models
 
 import play.api.libs.json.{Json, OFormat}
 
-final case class HECTaxCheckCode(value: String)
+final case class HECTaxCheckCode(value: String) extends AnyVal
 
 object HECTaxCheckCode {
 

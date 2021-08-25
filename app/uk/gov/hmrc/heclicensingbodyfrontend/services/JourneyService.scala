@@ -51,6 +51,9 @@ class JourneyServiceImpl @Inject() (sessionStore: SessionStore)(implicit ex: Exe
 
   implicit val callEq: Eq[Call] = Eq.instance(_.url === _.url)
 
+  // map representing routes from one page to another when users submit answers. The keys are the current page and the
+  // values are the destination pages which come after the current page. The destination can sometimes depend
+  // on state (e.g. the type of user or the answers users have submitted), hence the value type `HECSession => Call`
   lazy val paths: Map[Call, HECSession => Call] = Map(
     routes.StartController.start()                     -> (_ => firstPage),
     routes.HECTaxCheckCodeController.hecTaxCheckCode() -> (_ => routes.LicenceTypeController.licenceType())
