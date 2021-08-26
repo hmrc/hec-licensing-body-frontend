@@ -16,18 +16,21 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.controllers
 
-import uk.gov.hmrc.heclicensingbodyfrontend.views.html.HelloWorldPage
-import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
+import com.google.inject.{Inject, Singleton}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import javax.inject.{Inject, Singleton}
-import scala.concurrent.Future
+import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.SessionDataAction
+import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging
+import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 @Singleton
-class HelloWorldController @Inject() (mcc: MessagesControllerComponents, helloWorldPage: HelloWorldPage)
-    extends FrontendController(mcc) {
+class LicenceTypeController @Inject() (
+  sessionDataAction: SessionDataAction,
+  mcc: MessagesControllerComponents
+) extends FrontendController(mcc)
+    with Logging {
 
-  val helloWorld: Action[AnyContent] = Action.async { implicit request =>
-    Future.successful(Ok(helloWorldPage()))
+  val licenceType: Action[AnyContent] = sessionDataAction { implicit request =>
+    Ok(s"Session is ${request.sessionData}")
   }
 
 }

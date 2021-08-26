@@ -1,5 +1,5 @@
 # Add all the application routes to the app.routes file
-->         /hec-licensing-body-frontend              app.Routes
-->         /                          health.Routes
+->         /confirm-tax-check-code            app.Routes
+->         /                                  health.Routes
 
-GET        /admin/metrics             com.kenshoo.play.metrics.MetricsController.metrics
+GET        /admin/metrics                     com.kenshoo.play.metrics.MetricsController.metrics
