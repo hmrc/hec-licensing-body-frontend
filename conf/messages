@@ -24,7 +24,7 @@ licenceType.driverOfTaxis.hint = Includes hackney carriage and dual licences.
 licenceType.operatorOfPrivateHireVehicles = Operator of private hire vehicles
 licenceType.scrapMetalCollector = Scrap metal mobile collector
 licenceType.scrapMetalDealer = Scrap metal dealer site
-licenceType.error.required = Select the type of licence you are renewing or applying for
-licenceType.error.invalid = Select the type of licence you are renewing or applying for
+licenceType.error.required = Select the type of licence that is being renewed or applied for
+licenceType.error.invalid = Select the type of licence that is being renewed or applied for
 
 
