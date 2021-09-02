@@ -24,6 +24,7 @@ import play.api.data.Forms.{mapping, of}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.LicenceTypeController.{licenceTypeForm, licenceTypeOptions}
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.SessionDataAction
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{HECSession, UserAnswers}
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType._
 import uk.gov.hmrc.heclicensingbodyfrontend.services.JourneyService
@@ -57,8 +58,8 @@ class LicenceTypeController @Inject() (
 
   val licenceTypeSubmit: Action[AnyContent] = sessionDataAction.async { implicit request =>
     def handleValidLicenceType(licenceType: LicenceType): Future[Result] = {
-      val updatedAnswers = request.sessionData.userAnswers.copy(licenceType = Some(licenceType))
-      val updatedSession = request.sessionData.copy(userAnswers = updatedAnswers)
+      val updatedAnswers: UserAnswers = request.sessionData.userAnswers.copy(licenceType = Some(licenceType))
+      val updatedSession: HECSession  = request.sessionData.copy(userAnswers = updatedAnswers)
 
       journeyService
         .updateAndNext(routes.LicenceTypeController.licenceType(), updatedSession)
