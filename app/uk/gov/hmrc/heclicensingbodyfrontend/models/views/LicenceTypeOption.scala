@@ -16,7 +16,9 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.models.views
 
+import cats.Eq
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
+import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType.{DriverOfTaxisAndPrivateHires, OperatorOfPrivateHireVehicles, ScrapMetalDealerSite, ScrapMetalMobileCollector}
 
 final case class LicenceTypeOption(messageKey: String, hintKey: Option[String])
 
@@ -27,4 +29,20 @@ object LicenceTypeOption {
     case LicenceType.ScrapMetalDealerSite          => LicenceTypeOption("scrapMetalDealer", None)
     case LicenceType.OperatorOfPrivateHireVehicles => LicenceTypeOption("operatorOfPrivateHireVehicles", None)
   }
+
+  def licenceTypeFromOption(licenceTypeOption: LicenceTypeOption): LicenceType = licenceTypeOption.messageKey match {
+    case "driverOfTaxis"                 => LicenceType.DriverOfTaxisAndPrivateHires
+    case "scrapMetalCollector"           => LicenceType.ScrapMetalMobileCollector
+    case "operatorOfPrivateHireVehicles" => LicenceType.OperatorOfPrivateHireVehicles
+    case "scrapMetalDealer"              => LicenceType.ScrapMetalDealerSite
+  }
+
+  val licenceTypeOptions: List[LicenceTypeOption] = List(
+    DriverOfTaxisAndPrivateHires,
+    OperatorOfPrivateHireVehicles,
+    ScrapMetalMobileCollector,
+    ScrapMetalDealerSite
+  ).map(LicenceTypeOption.licenceTypeOption)
+
+  implicit val eq: Eq[LicenceTypeOption] = Eq.fromUniversalEquals
 }

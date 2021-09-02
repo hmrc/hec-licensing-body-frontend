@@ -2,16 +2,15 @@
 @import play.api.data.Form
 @import play.api.mvc.{Call, Request}
 @import uk.gov.hmrc.govukfrontend.views.html.components._
-@import uk.gov.hmrc.heclicensingbodyfrontend.models.licence
+@import uk.gov.hmrc.heclicensingbodyfrontend.models.views
 @import uk.gov.hmrc.heclicensingbodyfrontend.controllers.routes
-@import uk.gov.hmrc.heclicensingbodyfrontend.models.views.LicenceTypeOption
 
 @this(layout: Layout, govukErrorSummary: GovukErrorSummary, govukRadios: GovukRadios, govukButton: GovukButton, formWithCSRF: FormWithCSRF)
 
-@(form: Form[licence.LicenceType], back: Call, options: List[licence.LicenceType])(implicit request: Request[_], messages: Messages)
+@(form: Form[views.LicenceTypeOption], back: Call, options: List[views.LicenceTypeOption])(implicit request: Request[_], messages: Messages)
 @key = @{"licenceType"}
 @title = @{messages(s"$key.title")}
-@optionViewModels = @{options.map(LicenceTypeOption.licenceTypeOption)}
+@optionViewModels = @{options}
 @radioOptions = @{optionViewModels.zipWithIndex.map{ case (option, index) => RadioItem(
   content = Text(messages(s"$key.${option.messageKey}")),
   value = Some(index.toString),

@@ -90,7 +90,7 @@ class LicenceTypeControllerSpec
 
     }
 
-    "handling submits on the tax check code page" must {
+    "handling submits on the Licence Type page" must {
 
       def performAction(data: (String, String)*): Future[Result] =
         controller.licenceTypeSubmit(FakeRequest().withFormUrlEncodedBody(data: _*))

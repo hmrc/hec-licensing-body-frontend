@@ -103,9 +103,7 @@ class JourneyServiceImpl @Inject() (sessionStore: SessionStore)(implicit ex: Exe
     else routes.DateOfBirthController.dateOfBirth()
   }
 
-  private def licenceTypeForIndividualAndCompany(licenceType: LicenceType): Boolean = licenceType match {
-    case LicenceType.DriverOfTaxisAndPrivateHires => false
-    case _                                        => true
-  }
+  private def licenceTypeForIndividualAndCompany(licenceType: LicenceType): Boolean =
+    licenceType =!= LicenceType.DriverOfTaxisAndPrivateHires
 
 }
