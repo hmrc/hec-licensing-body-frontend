@@ -18,14 +18,15 @@ package uk.gov.hmrc.heclicensingbodyfrontend.services
 
 import cats.Eq
 import cats.data.EitherT
-import cats.instances.string._
 import cats.instances.future._
+import cats.instances.string._
 import cats.syntax.eq._
 import com.google.inject.{ImplementedBy, Inject, Singleton}
 import play.api.mvc.Call
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.RequestWithSessionData
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECSession}
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.routes
+import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECSession}
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -56,7 +57,8 @@ class JourneyServiceImpl @Inject() (sessionStore: SessionStore)(implicit ex: Exe
   // on state (e.g. the type of user or the answers users have submitted), hence the value type `HECSession => Call`
   lazy val paths: Map[Call, HECSession => Call] = Map(
     routes.StartController.start()                     -> (_ => firstPage),
-    routes.HECTaxCheckCodeController.hecTaxCheckCode() -> (_ => routes.LicenceTypeController.licenceType())
+    routes.HECTaxCheckCodeController.hecTaxCheckCode() -> (_ => routes.LicenceTypeController.licenceType()),
+    routes.LicenceTypeController.licenceType           -> licenceTypeRoute
   )
 
   lazy val firstPage: Call = routes.HECTaxCheckCodeController.hecTaxCheckCode()
@@ -94,5 +96,14 @@ class JourneyServiceImpl @Inject() (sessionStore: SessionStore)(implicit ex: Exe
       loop(routes.StartController.start())
         .getOrElse(sys.error(s"Could not find previous for $current"))
   }
+
+  private def licenceTypeRoute(session: HECSession): Call = {
+    val licenceType = session.userAnswers.licenceType
+    if (licenceType.exists(licenceTypeForIndividualAndCompany)) routes.EntityTypeController.entityType()
+    else routes.DateOfBirthController.dateOfBirth()
+  }
+
+  private def licenceTypeForIndividualAndCompany(licenceType: LicenceType): Boolean =
+    licenceType =!= LicenceType.DriverOfTaxisAndPrivateHires
 
 }

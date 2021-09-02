@@ -23,6 +23,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.{SessionSupport, routes}
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.RequestWithSessionData
+import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECSession, HECTaxCheckCode, UserAnswers}
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -35,6 +36,8 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
   def requestWithSessionData(s: HECSession): RequestWithSessionData[_] = RequestWithSessionData(FakeRequest(), s)
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
+
+  val hecTaxCheckCode = HECTaxCheckCode("ABC DEF 123")
 
   "JourneyServiceImpl" when {
 
@@ -97,6 +100,59 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
           await(result.value) shouldBe Right(routes.LicenceTypeController.licenceType())
         }
 
+        "the licence Type page" when {
+
+          "the licence Type in the session is 'Driver Of Taxis And Private Hires'" in {
+            val currentSession                              = HECSession(UserAnswers.empty)
+            val updatedSession                              = HECSession(
+              UserAnswers.empty.copy(
+                taxCheckCode = Some(hecTaxCheckCode),
+                licenceType = Some(LicenceType.DriverOfTaxisAndPrivateHires)
+              )
+            )
+            implicit val request: RequestWithSessionData[_] =
+              requestWithSessionData(currentSession)
+
+            mockStoreSession(updatedSession)(Right(()))
+
+            val result = journeyService.updateAndNext(
+              routes.LicenceTypeController.licenceType(),
+              updatedSession
+            )
+            await(result.value) shouldBe Right(routes.DateOfBirthController.dateOfBirth())
+          }
+
+          " the licence Type in the session is other than 'Driver Of Taxis And Private Hires'" in {
+            List(
+              LicenceType.OperatorOfPrivateHireVehicles,
+              LicenceType.ScrapMetalDealerSite,
+              LicenceType.ScrapMetalMobileCollector
+            ).foreach { licenceType =>
+              withClue(s"For licence type $licenceType: ") {
+                val answers        = UserAnswers.empty.copy(taxCheckCode = Some(hecTaxCheckCode))
+                val session        = HECSession(UserAnswers.empty)
+                val updatedSession =
+                  HECSession(
+                    answers.copy(
+                      licenceType = Some(LicenceType.ScrapMetalDealerSite)
+                    )
+                  )
+
+                implicit val request: RequestWithSessionData[_] =
+                  requestWithSessionData(session)
+
+                mockStoreSession(updatedSession)(Right(()))
+
+                val result = journeyService.updateAndNext(
+                  routes.LicenceTypeController.licenceType(),
+                  updatedSession
+                )
+                await(result.value) shouldBe Right(routes.EntityTypeController.entityType())
+              }
+            }
+          }
+        }
+
       }
 
       "not update the session" when {
@@ -144,6 +200,18 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
           )
 
           result shouldBe routes.StartController.start()
+        }
+
+        "the licence type page" in {
+          val session                                     = HECSession(UserAnswers.empty)
+          implicit val request: RequestWithSessionData[_] =
+            requestWithSessionData(session)
+
+          val result = journeyService.previous(
+            routes.LicenceTypeController.licenceType()
+          )
+
+          result shouldBe routes.HECTaxCheckCodeController.hecTaxCheckCode()
         }
 
       }

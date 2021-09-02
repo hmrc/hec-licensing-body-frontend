@@ -14,17 +14,26 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.heclicensingbodyfrontend.models
+package uk.gov.hmrc.heclicensingbodyfrontend.models.licence
 
-import play.api.libs.json.{Format, Json}
-import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
+import cats.Eq
+import julienrf.json.derived
+import play.api.libs.json.OFormat
 
-final case class UserAnswers(taxCheckCode: Option[HECTaxCheckCode], licenceType: Option[LicenceType])
+sealed trait LicenceType extends Product with Serializable
 
-object UserAnswers {
+object LicenceType {
 
-  val empty: UserAnswers = UserAnswers(None, None)
+  case object DriverOfTaxisAndPrivateHires extends LicenceType
 
-  implicit val format: Format[UserAnswers] = Json.format
+  case object OperatorOfPrivateHireVehicles extends LicenceType
+
+  case object ScrapMetalMobileCollector extends LicenceType
+
+  case object ScrapMetalDealerSite extends LicenceType
+
+  implicit val eq: Eq[LicenceType] = Eq.fromUniversalEquals
+
+  implicit val format: OFormat[LicenceType] = derived.oformat()
 
 }

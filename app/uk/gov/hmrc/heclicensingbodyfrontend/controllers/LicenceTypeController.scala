@@ -16,21 +16,95 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.controllers
 
+import cats.instances.future._
 import com.google.inject.{Inject, Singleton}
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.data.Form
+import play.api.i18n.I18nSupport
+import play.api.data.Forms.{mapping, of}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
+import uk.gov.hmrc.heclicensingbodyfrontend.controllers.LicenceTypeController.{licenceTypeForm, licenceTypeOptions, licenceTypes}
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.SessionDataAction
-import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{HECSession, UserAnswers}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
+import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType.{DriverOfTaxisAndPrivateHires, OperatorOfPrivateHireVehicles, ScrapMetalDealerSite, ScrapMetalMobileCollector}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.views.LicenceTypeOption
+import uk.gov.hmrc.heclicensingbodyfrontend.services.JourneyService
+import uk.gov.hmrc.heclicensingbodyfrontend.util.{FormUtils, Logging}
+import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging.LoggerOps
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
+import uk.gov.hmrc.heclicensingbodyfrontend.views.html
+
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class LicenceTypeController @Inject() (
   sessionDataAction: SessionDataAction,
+  journeyService: JourneyService,
+  licenceTypePage: html.LicenceType,
   mcc: MessagesControllerComponents
-) extends FrontendController(mcc)
+)(implicit ec: ExecutionContext)
+    extends FrontendController(mcc)
+    with I18nSupport
     with Logging {
 
   val licenceType: Action[AnyContent] = sessionDataAction { implicit request =>
-    Ok(s"Session is ${request.sessionData}")
+    val back        = journeyService.previous(routes.LicenceTypeController.licenceType())
+    val licenceType = request.sessionData.userAnswers.licenceType
+    val form = {
+      val emptyForm = licenceTypeForm(licenceTypes)
+      licenceType.fold(emptyForm)(emptyForm.fill)
+    }
+    Ok(licenceTypePage(form, back, licenceTypeOptions))
   }
 
+  val licenceTypeSubmit: Action[AnyContent] = sessionDataAction.async { implicit request =>
+    def handleValidLicenceType(licenceType: LicenceType): Future[Result] = {
+      val updatedAnswers: UserAnswers = request.sessionData.userAnswers.copy(licenceType = Some(licenceType))
+      val updatedSession: HECSession  = request.sessionData.copy(userAnswers = updatedAnswers)
+
+      journeyService
+        .updateAndNext(routes.LicenceTypeController.licenceType(), updatedSession)
+        .fold(
+          { e =>
+            logger.warn("Could not update session and proceed", e)
+            InternalServerError
+          },
+          Redirect
+        )
+    }
+
+    licenceTypeForm(licenceTypes)
+      .bindFromRequest()
+      .fold(
+        formWithErrors =>
+          Ok(
+            licenceTypePage(
+              formWithErrors,
+              journeyService.previous(routes.LicenceTypeController.licenceType()),
+              licenceTypeOptions
+            )
+          ),
+        handleValidLicenceType
+      )
+  }
+
+}
+
+object LicenceTypeController {
+
+  val licenceTypes: List[LicenceType] = List(
+    DriverOfTaxisAndPrivateHires,
+    OperatorOfPrivateHireVehicles,
+    ScrapMetalMobileCollector,
+    ScrapMetalDealerSite
+  )
+
+  val licenceTypeOptions: List[LicenceTypeOption] = licenceTypes.map(LicenceTypeOption.licenceTypeOption)
+
+  def licenceTypeForm(options: List[LicenceType]): Form[LicenceType] =
+    Form(
+      mapping(
+        "licenceType" -> of(FormUtils.radioFormFormatter(options))
+      )(identity)(Some(_))
+    )
 }

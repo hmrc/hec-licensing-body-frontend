@@ -25,12 +25,12 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.http.HttpConfiguration
-import play.api.{Application, Configuration, Environment, Logger, Play}
-import play.api.i18n.{DefaultMessagesApi, DefaultMessagesApiProvider, Lang, Langs, MessagesApi}
+import play.api.i18n._
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.mvc.{Call, Result}
 import play.api.test.Helpers._
+import play.api._
 
 import scala.concurrent.Future
 import scala.reflect.ClassTag
