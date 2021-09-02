@@ -22,12 +22,12 @@ import play.api.data.Form
 import play.api.i18n.I18nSupport
 import play.api.data.Forms.{mapping, of}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
-import uk.gov.hmrc.heclicensingbodyfrontend.controllers.LicenceTypeController.licenceTypeForm
+import uk.gov.hmrc.heclicensingbodyfrontend.controllers.LicenceTypeController.{licenceTypeForm, licenceTypeOptions, licenceTypes}
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.SessionDataAction
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{HECSession, UserAnswers}
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
+import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType.{DriverOfTaxisAndPrivateHires, OperatorOfPrivateHireVehicles, ScrapMetalDealerSite, ScrapMetalMobileCollector}
 import uk.gov.hmrc.heclicensingbodyfrontend.models.views.LicenceTypeOption
-import uk.gov.hmrc.heclicensingbodyfrontend.models.views.LicenceTypeOption.licenceTypeOptions
 import uk.gov.hmrc.heclicensingbodyfrontend.services.JourneyService
 import uk.gov.hmrc.heclicensingbodyfrontend.util.{FormUtils, Logging}
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging.LoggerOps
@@ -48,11 +48,11 @@ class LicenceTypeController @Inject() (
     with Logging {
 
   val licenceType: Action[AnyContent] = sessionDataAction { implicit request =>
-    val back              = journeyService.previous(routes.LicenceTypeController.licenceType())
-    val licenceTypeOption = request.sessionData.userAnswers.licenceType.map(LicenceTypeOption.licenceTypeOption)
+    val back        = journeyService.previous(routes.LicenceTypeController.licenceType())
+    val licenceType = request.sessionData.userAnswers.licenceType
     val form = {
-      val emptyForm = licenceTypeForm(licenceTypeOptions)
-      licenceTypeOption.fold(emptyForm)(emptyForm.fill)
+      val emptyForm = licenceTypeForm(licenceTypes)
+      licenceType.fold(emptyForm)(emptyForm.fill)
     }
     Ok(licenceTypePage(form, back, licenceTypeOptions))
   }
@@ -73,7 +73,7 @@ class LicenceTypeController @Inject() (
         )
     }
 
-    licenceTypeForm(licenceTypeOptions)
+    licenceTypeForm(licenceTypes)
       .bindFromRequest()
       .fold(
         formWithErrors =>
@@ -84,7 +84,7 @@ class LicenceTypeController @Inject() (
               licenceTypeOptions
             )
           ),
-        licenceTypeOpts => handleValidLicenceType(LicenceTypeOption.licenceTypeFromOption(licenceTypeOpts))
+        handleValidLicenceType
       )
   }
 
@@ -92,7 +92,16 @@ class LicenceTypeController @Inject() (
 
 object LicenceTypeController {
 
-  def licenceTypeForm(options: List[LicenceTypeOption]): Form[LicenceTypeOption] =
+  val licenceTypes: List[LicenceType] = List(
+    DriverOfTaxisAndPrivateHires,
+    OperatorOfPrivateHireVehicles,
+    ScrapMetalMobileCollector,
+    ScrapMetalDealerSite
+  )
+
+  val licenceTypeOptions: List[LicenceTypeOption] = licenceTypes.map(LicenceTypeOption.licenceTypeOption)
+
+  def licenceTypeForm(options: List[LicenceType]): Form[LicenceType] =
     Form(
       mapping(
         "licenceType" -> of(FormUtils.radioFormFormatter(options))
