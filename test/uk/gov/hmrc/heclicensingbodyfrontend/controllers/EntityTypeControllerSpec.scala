@@ -21,6 +21,8 @@ import play.api.inject.guice.GuiceableModule
 import play.api.mvc.Result
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import uk.gov.hmrc.heclicensingbodyfrontend.models.EntityType
+import uk.gov.hmrc.heclicensingbodyfrontend.controllers.EntityTypeController.entityTypes
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECSession, HECTaxCheckCode, UserAnswers}
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
@@ -29,7 +31,7 @@ import uk.gov.hmrc.heclicensingbodyfrontend.services.JourneyService
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class LicenceTypeControllerSpec
+class EntityTypeControllerSpec
     extends ControllerSpec
     with SessionSupport
     with SessionDataActionBehaviour
@@ -40,39 +42,39 @@ class LicenceTypeControllerSpec
       bind[JourneyService].toInstance(mockJourneyService)
     )
 
-  val controller = instanceOf[LicenceTypeController]
+  val controller = instanceOf[EntityTypeController]
 
   val taxCheckCode = HECTaxCheckCode("ABC DEF 123")
+  val licenceType  = LicenceType.DriverOfTaxisAndPrivateHires
 
-  "LicenceTypeController" when {
+  "EntityTypeController" when {
 
-    "handling requests to the licence type page" must {
+    "handling requests to the entity type page" must {
 
-      def performAction(): Future[Result] = controller.licenceType(FakeRequest())
+      def performAction(): Future[Result] = controller.entityType(FakeRequest())
 
       behave like sessionDataActionBehaviour(performAction)
 
       "show the page" when {
 
         "session data is found" in {
-          val taxCheckCode = HECTaxCheckCode("ABC DEF 123")
-          val session      =
-            HECSession(
-              UserAnswers.empty.copy(
-                taxCheckCode = Some(taxCheckCode)
-              )
+          val session = HECSession(
+            UserAnswers.empty.copy(
+              taxCheckCode = Some(taxCheckCode),
+              licenceType = Some(licenceType)
             )
+          )
 
           inSequence {
             mockGetSession(session)
-            mockJourneyServiceGetPrevious(routes.LicenceTypeController.licenceType(), session)(
+            mockJourneyServiceGetPrevious(routes.EntityTypeController.entityType(), session)(
               mockPreviousCall
             )
           }
 
           checkPageIsDisplayed(
             performAction(),
-            messageFromMessageKey("licenceType.title"),
+            messageFromMessageKey("entityType.title"),
             { doc =>
               doc.select("#back").attr("href") shouldBe mockPreviousCall.url
 
@@ -80,7 +82,7 @@ class LicenceTypeControllerSpec
               selectedOptions.isEmpty shouldBe true
 
               val form = doc.select("form")
-              form.attr("action") shouldBe routes.LicenceTypeController.licenceTypeSubmit().url
+              form.attr("action") shouldBe routes.EntityTypeController.entityTypeSubmit().url
 
             }
           )
@@ -90,61 +92,62 @@ class LicenceTypeControllerSpec
 
     }
 
-    "handling submits on the Licence Type page" must {
+    "handling submit on the entity type page" must {
 
       def performAction(data: (String, String)*): Future[Result] =
-        controller.licenceTypeSubmit(FakeRequest().withFormUrlEncodedBody(data: _*))
+        controller.entityTypeSubmit(FakeRequest().withFormUrlEncodedBody(data: _*))
 
       behave like sessionDataActionBehaviour(() => performAction())
 
-      val currentSession =
-        HECSession(
-          UserAnswers.empty.copy(
-            taxCheckCode = Some(taxCheckCode)
-          )
+      val currentSession = HECSession(
+        UserAnswers.empty.copy(
+          taxCheckCode = Some(taxCheckCode),
+          licenceType = Some(licenceType)
         )
+      )
 
       "show a form error" when {
 
         "nothing has been submitted" in {
           inSequence {
             mockGetSession(currentSession)
-            mockJourneyServiceGetPrevious(routes.LicenceTypeController.licenceType(), currentSession)(
+            mockJourneyServiceGetPrevious(routes.EntityTypeController.entityType(), currentSession)(
               mockPreviousCall
             )
           }
 
           checkFormErrorIsDisplayed(
             performAction(),
-            messageFromMessageKey("licenceType.title"),
-            messageFromMessageKey("licenceType.error.required")
+            messageFromMessageKey("entityType.title"),
+            messageFromMessageKey("entityType.error.required")
           )
 
         }
 
-        "an index is submitted which is too large" in {
+        "an invalid index is submitted" in {
           inSequence {
             mockGetSession(currentSession)
-            mockJourneyServiceGetPrevious(routes.LicenceTypeController.licenceType(), currentSession)(mockPreviousCall)
+            mockJourneyServiceGetPrevious(routes.EntityTypeController.entityType(), currentSession)(mockPreviousCall)
           }
 
+          val invalidIndex = entityTypes.length + 1
           checkFormErrorIsDisplayed(
-            performAction("licenceType" -> Int.MaxValue.toString),
-            messageFromMessageKey("licenceType.title"),
-            messageFromMessageKey("licenceType.error.invalid")
+            performAction("entityType" -> invalidIndex.toString),
+            messageFromMessageKey("entityType.title"),
+            messageFromMessageKey("entityType.error.invalid")
           )
         }
 
-        "a value is submitted which is not a number" in {
+        "a non-numeric value is submitted" in {
           inSequence {
             mockGetSession(currentSession)
-            mockJourneyServiceGetPrevious(routes.LicenceTypeController.licenceType(), currentSession)(mockPreviousCall)
+            mockJourneyServiceGetPrevious(routes.EntityTypeController.entityType(), currentSession)(mockPreviousCall)
           }
 
           checkFormErrorIsDisplayed(
-            performAction("licenceType" -> "xyz"),
-            messageFromMessageKey("licenceType.title"),
-            messageFromMessageKey("licenceType.error.invalid")
+            performAction("entityType" -> "xyz"),
+            messageFromMessageKey("entityType.title"),
+            messageFromMessageKey("entityType.error.invalid")
           )
         }
 
@@ -154,17 +157,17 @@ class LicenceTypeControllerSpec
 
         "the call to update and next fails" in {
           val answers        = UserAnswers.empty
-          val updatedAnswers = UserAnswers.empty.copy(licenceType = Some(LicenceType.DriverOfTaxisAndPrivateHires))
+          val updatedAnswers = UserAnswers.empty.copy(entityType = Some(EntityType.Individual))
           val session        = HECSession(answers)
           val updatedSession = HECSession(updatedAnswers)
 
           inSequence {
             mockGetSession(session)
-            mockJourneyServiceUpdateAndNext(routes.LicenceTypeController.licenceType(), session, updatedSession)(
+            mockJourneyServiceUpdateAndNext(routes.EntityTypeController.entityType(), session, updatedSession)(
               Left(Error(new Exception))
             )
           }
-          status(performAction("licenceType" -> "0")) shouldBe INTERNAL_SERVER_ERROR
+          status(performAction("entityType" -> "0")) shouldBe INTERNAL_SERVER_ERROR
         }
 
       }
@@ -176,40 +179,41 @@ class LicenceTypeControllerSpec
           "the user has not previously completed answering questions" in {
             val answers        = UserAnswers.empty.copy(
               taxCheckCode = Some(taxCheckCode),
-              licenceType = None
+              licenceType = Some(licenceType),
+              entityType = None
             )
-            val updatedAnswers = answers.copy(licenceType = Some(LicenceType.OperatorOfPrivateHireVehicles))
+            val updatedAnswers = answers.copy(entityType = Some(EntityType.Company))
             val session        = HECSession(answers)
             val updatedSession = session.copy(userAnswers = updatedAnswers)
 
             inSequence {
               mockGetSession(session)
-              mockJourneyServiceUpdateAndNext(routes.LicenceTypeController.licenceType(), session, updatedSession)(
+              mockJourneyServiceUpdateAndNext(routes.EntityTypeController.entityType(), session, updatedSession)(
                 Right(mockNextCall)
               )
             }
 
-            checkIsRedirect(performAction("licenceType" -> "1"), mockNextCall)
+            checkIsRedirect(performAction("entityType" -> "1"), mockNextCall)
           }
 
-          "the user has previously completed answering questions" in {
+          "the user had already answered the question" in {
             val answers        = UserAnswers(
               taxCheckCode = Some(taxCheckCode),
-              Some(LicenceType.DriverOfTaxisAndPrivateHires),
-              None
+              licenceType = Some(licenceType),
+              entityType = Some(EntityType.Individual)
             )
-            val updatedAnswers = answers.copy(licenceType = Some(LicenceType.ScrapMetalMobileCollector))
+            val updatedAnswers = answers.copy(entityType = Some(EntityType.Company))
             val session        = HECSession(answers)
             val updatedSession = session.copy(userAnswers = updatedAnswers)
 
             inSequence {
               mockGetSession(session)
-              mockJourneyServiceUpdateAndNext(routes.LicenceTypeController.licenceType(), session, updatedSession)(
+              mockJourneyServiceUpdateAndNext(routes.EntityTypeController.entityType(), session, updatedSession)(
                 Right(mockNextCall)
               )
             }
 
-            checkIsRedirect(performAction("licenceType" -> "2"), mockNextCall)
+            checkIsRedirect(performAction("entityType" -> "1"), mockNextCall)
           }
         }
 

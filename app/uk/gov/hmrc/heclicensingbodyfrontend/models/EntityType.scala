@@ -16,19 +16,20 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.models
 
-import play.api.libs.json.{Format, Json}
-import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
+import cats.Eq
+import julienrf.json.derived
+import play.api.libs.json.OFormat
 
-final case class UserAnswers(
-  taxCheckCode: Option[HECTaxCheckCode],
-  licenceType: Option[LicenceType],
-  entityType: Option[EntityType]
-)
+sealed trait EntityType extends Product with Serializable
 
-object UserAnswers {
+object EntityType {
 
-  val empty: UserAnswers = UserAnswers(None, None, None)
+  case object Individual extends EntityType
 
-  implicit val format: Format[UserAnswers] = Json.format
+  case object Company extends EntityType
+
+  implicit val eq: Eq[EntityType] = Eq.fromUniversalEquals
+
+  implicit val format: OFormat[EntityType] = derived.oformat()
 
 }
