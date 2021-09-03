@@ -27,4 +27,9 @@ licenceType.scrapMetalDealer = Scrap metal dealer site
 licenceType.error.required = Select the type of licence that is being renewed or applied for
 licenceType.error.invalid = Select the type of licence that is being renewed or applied for
 
-
+# Entity type
+entityType.title = Is the applicant an individual or a company?
+entityType.Individual = Individual
+entityType.Company = Company
+entityType.error.required = Select whether applicant is 'Individual' or 'Company'
+entityType.error.invalid = Select whether applicant is 'Individual' or 'Company'
