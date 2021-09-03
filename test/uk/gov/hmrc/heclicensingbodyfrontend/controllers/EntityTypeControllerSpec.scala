@@ -129,7 +129,6 @@ class EntityTypeControllerSpec
             mockGetSession(currentSession)
             mockJourneyServiceGetPrevious(routes.EntityTypeController.entityType(), currentSession)(mockPreviousCall)
           }
-
           val invalidIndex = entityTypes.length + 1
           checkFormErrorIsDisplayed(
             performAction("entityType" -> invalidIndex.toString),
@@ -197,6 +196,7 @@ class EntityTypeControllerSpec
           }
 
           "the user had already answered the question" in {
+
             val answers        = UserAnswers(
               taxCheckCode = Some(taxCheckCode),
               licenceType = Some(licenceType),
