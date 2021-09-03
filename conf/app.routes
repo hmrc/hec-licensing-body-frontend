@@ -1,17 +1,17 @@
 # microservice specific routes
 
-->         /govuk-frontend          govuk.Routes
-->         /hmrc-frontend           hmrcfrontend.Routes
-GET        /assets/*file            controllers.Assets.versioned(path = "/public", file: controllers.Assets.Asset)
+->         /govuk-frontend                govuk.Routes
+->         /hmrc-frontend                 hmrcfrontend.Routes
+GET        /assets/*file                  controllers.Assets.versioned(path = "/public", file: controllers.Assets.Asset)
 
-GET        /start                   uk.gov.hmrc.heclicensingbodyfrontend.controllers.StartController.start
+GET        /start                         uk.gov.hmrc.heclicensingbodyfrontend.controllers.StartController.start
 
-GET        /enter-tax-check-code    uk.gov.hmrc.heclicensingbodyfrontend.controllers.HECTaxCheckCodeController.hecTaxCheckCode
-POST       /enter-tax-check-code    uk.gov.hmrc.heclicensingbodyfrontend.controllers.HECTaxCheckCodeController.hecTaxCheckCodeSubmit
+GET        /enter-tax-check-code          uk.gov.hmrc.heclicensingbodyfrontend.controllers.HECTaxCheckCodeController.hecTaxCheckCode
+POST       /enter-tax-check-code          uk.gov.hmrc.heclicensingbodyfrontend.controllers.HECTaxCheckCodeController.hecTaxCheckCodeSubmit
 
-GET        /licence-type            uk.gov.hmrc.heclicensingbodyfrontend.controllers.LicenceTypeController.licenceType
-POST       /licence-type            uk.gov.hmrc.heclicensingbodyfrontend.controllers.LicenceTypeController.licenceTypeSubmit
+GET        /licence-type                  uk.gov.hmrc.heclicensingbodyfrontend.controllers.LicenceTypeController.licenceType
+POST       /licence-type                  uk.gov.hmrc.heclicensingbodyfrontend.controllers.LicenceTypeController.licenceTypeSubmit
 
-GET        /enter-date-birth        uk.gov.hmrc.heclicensingbodyfrontend.controllers.DateOfBirthController.dateOfBirth
+GET        /enter-date-birth              uk.gov.hmrc.heclicensingbodyfrontend.controllers.DateOfBirthController.dateOfBirth
 
-GET        /entity-type             uk.gov.hmrc.heclicensingbodyfrontend.controllers.EntityTypeController.entityType
+GET        /select-individual-or-company  uk.gov.hmrc.heclicensingbodyfrontend.controllers.EntityTypeController.entityType
