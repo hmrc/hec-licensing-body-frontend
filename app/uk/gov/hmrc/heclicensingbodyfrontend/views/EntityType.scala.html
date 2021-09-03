@@ -3,13 +3,13 @@
 @import play.api.mvc.{Call, Request}
 @import uk.gov.hmrc.govukfrontend.views.html.components._
 @import uk.gov.hmrc.heclicensingbodyfrontend.controllers.routes
-@import uk.gov.hmrc.heclicensingbodyfrontend.models.{EntityType => EntType}
+@import uk.gov.hmrc.heclicensingbodyfrontend.models
 
 
 @this(layout: Layout, govukErrorSummary: GovukErrorSummary, govukRadios: GovukRadios, govukButton: GovukButton, formWithCSRF: FormWithCSRF)
 
 
-@(form: Form[EntType], back: Call, entityTypes: List[EntType])(implicit request: Request[_], messages: Messages)
+@(form: Form[models.EntityType], back: Call, entityTypes: List[models.EntityType])(implicit request: Request[_], messages: Messages)
 @key = @{"entityType"}
 @title = @{messages(s"$key.title")}
 @radioOptions = @{entityTypes.zipWithIndex.map{ case (option, index) => RadioItem(

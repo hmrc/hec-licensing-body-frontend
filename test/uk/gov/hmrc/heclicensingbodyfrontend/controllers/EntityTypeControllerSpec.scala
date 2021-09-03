@@ -196,7 +196,7 @@ class EntityTypeControllerSpec
             checkIsRedirect(performAction("entityType" -> "1"), mockNextCall)
           }
 
-          "the user has previously completed answering questions" in {
+          "the user had already answered the question" in {
             val answers        = UserAnswers(
               taxCheckCode = Some(taxCheckCode),
               licenceType = Some(licenceType),
