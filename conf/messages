@@ -33,3 +33,4 @@ entityType.Individual = Individual
 entityType.Company = Company
 entityType.error.required = Select whether the applicant is 'Individual' or 'Company'
 entityType.error.invalid = Select whether the applicant is 'Individual' or 'Company'
+
