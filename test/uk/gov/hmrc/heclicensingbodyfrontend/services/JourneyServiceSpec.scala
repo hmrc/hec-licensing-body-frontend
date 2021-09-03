@@ -248,6 +248,42 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
           result shouldBe routes.HECTaxCheckCodeController.hecTaxCheckCode()
         }
 
+        "the date of birth page via the licence type page" in {
+          val session                                     = HECSession(
+            UserAnswers(
+              taxCheckCode = Some(hecTaxCheckCode),
+              licenceType = Some(LicenceType.DriverOfTaxisAndPrivateHires),
+              entityType = None
+            )
+          )
+          implicit val request: RequestWithSessionData[_] =
+            requestWithSessionData(session)
+
+          val result = journeyService.previous(
+            routes.DateOfBirthController.dateOfBirth()
+          )
+
+          result shouldBe routes.LicenceTypeController.licenceType()
+        }
+
+        "the date of birth page via the entity type page" in {
+          val session                                     = HECSession(
+            UserAnswers(
+              taxCheckCode = Some(hecTaxCheckCode),
+              licenceType = Some(LicenceType.ScrapMetalMobileCollector),
+              entityType = Some(EntityType.Individual)
+            )
+          )
+          implicit val request: RequestWithSessionData[_] =
+            requestWithSessionData(session)
+
+          val result = journeyService.previous(
+            routes.DateOfBirthController.dateOfBirth()
+          )
+
+          result shouldBe routes.EntityTypeController.entityType()
+        }
+
         "the entity type page" in {
           List(
             LicenceType.ScrapMetalDealerSite,
@@ -272,6 +308,24 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
               result shouldBe routes.LicenceTypeController.licenceType()
             }
           }
+        }
+
+        "the CRN page" in {
+          val session                                     = HECSession(
+            UserAnswers(
+              taxCheckCode = Some(hecTaxCheckCode),
+              licenceType = Some(LicenceType.ScrapMetalMobileCollector),
+              entityType = Some(EntityType.Company)
+            )
+          )
+          implicit val request: RequestWithSessionData[_] =
+            requestWithSessionData(session)
+
+          val result = journeyService.previous(
+            routes.CRNController.companyRegistrationNumber()
+          )
+
+          result shouldBe routes.EntityTypeController.entityType()
         }
 
       }
