@@ -26,7 +26,7 @@ import play.api.mvc.Call
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.RequestWithSessionData
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.routes
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECSession}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{EntityType, Error, HECSession}
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -58,7 +58,8 @@ class JourneyServiceImpl @Inject() (sessionStore: SessionStore)(implicit ex: Exe
   lazy val paths: Map[Call, HECSession => Call] = Map(
     routes.StartController.start()                     -> (_ => firstPage),
     routes.HECTaxCheckCodeController.hecTaxCheckCode() -> (_ => routes.LicenceTypeController.licenceType()),
-    routes.LicenceTypeController.licenceType           -> licenceTypeRoute
+    routes.LicenceTypeController.licenceType()         -> licenceTypeRoute,
+    routes.EntityTypeController.entityType()           -> entityTypeRoute
   )
 
   lazy val firstPage: Call = routes.HECTaxCheckCodeController.hecTaxCheckCode()
@@ -105,5 +106,14 @@ class JourneyServiceImpl @Inject() (sessionStore: SessionStore)(implicit ex: Exe
 
   private def licenceTypeForIndividualAndCompany(licenceType: LicenceType): Boolean =
     licenceType =!= LicenceType.DriverOfTaxisAndPrivateHires
+
+  private def entityTypeRoute(session: HECSession): Call = {
+    val entityType = session.userAnswers.entityType
+    if (entityType.contains(EntityType.Individual)) {
+      routes.DateOfBirthController.dateOfBirth()
+    } else {
+      routes.CRNController.companyRegistrationNumber()
+    }
+  }
 
 }

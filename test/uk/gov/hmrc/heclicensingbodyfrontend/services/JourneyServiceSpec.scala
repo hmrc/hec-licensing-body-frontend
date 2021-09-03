@@ -19,6 +19,7 @@ package uk.gov.hmrc.heclicensingbodyfrontend.services
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.{SessionSupport, routes}
@@ -26,6 +27,7 @@ import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.RequestWithSessi
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECSession, HECTaxCheckCode, UserAnswers}
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.heclicensingbodyfrontend.models.EntityType
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -122,7 +124,7 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
             await(result.value) shouldBe Right(routes.DateOfBirthController.dateOfBirth())
           }
 
-          " the licence Type in the session is other than 'Driver Of Taxis And Private Hires'" in {
+          "the licence Type in the session is other than 'Driver Of Taxis And Private Hires'" in {
             List(
               LicenceType.OperatorOfPrivateHireVehicles,
               LicenceType.ScrapMetalDealerSite,
@@ -150,6 +152,38 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
                 await(result.value) shouldBe Right(routes.EntityTypeController.entityType())
               }
             }
+          }
+        }
+
+        "the entity type page" when {
+
+          def test(entityType: EntityType, nextCall: Call) = {
+            val currentSession                              = HECSession(UserAnswers.empty)
+            val updatedSession                              = HECSession(
+              UserAnswers(
+                taxCheckCode = Some(hecTaxCheckCode),
+                licenceType = Some(LicenceType.DriverOfTaxisAndPrivateHires),
+                entityType = Some(entityType)
+              )
+            )
+            implicit val request: RequestWithSessionData[_] =
+              requestWithSessionData(currentSession)
+
+            mockStoreSession(updatedSession)(Right(()))
+
+            val result = journeyService.updateAndNext(
+              routes.EntityTypeController.entityType(),
+              updatedSession
+            )
+            await(result.value) shouldBe Right(nextCall)
+          }
+
+          "the entity type in the session is Individual" in {
+            test(EntityType.Individual, routes.DateOfBirthController.dateOfBirth())
+          }
+
+          "the entity type in the session is Company" in {
+            test(EntityType.Company, routes.CRNController.companyRegistrationNumber())
           }
         }
 
@@ -212,6 +246,32 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
           )
 
           result shouldBe routes.HECTaxCheckCodeController.hecTaxCheckCode()
+        }
+
+        "the entity type page" in {
+          List(
+            LicenceType.ScrapMetalDealerSite,
+            LicenceType.ScrapMetalMobileCollector,
+            LicenceType.OperatorOfPrivateHireVehicles
+          ).foreach { licenceType =>
+            withClue(s"for licence type $licenceType: ") {
+              val session                                     = HECSession(
+                UserAnswers(
+                  taxCheckCode = Some(hecTaxCheckCode),
+                  licenceType = Some(licenceType),
+                  entityType = None
+                )
+              )
+              implicit val request: RequestWithSessionData[_] =
+                requestWithSessionData(session)
+
+              val result = journeyService.previous(
+                routes.EntityTypeController.entityType()
+              )
+
+              result shouldBe routes.LicenceTypeController.licenceType()
+            }
+          }
         }
 
       }
