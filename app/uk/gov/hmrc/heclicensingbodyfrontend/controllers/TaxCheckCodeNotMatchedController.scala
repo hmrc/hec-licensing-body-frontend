@@ -16,39 +16,29 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.controllers
 
-import cats.instances.future._
-import com.google.inject.{Inject, Singleton}
+import com.google.inject.Singleton
+import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{HECSession, UserAnswers}
-import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
+import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.SessionDataAction
 import uk.gov.hmrc.heclicensingbodyfrontend.services.JourneyService
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging
-import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging.LoggerOps
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
-import scala.concurrent.ExecutionContext
+import javax.inject.Inject
 
 @Singleton
-class StartController @Inject() (
-  sessionStore: SessionStore,
+class TaxCheckCodeNotMatchedController @Inject() (
+  sessionDataAction: SessionDataAction,
   journeyService: JourneyService,
   mcc: MessagesControllerComponents
-)(implicit ec: ExecutionContext)
-    extends FrontendController(mcc)
+) extends FrontendController(mcc)
+    with I18nSupport
     with Logging {
 
-  val start: Action[AnyContent] = Action.async { implicit request =>
-    val newSession = HECSession(UserAnswers.empty, None)
-
-    sessionStore
-      .store(newSession)
-      .fold(
-        { e =>
-          logger.warn("Could not store session", e)
-          InternalServerError
-        },
-        _ => Redirect(journeyService.firstPage)
-      )
+  val taxCheckNotMatch: Action[AnyContent] = sessionDataAction { implicit request =>
+    Ok(
+      s"Session is ${request.sessionData} back Url ::${journeyService.previous(routes.TaxCheckCodeNotMatchedController.taxCheckNotMatch())}"
+    )
   }
 
 }

@@ -16,14 +16,19 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.models
 
-import play.api.libs.functional.syntax.toInvariantFunctorOps
-import play.api.libs.json.Format
+import julienrf.json.derived
+import play.api.libs.json.OFormat
 
-final case class HECTaxCheckCode(value: String) extends AnyVal
+sealed trait HECTaxCheckMatchResult
 
-object HECTaxCheckCode {
+object HECTaxCheckMatchResult {
 
-  implicit val format: Format[HECTaxCheckCode] =
-    implicitly[Format[String]].inmap(HECTaxCheckCode(_), _.value)
+  final case class NoMatch(matchRequest: HECTaxCheckMatchRequest) extends HECTaxCheckMatchResult
+
+  final case class Match(matchRequest: HECTaxCheckMatchRequest) extends HECTaxCheckMatchResult
+
+  final case class Expired(matchRequest: HECTaxCheckMatchRequest) extends HECTaxCheckMatchResult
+
+  implicit val format: OFormat[HECTaxCheckMatchResult] = derived.oformat()
 
 }

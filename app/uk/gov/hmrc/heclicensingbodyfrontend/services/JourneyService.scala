@@ -25,6 +25,7 @@ import com.google.inject.{ImplementedBy, Inject, Singleton}
 import play.api.mvc.Call
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.RequestWithSessionData
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.routes
+import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckMatchResult._
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{EntityType, Error, HECSession}
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
@@ -59,7 +60,8 @@ class JourneyServiceImpl @Inject() (sessionStore: SessionStore)(implicit ex: Exe
     routes.StartController.start()                     -> (_ => firstPage),
     routes.HECTaxCheckCodeController.hecTaxCheckCode() -> (_ => routes.LicenceTypeController.licenceType()),
     routes.LicenceTypeController.licenceType()         -> licenceTypeRoute,
-    routes.EntityTypeController.entityType()           -> entityTypeRoute
+    routes.EntityTypeController.entityType()           -> entityTypeRoute,
+    routes.DateOfBirthController.dateOfBirth()         -> dateOfBirthRoute
   )
 
   lazy val firstPage: Call = routes.HECTaxCheckCodeController.hecTaxCheckCode()
@@ -115,5 +117,17 @@ class JourneyServiceImpl @Inject() (sessionStore: SessionStore)(implicit ex: Exe
       routes.CRNController.companyRegistrationNumber()
     }
   }
+
+  private def dateOfBirthRoute(session: HECSession): Call =
+    session.taxCheckMatch match {
+      case Some(taxMatch) =>
+        taxMatch match {
+          case Match(_)   => routes.TaxCheckCodeValidController.taxCheckMatch()
+          case Expired(_) => routes.TaxCheckCodeExpiredController.taxCheckExpired()
+          case NoMatch(_) => routes.TaxCheckCodeNotMatchedController.taxCheckNotMatch()
+        }
+      case None           =>
+        routes.TaxCheckCodeNotMatchedController.taxCheckNotMatch()
+    }
 
 }

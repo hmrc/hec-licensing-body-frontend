@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.heclicensingbodyfrontend.models
+package uk.gov.hmrc.heclicensingbodyfrontend.models.ids
 
+import cats.Eq
 import play.api.libs.functional.syntax.toInvariantFunctorOps
 import play.api.libs.json.Format
 
-final case class HECTaxCheckCode(value: String) extends AnyVal
+final case class CRN(value: String) extends AnyVal
 
-object HECTaxCheckCode {
+object CRN {
 
-  implicit val format: Format[HECTaxCheckCode] =
-    implicitly[Format[String]].inmap(HECTaxCheckCode(_), _.value)
+  implicit val format: Format[CRN] =
+    implicitly[Format[String]].inmap(CRN(_), _.value)
+
+  implicit val eq: Eq[CRN] = Eq.fromUniversalEquals
 
 }

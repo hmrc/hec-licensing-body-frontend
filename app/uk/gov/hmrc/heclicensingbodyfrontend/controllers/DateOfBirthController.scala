@@ -16,25 +16,125 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.controllers
 
+import cats.data.EitherT
+import cats.instances.future._
 import com.google.inject.{Inject, Singleton}
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.SessionDataAction
-import uk.gov.hmrc.heclicensingbodyfrontend.services.JourneyService
-import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging
+import play.api.data.Form
+import play.api.data.Forms.{mapping, of}
+import play.api.i18n.{I18nSupport, Messages}
+import play.api.mvc._
+import uk.gov.hmrc.heclicensingbodyfrontend.controllers.DateOfBirthController.dateOfBirthForm
+import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.{RequestWithSessionData, SessionDataAction}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, Error, HECTaxCheckMatchRequest, UserAnswers}
+import uk.gov.hmrc.heclicensingbodyfrontend.services.{HECTaxMatchService, JourneyService}
+import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging.LoggerOps
+import uk.gov.hmrc.heclicensingbodyfrontend.util.{Logging, TimeUtils}
+import uk.gov.hmrc.heclicensingbodyfrontend.views.html
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
+
+import java.time.LocalDate
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class DateOfBirthController @Inject() (
   sessionDataAction: SessionDataAction,
   journeyService: JourneyService,
+  taxMatchService: HECTaxMatchService,
+  dateOfBirthPage: html.DateOfBirth,
   mcc: MessagesControllerComponents
-) extends FrontendController(mcc)
+)(implicit ec: ExecutionContext)
+    extends FrontendController(mcc)
+    with I18nSupport
     with Logging {
 
   val dateOfBirth: Action[AnyContent] = sessionDataAction { implicit request =>
-    Ok(
-      s"Session is ${request.sessionData} back Url ::${journeyService.previous(routes.DateOfBirthController.dateOfBirth())}"
-    )
+    val back        = journeyService.previous(routes.DateOfBirthController.dateOfBirth())
+    val dateOfBirth = request.sessionData.userAnswers.dateOfBirth
+    val form = {
+      val emptyForm = dateOfBirthForm()
+      dateOfBirth.fold(emptyForm)(emptyForm.fill)
+    }
+    Ok(dateOfBirthPage(form, back))
   }
 
+  val dateOfBirthSubmit: Action[AnyContent] = sessionDataAction.async { implicit request =>
+    dateOfBirthForm()
+      .bindFromRequest()
+      .fold(
+        formWithErrors =>
+          Ok(
+            dateOfBirthPage(formWithErrors, journeyService.previous(routes.DateOfBirthController.dateOfBirth()))
+          ),
+        handleValidDateOfBirth
+      )
+  }
+
+  private def handleValidDateOfBirth(dob: DateOfBirth)(implicit
+    r: RequestWithSessionData[_],
+    hc: HeaderCarrier
+  ): Future[Result] =
+    getTaxMatchResult(dob)(r, hc)
+      .fold(
+        { e =>
+          logger.warn(" Couldn't get tax check code", e)
+          InternalServerError
+        },
+        Redirect
+      )
+
+  private def getTaxMatchResult(
+    dateOfBirth: DateOfBirth
+  )(implicit request: RequestWithSessionData[_], headerCarrier: HeaderCarrier): EitherT[Future, Error, Call] = {
+
+    val hecTaxCheckCode = request.sessionData.userAnswers.taxCheckCode
+    val licenceType     = request.sessionData.userAnswers.licenceType
+    (hecTaxCheckCode, licenceType) match {
+      case (Some(taxCheckCode), Some(lType)) =>
+        for {
+          taxMatch      <- taxMatchService.matchTaxCheck(HECTaxCheckMatchRequest(taxCheckCode, lType, Right(dateOfBirth)))(
+                             headerCarrier
+                           )
+          updatedSession = request.sessionData.copy(userAnswers = UserAnswers.empty, Some(taxMatch))
+          next          <- journeyService
+                             .updateAndNext(routes.DateOfBirthController.dateOfBirth(), updatedSession)(request, headerCarrier)
+        } yield next
+      case _                                 =>
+        EitherT.leftT(
+          Error(
+            Left(
+              "Insufficient data to proceed and submit, one of the data is missing : HECTaxCheckCode or LicenceType"
+            )
+          )
+        )
+    }
+  }
+
+}
+
+object DateOfBirthController {
+
+  def dateOfBirthForm()(implicit message: Messages): Form[DateOfBirth] = {
+    val key                         = "dateOfBirth"
+    val futureDate                  = TimeUtils.today().plusDays(1L)
+    val tooFarInPastDate            = LocalDate.of(1990, 1, 1)
+    val futureDateArgs: Seq[String] = Seq(TimeUtils.govDisplayFormat(futureDate))
+    val tooFarInPastArgs            = Seq(TimeUtils.govDisplayFormat(tooFarInPastDate))
+    Form(
+      mapping(
+        "" -> of(
+          TimeUtils.dateFormatter(
+            Some(futureDate),
+            None,
+            s"$key-day",
+            s"$key-month",
+            s"$key-year",
+            key,
+            tooFarInFutureArgs = futureDateArgs,
+            tooFarInPastArgs = tooFarInPastArgs
+          )
+        )
+      )(DateOfBirth(_))(d => Some(d.value))
+    )
+  }
 }

@@ -22,12 +22,13 @@ import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
 final case class UserAnswers(
   taxCheckCode: Option[HECTaxCheckCode],
   licenceType: Option[LicenceType],
-  entityType: Option[EntityType]
+  entityType: Option[EntityType],
+  dateOfBirth: Option[DateOfBirth]
 )
 
 object UserAnswers {
 
-  val empty: UserAnswers = UserAnswers(None, None, None)
+  val empty: UserAnswers = UserAnswers(None, None, None, None)
 
   implicit val format: Format[UserAnswers] = Json.format
 

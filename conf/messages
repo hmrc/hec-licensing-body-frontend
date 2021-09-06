@@ -34,3 +34,22 @@ entityType.Company = Company
 entityType.error.required = Select whether the applicant is 'Individual' or 'Company'
 entityType.error.invalid = Select whether the applicant is 'Individual' or 'Company'
 
+
+
+# Date Of Birth
+dateOfBirth.title = When does the licence you’re doing a tax check for expire?
+dateOfBirth.hint = For example, 23 11 1995.
+dateOfBirth.link = Find out what to do if you do not have a licence
+dateOfBirth.error.invalid = Date of Birth must be a real date
+dateOfBirth.error.required = Enter the Date of Birth of the licence you are doing a tax check for
+dateOfBirth.error.dayRequired = Date of Birth must include a day
+dateOfBirth.error.monthRequired = Date of Birth must include a month
+dateOfBirth.error.yearRequired = Date of Birth must include a year
+dateOfBirth.error.yearLength = Date of Birth's year must be four characters
+dateOfBirth.error.monthAndYearRequired = Date of Birth must include a month and a year
+dateOfBirth.error.dayAndYearRequired= Date of Birth must include a day and a year
+dateOfBirth.error.dayAndMonthRequired = Date of Birth must include a day and a month
+dateOfBirth.error.inFuture = Date of Birth must be before {0}
+dateOfBirth.error.tooFarInPast = Date of Birth must be after {0}
+
+

@@ -19,11 +19,15 @@ package uk.gov.hmrc.heclicensingbodyfrontend.models
 import play.api.libs.functional.syntax.toInvariantFunctorOps
 import play.api.libs.json.Format
 
-final case class HECTaxCheckCode(value: String) extends AnyVal
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
-object HECTaxCheckCode {
+final case class DateOfBirth(value: LocalDate) extends AnyVal
 
-  implicit val format: Format[HECTaxCheckCode] =
-    implicitly[Format[String]].inmap(HECTaxCheckCode(_), _.value)
+object DateOfBirth {
+  private val dateFormatter = DateTimeFormatter.BASIC_ISO_DATE
 
+  implicit val format: Format[DateOfBirth] =
+    implicitly[Format[String]]
+      .inmap(s => DateOfBirth(LocalDate.parse(s, dateFormatter)), d => dateFormatter.format(d.value))
 }
