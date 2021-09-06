@@ -22,13 +22,15 @@ import org.scalatest.wordspec.AnyWordSpec
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import uk.gov.hmrc.heclicensingbodyfrontend.controllers.{SessionSupport, routes}
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.RequestWithSessionData
+import uk.gov.hmrc.heclicensingbodyfrontend.controllers.{SessionSupport, routes}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.EntityType.Individual
+import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckMatchResult._
+import uk.gov.hmrc.heclicensingbodyfrontend.models._
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECSession, HECTaxCheckCode, UserAnswers}
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.heclicensingbodyfrontend.models.EntityType
 
+import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with SessionSupport {
@@ -39,7 +41,16 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
-  val hecTaxCheckCode = HECTaxCheckCode("ABC DEF 123")
+  val hecTaxCheckCode      = HECTaxCheckCode("ABC DEF 123")
+  val dateOfBirth          = DateOfBirth(LocalDate.of(1922, 12, 1))
+  val taxCheckMatchRequest =
+    HECTaxCheckMatchRequest(hecTaxCheckCode, LicenceType.DriverOfTaxisAndPrivateHires, Right(dateOfBirth))
+  val userAnswers1         = UserAnswers(
+    Some(hecTaxCheckCode),
+    Some(LicenceType.DriverOfTaxisAndPrivateHires),
+    Some(Individual),
+    Some(dateOfBirth)
+  )
 
   "JourneyServiceImpl" when {
 
@@ -191,6 +202,61 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
           }
         }
 
+        "date of birth page " when {
+
+          def nextPageTest(updatedHecSession: HECSession, nextCall: Call) = {
+            val currentSession                              = HECSession(UserAnswers.empty, None)
+            val updatedSession                              = updatedHecSession
+            implicit val request: RequestWithSessionData[_] =
+              requestWithSessionData(currentSession)
+
+            mockStoreSession(updatedSession)(Right(()))
+
+            val result = journeyService.updateAndNext(
+              routes.DateOfBirthController.dateOfBirth(),
+              updatedSession
+            )
+            await(result.value) shouldBe Right(nextCall)
+          }
+
+          "the individual details are a match" in {
+
+            nextPageTest(
+              HECSession(
+                userAnswers1,
+                Some(Match(taxCheckMatchRequest))
+              ),
+              routes.TaxCheckCodeValidController.taxCheckMatch()
+            )
+
+          }
+
+          "the individual details are a match but the tax check code has expired" in {
+
+            nextPageTest(
+              HECSession(
+                userAnswers1,
+                Some(Expired(taxCheckMatchRequest))
+              ),
+              routes.TaxCheckCodeExpiredController.taxCheckExpired()
+            )
+
+          }
+
+          "the individual details are not a match" in {
+
+            nextPageTest(
+              HECSession(
+                userAnswers1,
+                Some(NoMatch(taxCheckMatchRequest))
+              ),
+              routes.TaxCheckCodeNotMatchedController.taxCheckNotMatch()
+            )
+
+          }
+
+        }
+
       }
 
       "not update the session" when {
@@ -338,6 +404,36 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
           )
 
           result shouldBe routes.EntityTypeController.entityType()
+        }
+
+        "Tax Check Code not match page" in {
+          val session                                     = HECSession(
+            userAnswers1,
+            Some(NoMatch(taxCheckMatchRequest))
+          )
+          implicit val request: RequestWithSessionData[_] =
+            requestWithSessionData(session)
+
+          val result = journeyService.previous(
+            routes.TaxCheckCodeNotMatchedController.taxCheckNotMatch()
+          )
+
+          result shouldBe routes.DateOfBirthController.dateOfBirth()
+        }
+
+        "Tax Check Code expired page" in {
+          val session                                     = HECSession(
+            userAnswers1,
+            Some(Expired(taxCheckMatchRequest))
+          )
+          implicit val request: RequestWithSessionData[_] =
+            requestWithSessionData(session)
+
+          val result = journeyService.previous(
+            routes.TaxCheckCodeExpiredController.taxCheckExpired()
+          )
+
+          result shouldBe routes.DateOfBirthController.dateOfBirth()
         }
 
       }
