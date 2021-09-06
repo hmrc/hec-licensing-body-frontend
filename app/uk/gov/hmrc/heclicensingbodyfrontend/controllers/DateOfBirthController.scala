@@ -115,17 +115,17 @@ class DateOfBirthController @Inject() (
 object DateOfBirthController {
 
   def dateOfBirthForm()(implicit message: Messages): Form[DateOfBirth] = {
-    val key                         = "dateOfBirth"
-    val futureDate                  = TimeUtils.today().plusDays(1L)
-    val tooFarInPastDate            = LocalDate.of(1990, 1, 1)
-    val futureDateArgs: Seq[String] = Seq(TimeUtils.govDisplayFormat(futureDate))
-    val tooFarInPastArgs            = Seq(TimeUtils.govDisplayFormat(tooFarInPastDate))
+    val key                           = "dateOfBirth"
+    val futureDate                    = TimeUtils.today().plusDays(1L)
+    val tooFarInPastDate              = LocalDate.of(1900, 1, 1)
+    val futureDateArgs: Seq[String]   = Seq(TimeUtils.govDisplayFormat(futureDate))
+    val tooFarInPastArgs: Seq[String] = Seq(TimeUtils.govDisplayFormat(tooFarInPastDate))
     Form(
       mapping(
         "" -> of(
           TimeUtils.dateFormatter(
             Some(futureDate),
-            None,
+            Some(tooFarInPastDate),
             s"$key-day",
             s"$key-month",
             s"$key-year",

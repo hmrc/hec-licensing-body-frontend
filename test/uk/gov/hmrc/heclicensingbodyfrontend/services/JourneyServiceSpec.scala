@@ -257,8 +257,10 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
             UserAnswers(
               taxCheckCode = Some(hecTaxCheckCode),
               licenceType = Some(LicenceType.DriverOfTaxisAndPrivateHires),
-              entityType = None
-            )
+              entityType = None,
+              dateOfBirth = None
+            ),
+            None
           )
           implicit val request: RequestWithSessionData[_] =
             requestWithSessionData(session)
@@ -275,8 +277,10 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
             UserAnswers(
               taxCheckCode = Some(hecTaxCheckCode),
               licenceType = Some(LicenceType.ScrapMetalMobileCollector),
-              entityType = Some(EntityType.Individual)
-            )
+              entityType = Some(EntityType.Individual),
+              None
+            ),
+            None
           )
           implicit val request: RequestWithSessionData[_] =
             requestWithSessionData(session)
@@ -321,8 +325,10 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
             UserAnswers(
               taxCheckCode = Some(hecTaxCheckCode),
               licenceType = Some(LicenceType.ScrapMetalMobileCollector),
-              entityType = Some(EntityType.Company)
-            )
+              entityType = Some(EntityType.Company),
+              None
+            ),
+            None
           )
           implicit val request: RequestWithSessionData[_] =
             requestWithSessionData(session)
