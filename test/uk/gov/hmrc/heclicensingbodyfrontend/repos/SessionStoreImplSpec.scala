@@ -55,7 +55,7 @@ class SessionStoreImplSpec extends AnyWordSpec with Matchers with MongoSupport w
   "SessionStoreImpl" must {
 
     val sessionData =
-      HECSession(UserAnswers.empty)
+      HECSession(UserAnswers.empty, None)
 
     "be able to insert SessionData into mongo and read it back" in new TestEnvironment {
 

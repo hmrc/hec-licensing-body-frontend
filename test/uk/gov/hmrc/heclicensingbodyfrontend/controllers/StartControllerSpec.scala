@@ -43,7 +43,7 @@ class StartControllerSpec extends ControllerSpec with SessionSupport with Journe
 
       def performAction() = controller.start(FakeRequest())
 
-      val newSession = HECSession(UserAnswers.empty)
+      val newSession = HECSession(UserAnswers.empty, None)
 
       "show an error page" when {
 

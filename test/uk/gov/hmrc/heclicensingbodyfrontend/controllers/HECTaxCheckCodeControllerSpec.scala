@@ -61,7 +61,8 @@ class HECTaxCheckCodeControllerSpec
             HECSession(
               UserAnswers.empty.copy(
                 taxCheckCode = Some(taxCheckCode)
-              )
+              ),
+              None
             )
 
           inSequence {
@@ -101,7 +102,7 @@ class HECTaxCheckCodeControllerSpec
 
       behave like sessionDataActionBehaviour(() => performAction())
 
-      val currentSession = HECSession(UserAnswers.empty)
+      val currentSession = HECSession(UserAnswers.empty, None)
 
       "show a form error" when {
 
