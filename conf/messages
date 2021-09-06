@@ -31,5 +31,5 @@ licenceType.error.invalid = Select the type of licence that is being renewed or 
 entityType.title = Is the applicant an individual or a company?
 entityType.Individual = Individual
 entityType.Company = Company
-entityType.error.required = Select whether applicant is 'Individual' or 'Company'
-entityType.error.invalid = Select whether applicant is 'Individual' or 'Company'
+entityType.error.required = Select whether the applicant is 'Individual' or 'Company'
+entityType.error.invalid = Select whether the applicant is 'Individual' or 'Company'
