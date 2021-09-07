@@ -55,6 +55,8 @@ class DateOfBirthControllerSpec
   val hecTaxCheckCode = HECTaxCheckCode("ABC DEF 123")
   val dateOfBirth     = DateOfBirth(LocalDate.of(1922, 12, 1))
 
+  val date = TimeUtils.today().minusYears(20)
+
   val taxCheckMatchRequest =
     HECTaxCheckMatchRequest(hecTaxCheckCode, LicenceType.DriverOfTaxisAndPrivateHires, Right(DateOfBirth(date)))
 
@@ -225,7 +227,7 @@ class DateOfBirthControllerSpec
       "return an InternalServerError" when {
 
         "there is an error updating and getting the next endpoint" in {
-          val date    = TimeUtils.today().minusYears(20)
+
           val answers = UserAnswers.empty.copy(
             taxCheckCode = Some(hecTaxCheckCode),
             licenceType = Some(LicenceType.DriverOfTaxisAndPrivateHires)
@@ -251,7 +253,7 @@ class DateOfBirthControllerSpec
       "redirect to the next page" when {
 
         "a valid date of birth is submitted" in {
-          val date    = TimeUtils.today().minusYears(20L)
+
           val answers = UserAnswers.empty.copy(
             taxCheckCode = Some(hecTaxCheckCode),
             licenceType = Some(LicenceType.DriverOfTaxisAndPrivateHires)
