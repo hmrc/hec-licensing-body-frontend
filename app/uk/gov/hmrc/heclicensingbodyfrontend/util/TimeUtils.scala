@@ -16,9 +16,8 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.util
 
-import cats.implicits.catsKernelStdOrderForInt
+import cats.implicits.{catsKernelStdOrderForInt, catsSyntaxEq}
 import cats.syntax.either._
-import cats.syntax.eq._
 import play.api.data.FormError
 import play.api.data.format.Formatter
 import play.api.i18n.Messages
@@ -49,10 +48,6 @@ object TimeUtils {
       ): Either[FormError, (String, String, String)] =
         List(dayKey, monthKey, yearKey)
           .map(data.get(_).map(_.trim).filter(_.nonEmpty)) match {
-          case Some(_) :: Some(_) :: Some(
-                yearString
-              ) :: Nil if yearString.length =!= 4 =>
-            Left(FormError(dateKey, "error.yearLength"))
           case Some(dayString) :: Some(monthString) :: Some(
                 yearString
               ) :: Nil =>
@@ -94,16 +89,20 @@ object TimeUtils {
                    .fromTry(Try(LocalDate.of(year, month, day)))
                    .leftMap(_ => FormError(dateKey, "error.invalid"))
                    .flatMap(date =>
-                     if (maximumDateInclusive.exists(_.isBefore(date)))
-                       Left(FormError(dateKey, "error.inFuture", tooFarInFutureArgs))
-                     else if (minimumDateInclusive.exists(_.isAfter(date)))
-                       Left(FormError(dateKey, "error.tooFarInPast", tooFarInPastArgs))
-                     else
-                       extraValidation
-                         .map(_(date))
-                         .find(_.isLeft)
-                         .getOrElse(Right(()))
-                         .map(_ => date)
+                     if (dateFieldStrings._3.length =!= 4) {
+                       Left(FormError(dateKey, "error.yearLength"))
+                     } else {
+                       if (maximumDateInclusive.exists(_.isBefore(date)))
+                         Left(FormError(dateKey, "error.inFuture", tooFarInFutureArgs))
+                       else if (minimumDateInclusive.exists(_.isAfter(date)))
+                         Left(FormError(dateKey, "error.tooFarInPast", tooFarInPastArgs))
+                       else
+                         extraValidation
+                           .map(_(date))
+                           .find(_.isLeft)
+                           .getOrElse(Right(()))
+                           .map(_ => date)
+                     }
                    )
         } yield date
 

@@ -18,7 +18,7 @@
         @govukErrorSummary(ErrorSummary(errorList = form.errors.map(e => ErrorLink(
             href = Some(s"#${e.key}-day"),
             content = Text(s"${messages(s"${e.key}.${e.message}", e.args: _*)}")
-        )), title = Text(messages("generic.errorSummary"))))s
+        )), title = Text(messages("generic.errorSummary"))))
     }
 
 
