@@ -16,9 +16,10 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.models
 
-import play.api.libs.json.{Format, JsObject, JsResult, JsValue, Json, OFormat}
+import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.heclicensingbodyfrontend.models.ids.CRN
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
+import uk.gov.hmrc.heclicensingbodyfrontend.models.util.EitherUtils.eitherFormat
 
 final case class HECTaxCheckMatchRequest(
   taxCheckCode: HECTaxCheckCode,
@@ -29,23 +30,5 @@ final case class HECTaxCheckMatchRequest(
 object HECTaxCheckMatchRequest {
 
   implicit val format: OFormat[HECTaxCheckMatchRequest] = Json.format
-
-  implicit def eitherFormat[A, B](implicit
-    aFormat: Format[A],
-    bFormat: Format[B]
-  ): Format[Either[A, B]] =
-    new Format[Either[A, B]] {
-      override def reads(json: JsValue): JsResult[Either[A, B]] =
-        (json \ "l")
-          .validate[A]
-          .map[Either[A, B]](Left(_))
-          .orElse((json \ "r").validate[B].map(Right(_)))
-
-      override def writes(o: Either[A, B]): JsValue =
-        o.fold(
-          a ⇒ JsObject(Seq("l" → Json.toJson(a))),
-          b ⇒ JsObject(Seq("r" → Json.toJson(b)))
-        )
-    }
 
 }

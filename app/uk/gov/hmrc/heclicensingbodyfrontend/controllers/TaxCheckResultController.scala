@@ -27,7 +27,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import javax.inject.Inject
 
 @Singleton
-class TaxCheckCodeExpiredController @Inject() (
+class TaxCheckResultController @Inject() (
   sessionDataAction: SessionDataAction,
   journeyService: JourneyService,
   mcc: MessagesControllerComponents
@@ -35,9 +35,25 @@ class TaxCheckCodeExpiredController @Inject() (
     with I18nSupport
     with Logging {
 
+  //If there is a tax code match, then there is no back link in there
+  val taxCheckMatch: Action[AnyContent] = sessionDataAction { implicit request =>
+    Ok(
+      s"Session is ${request.sessionData}}"
+    )
+  }
+
+  //If tax check code comes as Expired, then user click on View another tax check code button and
+  // it takes back to start of the LB journey, so no back link
   val taxCheckExpired: Action[AnyContent] = sessionDataAction { implicit request =>
     Ok(
-      s"Session is ${request.sessionData} back Url ::${journeyService.previous(routes.TaxCheckCodeExpiredController.taxCheckExpired())}"
+      s"Session is ${request.sessionData}}"
+    )
+  }
+
+//back link is there only in case of NO match
+  val taxCheckNotMatch: Action[AnyContent] = sessionDataAction { implicit request =>
+    Ok(
+      s"Session is ${request.sessionData} back Url ::${journeyService.previous(routes.TaxCheckResultController.taxCheckNotMatch())}"
     )
   }
 

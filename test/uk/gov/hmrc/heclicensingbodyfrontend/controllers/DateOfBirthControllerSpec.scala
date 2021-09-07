@@ -235,7 +235,10 @@ class DateOfBirthControllerSpec
           val session = HECSession(answers, None)
 
           val updatedSession =
-            session.copy(userAnswers = UserAnswers.empty, taxCheckMatch = Some(Match(taxCheckMatchRequest)))
+            session.copy(
+              userAnswers = answers.copy(dateOfBirth = Some(DateOfBirth(date))),
+              taxCheckMatch = Some(Match(taxCheckMatchRequest))
+            )
 
           inSequence {
             mockGetSession(session)
@@ -260,7 +263,7 @@ class DateOfBirthControllerSpec
           )
           val session = HECSession(answers, None)
 
-          val updatedAnswers = UserAnswers.empty
+          val updatedAnswers = answers.copy(dateOfBirth = Some(DateOfBirth(date)))
           val updatedSession =
             session.copy(userAnswers = updatedAnswers, taxCheckMatch = Some(Match(taxCheckMatchRequest)))
 

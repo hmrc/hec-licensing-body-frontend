@@ -25,12 +25,11 @@ import play.api.i18n.{I18nSupport, Messages}
 import play.api.mvc._
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.DateOfBirthController.dateOfBirthForm
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.{RequestWithSessionData, SessionDataAction}
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, Error, HECTaxCheckMatchRequest, UserAnswers}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, Error, HECTaxCheckMatchRequest}
 import uk.gov.hmrc.heclicensingbodyfrontend.services.{HECTaxMatchService, JourneyService}
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging.LoggerOps
 import uk.gov.hmrc.heclicensingbodyfrontend.util.{Logging, TimeUtils}
 import uk.gov.hmrc.heclicensingbodyfrontend.views.html
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 import java.time.LocalDate
@@ -71,10 +70,9 @@ class DateOfBirthController @Inject() (
   }
 
   private def handleValidDateOfBirth(dob: DateOfBirth)(implicit
-    r: RequestWithSessionData[_],
-    hc: HeaderCarrier
+    r: RequestWithSessionData[_]
   ): Future[Result] =
-    getTaxMatchResult(dob)(r, hc)
+    getTaxMatchResult(dob)
       .fold(
         { e =>
           logger.warn(" Couldn't get tax check code", e)
@@ -85,19 +83,18 @@ class DateOfBirthController @Inject() (
 
   private def getTaxMatchResult(
     dateOfBirth: DateOfBirth
-  )(implicit request: RequestWithSessionData[_], headerCarrier: HeaderCarrier): EitherT[Future, Error, Call] = {
+  )(implicit request: RequestWithSessionData[_]): EitherT[Future, Error, Call] = {
 
     val hecTaxCheckCode = request.sessionData.userAnswers.taxCheckCode
     val licenceType     = request.sessionData.userAnswers.licenceType
     (hecTaxCheckCode, licenceType) match {
       case (Some(taxCheckCode), Some(lType)) =>
         for {
-          taxMatch      <- taxMatchService.matchTaxCheck(HECTaxCheckMatchRequest(taxCheckCode, lType, Right(dateOfBirth)))(
-                             headerCarrier
-                           )
-          updatedSession = request.sessionData.copy(userAnswers = UserAnswers.empty, Some(taxMatch))
+          taxMatch      <- taxMatchService.matchTaxCheck(HECTaxCheckMatchRequest(taxCheckCode, lType, Right(dateOfBirth)))
+          updatedAnswers = request.sessionData.userAnswers.copy(dateOfBirth = Some(dateOfBirth))
+          updatedSession = request.sessionData.copy(userAnswers = updatedAnswers, Some(taxMatch))
           next          <- journeyService
-                             .updateAndNext(routes.DateOfBirthController.dateOfBirth(), updatedSession)(request, headerCarrier)
+                             .updateAndNext(routes.DateOfBirthController.dateOfBirth(), updatedSession)
         } yield next
       case _                                 =>
         EitherT.leftT(
