@@ -91,7 +91,6 @@ class TaxCheckResultControllerSpec
 
           def testValidPage(dateTimeChecked: ZonedDateTime, matchRegex: String) = {
             val session = HECSession(answers, Some(Match(matchRequest, dateTimeChecked)))
-
             inSequence {
               mockGetSession(session)
             }
