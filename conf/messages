@@ -33,3 +33,35 @@ entityType.Individual = Individual
 entityType.Company = Company
 entityType.error.required = Select whether the applicant is 'Individual' or 'Company'
 entityType.error.invalid = Select whether the applicant is 'Individual' or 'Company'
+
+# Months
+date.1=January
+date.2=February
+date.3=March
+date.4=April
+date.5=May
+date.6=June
+date.7=July
+date.8=August
+date.9=September
+date.10=October
+date.11=November
+date.12=December
+
+# Date Of Birth
+dateOfBirth.title = What is the applicant’s date of birth?
+dateOfBirth.hint = For example, 23 11 1995.
+dateOfBirth.link = Find out what to do if you do not have a licence
+dateOfBirth.error.invalid = Date of Birth must be a real date
+dateOfBirth.error.required = You must provide an applicant's date of birth
+dateOfBirth.error.dayRequired = Date of Birth must include a day
+dateOfBirth.error.monthRequired = Date of Birth must include a month
+dateOfBirth.error.yearRequired = Date of Birth must include a year
+dateOfBirth.error.yearLength = Date of Birth year must be four characters
+dateOfBirth.error.monthAndYearRequired = Date of Birth must include a month and a year
+dateOfBirth.error.dayAndYearRequired= Date of Birth must include a day and a year
+dateOfBirth.error.dayAndMonthRequired = Date of Birth must include a day and a month
+dateOfBirth.error.inFuture = Date of Birth must be before {0}
+dateOfBirth.error.tooFarInPast = Date of Birth must be after {0}
+
+

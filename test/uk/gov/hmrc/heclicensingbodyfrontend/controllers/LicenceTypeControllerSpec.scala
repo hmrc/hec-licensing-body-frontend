@@ -60,7 +60,8 @@ class LicenceTypeControllerSpec
             HECSession(
               UserAnswers.empty.copy(
                 taxCheckCode = Some(taxCheckCode)
-              )
+              ),
+              None
             )
 
           inSequence {
@@ -101,7 +102,8 @@ class LicenceTypeControllerSpec
         HECSession(
           UserAnswers.empty.copy(
             taxCheckCode = Some(taxCheckCode)
-          )
+          ),
+          None
         )
 
       "show a form error" when {
@@ -155,8 +157,8 @@ class LicenceTypeControllerSpec
         "the call to update and next fails" in {
           val answers        = UserAnswers.empty
           val updatedAnswers = UserAnswers.empty.copy(licenceType = Some(LicenceType.DriverOfTaxisAndPrivateHires))
-          val session        = HECSession(answers)
-          val updatedSession = HECSession(updatedAnswers)
+          val session        = HECSession(answers, None)
+          val updatedSession = HECSession(updatedAnswers, None)
 
           inSequence {
             mockGetSession(session)
@@ -179,7 +181,7 @@ class LicenceTypeControllerSpec
               licenceType = None
             )
             val updatedAnswers = answers.copy(licenceType = Some(LicenceType.OperatorOfPrivateHireVehicles))
-            val session        = HECSession(answers)
+            val session        = HECSession(answers, None)
             val updatedSession = session.copy(userAnswers = updatedAnswers)
 
             inSequence {
@@ -196,10 +198,11 @@ class LicenceTypeControllerSpec
             val answers        = UserAnswers(
               taxCheckCode = Some(taxCheckCode),
               Some(LicenceType.DriverOfTaxisAndPrivateHires),
+              None,
               None
             )
             val updatedAnswers = answers.copy(licenceType = Some(LicenceType.ScrapMetalMobileCollector))
-            val session        = HECSession(answers)
+            val session        = HECSession(answers, None)
             val updatedSession = session.copy(userAnswers = updatedAnswers)
 
             inSequence {

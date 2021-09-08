@@ -38,7 +38,7 @@ class StartController @Inject() (
     with Logging {
 
   val start: Action[AnyContent] = Action.async { implicit request =>
-    val newSession = HECSession(UserAnswers.empty)
+    val newSession = HECSession(UserAnswers.empty, None)
 
     sessionStore
       .store(newSession)

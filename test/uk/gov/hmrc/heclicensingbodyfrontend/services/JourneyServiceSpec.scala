@@ -22,13 +22,15 @@ import org.scalatest.wordspec.AnyWordSpec
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import uk.gov.hmrc.heclicensingbodyfrontend.controllers.{SessionSupport, routes}
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.RequestWithSessionData
+import uk.gov.hmrc.heclicensingbodyfrontend.controllers.{SessionSupport, routes}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.EntityType.Individual
+import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckMatchResult._
+import uk.gov.hmrc.heclicensingbodyfrontend.models._
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECSession, HECTaxCheckCode, UserAnswers}
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.heclicensingbodyfrontend.models.EntityType
 
+import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with SessionSupport {
@@ -39,7 +41,16 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
-  val hecTaxCheckCode = HECTaxCheckCode("ABC DEF 123")
+  val hecTaxCheckCode      = HECTaxCheckCode("ABC DEF 123")
+  val dateOfBirth          = DateOfBirth(LocalDate.of(1922, 12, 1))
+  val taxCheckMatchRequest =
+    HECTaxCheckMatchRequest(hecTaxCheckCode, LicenceType.DriverOfTaxisAndPrivateHires, Right(dateOfBirth))
+  val userAnswers          = UserAnswers(
+    Some(hecTaxCheckCode),
+    Some(LicenceType.DriverOfTaxisAndPrivateHires),
+    Some(Individual),
+    Some(dateOfBirth)
+  )
 
   "JourneyServiceImpl" when {
 
@@ -56,7 +67,7 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
       "return an error" when {
 
         "the next page cannot be determined" in {
-          val session                                     = HECSession(UserAnswers.empty.copy(taxCheckCode = Some(HECTaxCheckCode(""))))
+          val session                                     = HECSession(UserAnswers.empty.copy(taxCheckCode = Some(HECTaxCheckCode(""))), None)
           implicit val request: RequestWithSessionData[_] =
             requestWithSessionData(session)
 
@@ -69,8 +80,8 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
         }
 
         "there is an error updating the session" in {
-          val currentSession                              = HECSession(UserAnswers.empty)
-          val updatedSession                              = HECSession(UserAnswers.empty.copy(taxCheckCode = Some(HECTaxCheckCode(""))))
+          val currentSession                              = HECSession(UserAnswers.empty, None)
+          val updatedSession                              = HECSession(UserAnswers.empty.copy(taxCheckCode = Some(HECTaxCheckCode(""))), None)
           implicit val request: RequestWithSessionData[_] =
             requestWithSessionData(currentSession)
 
@@ -88,8 +99,8 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
       "return the correct next page" when afterWord("the current page is") {
 
         "the tax check code page" in {
-          val currentSession                              = HECSession(UserAnswers.empty)
-          val updatedSession                              = HECSession(UserAnswers.empty.copy(taxCheckCode = Some(HECTaxCheckCode(""))))
+          val currentSession                              = HECSession(UserAnswers.empty, None)
+          val updatedSession                              = HECSession(UserAnswers.empty.copy(taxCheckCode = Some(HECTaxCheckCode(""))), None)
           implicit val request: RequestWithSessionData[_] =
             requestWithSessionData(currentSession)
 
@@ -105,12 +116,13 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
         "the licence Type page" when {
 
           "the licence Type in the session is 'Driver Of Taxis And Private Hires'" in {
-            val currentSession                              = HECSession(UserAnswers.empty)
+            val currentSession                              = HECSession(UserAnswers.empty, None)
             val updatedSession                              = HECSession(
               UserAnswers.empty.copy(
                 taxCheckCode = Some(hecTaxCheckCode),
                 licenceType = Some(LicenceType.DriverOfTaxisAndPrivateHires)
-              )
+              ),
+              None
             )
             implicit val request: RequestWithSessionData[_] =
               requestWithSessionData(currentSession)
@@ -132,12 +144,13 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
             ).foreach { licenceType =>
               withClue(s"For licence type $licenceType: ") {
                 val answers        = UserAnswers.empty.copy(taxCheckCode = Some(hecTaxCheckCode))
-                val session        = HECSession(UserAnswers.empty)
+                val session        = HECSession(UserAnswers.empty, None)
                 val updatedSession =
                   HECSession(
                     answers.copy(
                       licenceType = Some(LicenceType.ScrapMetalDealerSite)
-                    )
+                    ),
+                    None
                   )
 
                 implicit val request: RequestWithSessionData[_] =
@@ -158,13 +171,15 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
         "the entity type page" when {
 
           def test(entityType: EntityType, nextCall: Call) = {
-            val currentSession                              = HECSession(UserAnswers.empty)
+            val currentSession                              = HECSession(UserAnswers.empty, None)
             val updatedSession                              = HECSession(
               UserAnswers(
                 taxCheckCode = Some(hecTaxCheckCode),
                 licenceType = Some(LicenceType.DriverOfTaxisAndPrivateHires),
-                entityType = Some(entityType)
-              )
+                entityType = Some(entityType),
+                None
+              ),
+              None
             )
             implicit val request: RequestWithSessionData[_] =
               requestWithSessionData(currentSession)
@@ -187,12 +202,67 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
           }
         }
 
+        "date of birth page " when {
+
+          def nextPageTest(updatedHecSession: HECSession, nextCall: Call) = {
+            val currentSession                              = HECSession(UserAnswers.empty, None)
+            val updatedSession                              = updatedHecSession
+            implicit val request: RequestWithSessionData[_] =
+              requestWithSessionData(currentSession)
+
+            mockStoreSession(updatedSession)(Right(()))
+
+            val result = journeyService.updateAndNext(
+              routes.DateOfBirthController.dateOfBirth(),
+              updatedSession
+            )
+            await(result.value) shouldBe Right(nextCall)
+          }
+
+          "the individual details are a match" in {
+
+            nextPageTest(
+              HECSession(
+                userAnswers,
+                Some(Match(taxCheckMatchRequest))
+              ),
+              routes.TaxCheckResultController.taxCheckMatch()
+            )
+
+          }
+
+          "the individual details are a match but the tax check code has expired" in {
+
+            nextPageTest(
+              HECSession(
+                userAnswers,
+                Some(Expired(taxCheckMatchRequest))
+              ),
+              routes.TaxCheckResultController.taxCheckExpired()
+            )
+
+          }
+
+          "the individual details are not a match" in {
+
+            nextPageTest(
+              HECSession(
+                userAnswers,
+                Some(NoMatch(taxCheckMatchRequest))
+              ),
+              routes.TaxCheckResultController.taxCheckNotMatch()
+            )
+
+          }
+
+        }
+
       }
 
       "not update the session" when {
 
         "the current session and the updated session are the same" in {
-          val session                                     = HECSession(UserAnswers.empty.copy(taxCheckCode = Some(HECTaxCheckCode(""))))
+          val session                                     = HECSession(UserAnswers.empty.copy(taxCheckCode = Some(HECTaxCheckCode(""))), None)
           implicit val request: RequestWithSessionData[_] =
             requestWithSessionData(session)
 
@@ -213,7 +283,7 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
       "return the correct previous page" when afterWord("the current page is") {
 
         "the start endpoint" in {
-          val session                                     = HECSession(UserAnswers.empty)
+          val session                                     = HECSession(UserAnswers.empty, None)
           implicit val request: RequestWithSessionData[_] =
             requestWithSessionData(session)
 
@@ -225,7 +295,7 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
         }
 
         "the tax check code page" in {
-          val session                                     = HECSession(UserAnswers.empty)
+          val session                                     = HECSession(UserAnswers.empty, None)
           implicit val request: RequestWithSessionData[_] =
             requestWithSessionData(session)
 
@@ -237,7 +307,7 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
         }
 
         "the licence type page" in {
-          val session                                     = HECSession(UserAnswers.empty)
+          val session                                     = HECSession(UserAnswers.empty, None)
           implicit val request: RequestWithSessionData[_] =
             requestWithSessionData(session)
 
@@ -253,8 +323,10 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
             UserAnswers(
               taxCheckCode = Some(hecTaxCheckCode),
               licenceType = Some(LicenceType.DriverOfTaxisAndPrivateHires),
-              entityType = None
-            )
+              entityType = None,
+              dateOfBirth = None
+            ),
+            None
           )
           implicit val request: RequestWithSessionData[_] =
             requestWithSessionData(session)
@@ -271,8 +343,10 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
             UserAnswers(
               taxCheckCode = Some(hecTaxCheckCode),
               licenceType = Some(LicenceType.ScrapMetalMobileCollector),
-              entityType = Some(EntityType.Individual)
-            )
+              entityType = Some(EntityType.Individual),
+              None
+            ),
+            None
           )
           implicit val request: RequestWithSessionData[_] =
             requestWithSessionData(session)
@@ -295,8 +369,10 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
                 UserAnswers(
                   taxCheckCode = Some(hecTaxCheckCode),
                   licenceType = Some(licenceType),
-                  entityType = None
-                )
+                  entityType = None,
+                  None
+                ),
+                None
               )
               implicit val request: RequestWithSessionData[_] =
                 requestWithSessionData(session)
@@ -315,8 +391,10 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
             UserAnswers(
               taxCheckCode = Some(hecTaxCheckCode),
               licenceType = Some(LicenceType.ScrapMetalMobileCollector),
-              entityType = Some(EntityType.Company)
-            )
+              entityType = Some(EntityType.Company),
+              None
+            ),
+            None
           )
           implicit val request: RequestWithSessionData[_] =
             requestWithSessionData(session)
@@ -326,6 +404,51 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
           )
 
           result shouldBe routes.EntityTypeController.entityType()
+        }
+
+        "Tax Check Code not match page" in {
+          val session                                     = HECSession(
+            userAnswers,
+            Some(NoMatch(taxCheckMatchRequest))
+          )
+          implicit val request: RequestWithSessionData[_] =
+            requestWithSessionData(session)
+
+          val result = journeyService.previous(
+            routes.TaxCheckResultController.taxCheckNotMatch()
+          )
+
+          result shouldBe routes.DateOfBirthController.dateOfBirth()
+        }
+
+        "Tax Check Code expired page" in {
+          val session                                     = HECSession(
+            userAnswers,
+            Some(Expired(taxCheckMatchRequest))
+          )
+          implicit val request: RequestWithSessionData[_] =
+            requestWithSessionData(session)
+
+          val result = journeyService.previous(
+            routes.TaxCheckResultController.taxCheckExpired()
+          )
+
+          result shouldBe routes.DateOfBirthController.dateOfBirth()
+        }
+
+        "Tax Check Code valid page" in {
+          val session                                     = HECSession(
+            userAnswers,
+            Some(Match(taxCheckMatchRequest))
+          )
+          implicit val request: RequestWithSessionData[_] =
+            requestWithSessionData(session)
+
+          val result = journeyService.previous(
+            routes.TaxCheckResultController.taxCheckMatch()
+          )
+
+          result shouldBe routes.DateOfBirthController.dateOfBirth()
         }
 
       }

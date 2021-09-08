@@ -62,7 +62,8 @@ class EntityTypeControllerSpec
             UserAnswers.empty.copy(
               taxCheckCode = Some(taxCheckCode),
               licenceType = Some(licenceType)
-            )
+            ),
+            None
           )
 
           inSequence {
@@ -103,7 +104,8 @@ class EntityTypeControllerSpec
         UserAnswers.empty.copy(
           taxCheckCode = Some(taxCheckCode),
           licenceType = Some(licenceType)
-        )
+        ),
+        None
       )
 
       "show a form error" when {
@@ -129,7 +131,6 @@ class EntityTypeControllerSpec
             mockGetSession(currentSession)
             mockJourneyServiceGetPrevious(routes.EntityTypeController.entityType(), currentSession)(mockPreviousCall)
           }
-
           val invalidIndex = entityTypes.length + 1
           checkFormErrorIsDisplayed(
             performAction("entityType" -> invalidIndex.toString),
@@ -158,8 +159,8 @@ class EntityTypeControllerSpec
         "the call to update and next fails" in {
           val answers        = UserAnswers.empty
           val updatedAnswers = UserAnswers.empty.copy(entityType = Some(EntityType.Individual))
-          val session        = HECSession(answers)
-          val updatedSession = HECSession(updatedAnswers)
+          val session        = HECSession(answers, None)
+          val updatedSession = HECSession(updatedAnswers, None)
 
           inSequence {
             mockGetSession(session)
@@ -183,7 +184,7 @@ class EntityTypeControllerSpec
               entityType = None
             )
             val updatedAnswers = answers.copy(entityType = Some(EntityType.Company))
-            val session        = HECSession(answers)
+            val session        = HECSession(answers, None)
             val updatedSession = session.copy(userAnswers = updatedAnswers)
 
             inSequence {
@@ -197,13 +198,15 @@ class EntityTypeControllerSpec
           }
 
           "the user had already answered the question" in {
+
             val answers        = UserAnswers(
               taxCheckCode = Some(taxCheckCode),
               licenceType = Some(licenceType),
-              entityType = Some(EntityType.Individual)
+              entityType = Some(EntityType.Individual),
+              None
             )
             val updatedAnswers = answers.copy(entityType = Some(EntityType.Company))
-            val session        = HECSession(answers)
+            val session        = HECSession(answers, None)
             val updatedSession = session.copy(userAnswers = updatedAnswers)
 
             inSequence {

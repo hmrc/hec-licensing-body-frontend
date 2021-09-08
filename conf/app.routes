@@ -13,8 +13,13 @@ GET        /licence-type                        uk.gov.hmrc.heclicensingbodyfron
 POST       /licence-type                        uk.gov.hmrc.heclicensingbodyfrontend.controllers.LicenceTypeController.licenceTypeSubmit
 
 GET        /enter-date-of-birth                 uk.gov.hmrc.heclicensingbodyfrontend.controllers.DateOfBirthController.dateOfBirth
+POST       /enter-date-of-birth                 uk.gov.hmrc.heclicensingbodyfrontend.controllers.DateOfBirthController.dateOfBirthSubmit
 
 GET        /select-individual-or-company        uk.gov.hmrc.heclicensingbodyfrontend.controllers.EntityTypeController.entityType
 POST       /select-individual-or-company        uk.gov.hmrc.heclicensingbodyfrontend.controllers.EntityTypeController.entityTypeSubmit
 
 GET        /enter-company-registration-number   uk.gov.hmrc.heclicensingbodyfrontend.controllers.CRNController.companyRegistrationNumber
+GET        /code-valid                          uk.gov.hmrc.heclicensingbodyfrontend.controllers.TaxCheckResultController.taxCheckMatch
+GET        /code-expired                        uk.gov.hmrc.heclicensingbodyfrontend.controllers.TaxCheckResultController.taxCheckExpired
+GET        /details-not-found                   uk.gov.hmrc.heclicensingbodyfrontend.controllers.TaxCheckResultController.taxCheckNotMatch
+

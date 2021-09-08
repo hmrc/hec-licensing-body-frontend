@@ -16,14 +16,19 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.models
 
-import play.api.libs.functional.syntax.toInvariantFunctorOps
-import play.api.libs.json.Format
+import play.api.libs.json.{Json, OFormat}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.ids.CRN
+import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
+import uk.gov.hmrc.heclicensingbodyfrontend.models.util.EitherUtils.eitherFormat
 
-final case class HECTaxCheckCode(value: String) extends AnyVal
+final case class HECTaxCheckMatchRequest(
+  taxCheckCode: HECTaxCheckCode,
+  licenceType: LicenceType,
+  verifier: Either[CRN, DateOfBirth]
+)
 
-object HECTaxCheckCode {
+object HECTaxCheckMatchRequest {
 
-  implicit val format: Format[HECTaxCheckCode] =
-    implicitly[Format[String]].inmap(HECTaxCheckCode(_), _.value)
+  implicit val format: OFormat[HECTaxCheckMatchRequest] = Json.format
 
 }

@@ -98,6 +98,5 @@ object EntityTypeController {
         "entityType" -> of(FormUtils.radioFormFormatter(options))
       )(identity)(Some(_))
     )
-
-  val entityTypes: List[EntityType] = List(Individual, Company)
+  val entityTypes: List[EntityType]                               = List(Individual, Company)
 }
