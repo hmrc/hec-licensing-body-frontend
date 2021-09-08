@@ -28,8 +28,8 @@ import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, HECSession, HEC
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
 import uk.gov.hmrc.heclicensingbodyfrontend.services.JourneyService
 import uk.gov.hmrc.heclicensingbodyfrontend.util.TimeUtils
-
 import java.time.{LocalDate, ZoneId, ZonedDateTime}
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -84,7 +84,9 @@ class TaxCheckResultControllerSpec
         "current page is tax check valid page " when {
 
           "No match data in session " in {
+
             val session = HECSession(UserAnswers.empty, Some(NoMatch(matchRequest, dateTimeChecked)))
+
             inSequence {
               mockGetSession(session)
             }
@@ -93,7 +95,9 @@ class TaxCheckResultControllerSpec
           }
 
           "Expired data in session " in {
+
             val session = HECSession(UserAnswers.empty, Some(Expired(matchRequest, dateTimeChecked)))
+
             inSequence {
               mockGetSession(session)
             }

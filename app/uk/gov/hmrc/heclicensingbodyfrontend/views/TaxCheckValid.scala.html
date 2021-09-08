@@ -1,6 +1,7 @@
 @import play.api.i18n.Messages
 @import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckMatchRequest
 @import play.api.mvc.Request
+<<<<<<< HEAD
 @import play.twirl.api.Html
 @import java.time.ZonedDateTime
 
@@ -9,6 +10,12 @@
 @import uk.gov.hmrc.heclicensingbodyfrontend.views.html.components._
 @import uk.gov.hmrc.heclicensingbodyfrontend.controllers.routes
 @import uk.gov.hmrc.heclicensingbodyfrontend.util.TimeUtils
+=======
+
+@import uk.gov.hmrc.govukfrontend.views.html.components._
+
+@import views.html.helper.CSPNonce
+>>>>>>> HEC-891- tets cases
 
 @this(layout: Layout, govukPanel : GovukPanel, detailsEntered: DetailsEntered)
 
@@ -22,6 +29,7 @@
         title = HtmlContent(s"""<span aria-hidden="true" class="check"></span>${title}"""),
         content = HtmlContent(s"""${messages(s"$key.subtitle")}<br><strong>${TimeUtils.govDateTimeDisplayFormat(dateTimeChecked)}</strong>""")
     ))
+
 
     @detailsEntered(hecTaxCheckMatchRequest)
 
