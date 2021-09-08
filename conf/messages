@@ -64,4 +64,7 @@ dateOfBirth.error.dayAndMonthRequired = Date of Birth must include a day and a m
 dateOfBirth.error.inFuture = Date of Birth must be before {0}
 dateOfBirth.error.tooFarInPast = Date of Birth must be after {0}
 
-
+# Tax check valid page
+taxCheckValid.title = Tax check code valid
+taxCheckValid.subtitle = Checked On
+taxCheckComplete.p1 = Tax Check Code.

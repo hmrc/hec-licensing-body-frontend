@@ -20,8 +20,10 @@ import com.google.inject.Singleton
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.SessionDataAction
+import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckMatchResult.Match
 import uk.gov.hmrc.heclicensingbodyfrontend.services.JourneyService
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging
+import uk.gov.hmrc.heclicensingbodyfrontend.views.html
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 import javax.inject.Inject
@@ -30,6 +32,7 @@ import javax.inject.Inject
 class TaxCheckResultController @Inject() (
   sessionDataAction: SessionDataAction,
   journeyService: JourneyService,
+  taxCheckValidPage: html.TaxCheckValid,
   mcc: MessagesControllerComponents
 ) extends FrontendController(mcc)
     with I18nSupport
@@ -37,9 +40,21 @@ class TaxCheckResultController @Inject() (
 
   //If there is a tax code match, then there is no back link in there
   val taxCheckMatch: Action[AnyContent] = sessionDataAction { implicit request =>
-    Ok(
-      s"Session is ${request.sessionData}}"
-    )
+    request.sessionData.taxCheckMatch match {
+      case Some(taxCheckMatchResult) =>
+        taxCheckMatchResult match {
+          case Match(matchRequest) =>
+            Ok(
+              taxCheckValidPage(matchRequest)
+            )
+          case _                   =>
+            logger.warn("Tax check match Result  not found")
+            InternalServerError
+        }
+      case None                      =>
+        logger.warn("Tax check match Result  not found")
+        InternalServerError
+    }
   }
 
   //If tax check code comes as Expired, then user click on View another tax check code button and

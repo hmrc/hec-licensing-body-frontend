@@ -23,7 +23,7 @@ import play.api.i18n.I18nSupport
 import play.api.data.Forms.{mapping, of}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.LicenceTypeController.{licenceTypeForm, licenceTypeOptions, licenceTypes}
-import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.SessionDataAction
+import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.{RequestWithSessionData, SessionDataAction}
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{HECSession, UserAnswers}
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType.{DriverOfTaxisAndPrivateHires, OperatorOfPrivateHireVehicles, ScrapMetalDealerSite, ScrapMetalMobileCollector}
@@ -58,21 +58,6 @@ class LicenceTypeController @Inject() (
   }
 
   val licenceTypeSubmit: Action[AnyContent] = sessionDataAction.async { implicit request =>
-    def handleValidLicenceType(licenceType: LicenceType): Future[Result] = {
-      val updatedAnswers: UserAnswers = request.sessionData.userAnswers.copy(licenceType = Some(licenceType))
-      val updatedSession: HECSession  = request.sessionData.copy(userAnswers = updatedAnswers)
-
-      journeyService
-        .updateAndNext(routes.LicenceTypeController.licenceType(), updatedSession)
-        .fold(
-          { e =>
-            logger.warn("Could not update session and proceed", e)
-            InternalServerError
-          },
-          Redirect
-        )
-    }
-
     licenceTypeForm(licenceTypes)
       .bindFromRequest()
       .fold(
@@ -85,6 +70,21 @@ class LicenceTypeController @Inject() (
             )
           ),
         handleValidLicenceType
+      )
+  }
+
+  def handleValidLicenceType(licenceType: LicenceType)(implicit request: RequestWithSessionData[_]): Future[Result] = {
+    val updatedAnswers: UserAnswers = request.sessionData.userAnswers.copy(licenceType = Some(licenceType))
+    val updatedSession: HECSession  = request.sessionData.copy(userAnswers = updatedAnswers)
+
+    journeyService
+      .updateAndNext(routes.LicenceTypeController.licenceType(), updatedSession)
+      .fold(
+        { e =>
+          logger.warn("Could not update session and proceed", e)
+          InternalServerError
+        },
+        Redirect
       )
   }
 
