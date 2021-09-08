@@ -84,6 +84,7 @@ detailsEntered.licenceTypeKey = Licence type
 detailsEntered.dateOfBirthKey = Date of birth
 detailsEntered.crnKey = Company registration number
 
+
 # Tax check Expired page
 taxCheckExpired.title = Expired tax check code
 taxCheckExpired.subtitle = Checked on
