@@ -67,4 +67,3 @@ dateOfBirth.error.tooFarInPast = Date of Birth must be after {0}
 # Tax check valid page
 taxCheckValid.title = Tax check code valid
 taxCheckValid.subtitle = Checked On
-taxCheckComplete.p1 = Tax Check Code.

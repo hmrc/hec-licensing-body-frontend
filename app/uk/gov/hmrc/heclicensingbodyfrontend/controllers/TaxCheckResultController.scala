@@ -16,10 +16,12 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.controllers
 
+import cats.implicits.{catsKernelStdOrderForString, catsSyntaxEq}
 import com.google.inject.Singleton
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.SessionDataAction
+import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.{RequestWithSessionData, SessionDataAction}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckMatchResult
 import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckMatchResult.Match
 import uk.gov.hmrc.heclicensingbodyfrontend.services.JourneyService
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging
@@ -41,16 +43,7 @@ class TaxCheckResultController @Inject() (
   //If there is a tax code match, then there is no back link in there
   val taxCheckMatch: Action[AnyContent] = sessionDataAction { implicit request =>
     request.sessionData.taxCheckMatch match {
-      case Some(taxCheckMatchResult) =>
-        taxCheckMatchResult match {
-          case Match(matchRequest) =>
-            Ok(
-              taxCheckValidPage(matchRequest)
-            )
-          case _                   =>
-            logger.warn("Tax check match Result  not found")
-            InternalServerError
-        }
+      case Some(taxCheckMatchResult) => getTaxResultPage(taxCheckMatchResult, "Match")
       case None                      =>
         logger.warn("Tax check match Result  not found")
         InternalServerError
@@ -70,6 +63,17 @@ class TaxCheckResultController @Inject() (
     Ok(
       s"Session is ${request.sessionData} back Url ::${journeyService.previous(routes.TaxCheckResultController.taxCheckNotMatch())}"
     )
+  }
+
+  //Reuse the same code in other pages
+  //Will add cases for NoMatch and Expired in another ticket
+  private def getTaxResultPage(taxCheckMatchResult: HECTaxCheckMatchResult, str: String)(implicit
+    request: RequestWithSessionData[_]
+  ) = taxCheckMatchResult match {
+    case Match(matchRequest) if str === "Match" => Ok(taxCheckValidPage(matchRequest))
+    case _                                      =>
+      logger.warn("Tax check match Result  not found")
+      InternalServerError
   }
 
 }
