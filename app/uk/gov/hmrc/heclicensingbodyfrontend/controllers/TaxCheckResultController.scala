@@ -57,6 +57,7 @@ class TaxCheckResultController @Inject() (
       case _                                            =>
         logger.warn("Tax check match Result  not found")
         InternalServerError
+
     }
   }
 
