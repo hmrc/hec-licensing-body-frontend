@@ -67,19 +67,10 @@ class TaxCheckResultControllerSpec
 
     "handling request to tax check result page " must {
 
-      def performAction(): Future[Result] = controller.taxCheckMatch(FakeRequest())
+      def performAction(): Future[Result]        = controller.taxCheckMatch(FakeRequest())
+      def performActionExpired(): Future[Result] = controller.taxCheckExpired(FakeRequest())
 
       "return an InternalServerError" when {
-
-        "a tax check code cannot be found in session" in {
-          val session = HECSession(UserAnswers.empty, None)
-
-          inSequence {
-            mockGetSession(session)
-          }
-
-          status(performAction()) shouldBe INTERNAL_SERVER_ERROR
-        }
 
         "current page is tax check valid page " when {
 
@@ -103,6 +94,52 @@ class TaxCheckResultControllerSpec
             }
 
             status(performAction()) shouldBe INTERNAL_SERVER_ERROR
+          }
+
+          "a tax check code cannot be found in session " in {
+
+            val session = HECSession(UserAnswers.empty, None)
+
+            inSequence {
+              mockGetSession(session)
+            }
+
+            status(performAction()) shouldBe INTERNAL_SERVER_ERROR
+
+          }
+
+        }
+
+        "current page is tax check expired page " when {
+
+          "No match data in session " in {
+            val session = HECSession(UserAnswers.empty, Some(NoMatch(matchRequest)))
+            inSequence {
+              mockGetSession(session)
+            }
+
+            status(performActionExpired()) shouldBe INTERNAL_SERVER_ERROR
+          }
+
+          "valid data in session " in {
+            val session = HECSession(UserAnswers.empty, Some(Match(matchRequest)))
+            inSequence {
+              mockGetSession(session)
+            }
+
+            status(performActionExpired()) shouldBe INTERNAL_SERVER_ERROR
+          }
+
+          "a tax check code cannot be found in session " in {
+
+            val session = HECSession(UserAnswers.empty, None)
+
+            inSequence {
+              mockGetSession(session)
+            }
+
+            status(performActionExpired()) shouldBe INTERNAL_SERVER_ERROR
+
           }
 
         }
@@ -151,6 +188,20 @@ class TaxCheckResultControllerSpec
             testValidPage(dateTime, "10 September 2021, 12:00am")
 
           }
+
+        }
+
+        "tax check code is expired for the user " in {
+          val session = HECSession(answers, Some(Expired(matchRequest)))
+
+          inSequence {
+            mockGetSession(session)
+          }
+
+          checkPageIsDisplayed(
+            performActionExpired(),
+            messageFromMessageKey("taxCheckExpired.title")
+          )
 
         }
 
