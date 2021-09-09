@@ -32,11 +32,17 @@
 @serviceNameAndHeading = @{pageTitle.fold(messages("service.name"))(t => s"""$t - ${messages("service.name")}""")}
 @govTitle = @{serviceNameAndHeading + " - " + messages("gov.uk")}
 @documentTitle = @{if(hasErrors) { messages("generic.errorPrefix") + " " + govTitle } else { govTitle }}
+@head = @{
+    Some(Html(s"""${headBlock.getOrElse("")}<link rel="stylesheet" media="all" href="${controllers.routes.Assets.versioned("stylesheets/application.css")}" ${CSPNonce.attr}>"""))
+}
+@scripts = @{
+    Some(Html(s"""${scriptsBlock.getOrElse("")}<script src="${controllers.routes.Assets.versioned("javascripts/application.js")}" ${CSPNonce.attr}></script>"""))
+}
 @backUrl = @{
     backLocation.map(call =>
         if(call.url === routes.StartController.start.url) appConfig.taxCheckGuidanceUrl
         else call.url
-)
+    )
 }
 @beforeContent = {
     @govukPhaseBanner(PhaseBanner(
@@ -59,9 +65,9 @@
 }
 @govukLayout(
     pageTitle = Some(documentTitle),
-    headBlock = Some(hmrcHead(headBlock = headBlock, nonce = CSPNonce.get)),
+    headBlock = Some(hmrcHead(headBlock = head, nonce = CSPNonce.get)),
     headerBlock = Some(hmrcStandardHeader()),
-    scriptsBlock = Some(hmrcScripts(scriptsBlock = scriptsBlock, nonce = CSPNonce.get)),
+    scriptsBlock = Some(hmrcScripts(scriptsBlock = scripts, nonce = CSPNonce.get)),
     beforeContentBlock = Some(beforeContent),
     footerBlock = Some(hmrcStandardFooter())
 )(content)

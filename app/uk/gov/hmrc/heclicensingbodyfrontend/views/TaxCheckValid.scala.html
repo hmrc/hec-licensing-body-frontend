@@ -4,18 +4,15 @@
 
 @import uk.gov.hmrc.govukfrontend.views.html.components._
 
-@import views.html.helper.CSPNonce
-
 @this(layout: Layout, govukPanel : GovukPanel)
 
 @(hecTaxCheckMatchRequest:HECTaxCheckMatchRequest)(implicit request: Request[_], messages: Messages)
 @key = @{"taxCheckValid"}
 @title = @{messages(s"$key.title")}
 
-@scripts = { <script src="@{controllers.routes.Assets.versioned("javascripts/application.js")}" @{CSPNonce.attr}></script> }
-@layout(pageTitle = Some(title), scriptsBlock = Some(scripts)) {
+@layout(pageTitle = Some(title)) {
     @govukPanel(Panel(
-        title = Text(title),
+        title = HtmlContent(s"""<span aria-hidden="true" class="check"></span>${title}"""),
         content = HtmlContent(s"""${messages(s"$key.subtitle")}<br><strong>${hecTaxCheckMatchRequest.taxCheckCode.value.grouped(3).mkString(" ")}</strong>""")
     ))
 

@@ -1,1 +1,18 @@
 @import "lib/govuk-frontend/govuk/base";
+
+body:not(.js-enabled) .js-visible {
+  display: none;
+}
+
+.check {
+  display: block;
+  margin: 0 auto 0.2em;
+  height: 40px;
+  width: 18px;
+  border-right: 8px solid govuk-colour("white");
+  border-bottom: 8px solid govuk-colour("white");
+  transform: rotate(45deg);
+  @media print {
+    border-color: govuk-colour("black");
+  }
+}
