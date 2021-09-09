@@ -1,0 +1,23 @@
+@import play.api.i18n.Messages
+@import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckMatchRequest
+@import play.api.mvc.Request
+
+@import uk.gov.hmrc.govukfrontend.views.html.components._
+
+@import views.html.helper.CSPNonce
+
+@this(layout: Layout, govukPanel : GovukPanel)
+
+@(hecTaxCheckMatchRequest:HECTaxCheckMatchRequest)(implicit request: Request[_], messages: Messages)
+@key = @{"taxCheckExpired"}
+@title = @{messages(s"$key.title")}
+
+@scripts = { <script src="@{controllers.routes.Assets.versioned("javascripts/application.js")}" @{CSPNonce.attr}></script> }
+@layout(pageTitle = Some(title), scriptsBlock = Some(scripts)) {
+    @govukPanel(Panel(
+        title = Text(title),
+content = HtmlContent(s"""${messages(s"$key.subtitle")}<br><strong>${hecTaxCheckMatchRequest.taxCheckCode.value.grouped(3).mkString(" ")}</strong>""")
+))
+
+
+}
