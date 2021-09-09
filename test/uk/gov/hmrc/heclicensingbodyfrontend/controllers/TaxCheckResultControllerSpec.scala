@@ -67,7 +67,8 @@ class TaxCheckResultControllerSpec
 
     "handling request to tax check Valid page " must {
 
-      def performAction(): Future[Result] = controller.taxCheckMatch(FakeRequest())
+      def performAction(): Future[Result]        = controller.taxCheckMatch(FakeRequest())
+      def performActionExpired(): Future[Result] = controller.taxCheckExpired(FakeRequest())
 
       "return an InternalServerError" when {
 
@@ -124,6 +125,18 @@ class TaxCheckResultControllerSpec
 
             val dateTime = ZonedDateTime.of(2021, 9, 10, 0, 0, 0, 0, ZoneId.of("Europe/London"))
             testValidPage(dateTime, "10 September 2021, 12:00am")
+
+          }
+
+          "a tax check code cannot be found in session " in {
+
+            val session = HECSession(UserAnswers.empty, None)
+
+            inSequence {
+              mockGetSession(session)
+            }
+
+            status(performAction()) shouldBe INTERNAL_SERVER_ERROR
 
           }
 
@@ -196,6 +209,7 @@ class TaxCheckResultControllerSpec
           }
 
         }
+
       }
 
     }

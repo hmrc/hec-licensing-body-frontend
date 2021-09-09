@@ -30,6 +30,7 @@ import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, Error, HECTaxCh
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
 import java.time.{LocalDate, ZoneId, ZonedDateTime}
+
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class HECTaxMatchServiceSpec extends AnyWordSpec with Matchers with MockFactory {
@@ -57,9 +58,10 @@ class HECTaxMatchServiceSpec extends AnyWordSpec with Matchers with MockFactory 
   val taxCheckMatchResult: HECTaxCheckMatchResult   = Match(taxCheckMatchRequest, dateTimeChecked)
   val taxCheckNoMatchResult: HECTaxCheckMatchResult = NoMatch(taxCheckMatchRequest, dateTimeChecked)
   val taxCheckExpiredResult: HECTaxCheckMatchResult = Expired(taxCheckMatchRequest, dateTimeChecked)
-  val taxCheckMatchResultJson                       = Json.toJson(taxCheckMatchResult)
-  val taxCheckNoMatchResultJson                     = Json.toJson(taxCheckNoMatchResult)
-  val taxCheckExpiredResultJson                     = Json.toJson(taxCheckExpiredResult)
+
+  val taxCheckMatchResultJson   = Json.toJson(taxCheckMatchResult)
+  val taxCheckNoMatchResultJson = Json.toJson(taxCheckNoMatchResult)
+  val taxCheckExpiredResultJson = Json.toJson(taxCheckExpiredResult)
 
   "HECTaxMatchServiceImpl" when {
 
@@ -75,6 +77,7 @@ class HECTaxMatchServiceSpec extends AnyWordSpec with Matchers with MockFactory 
         }
 
         "the http response does come back with a non-ok (200) response" in {
+
           mockMatchTaxCheck(taxCheckMatchRequest)(Right(HttpResponse(ACCEPTED, taxCheckMatchResultJson, emptyHeaders)))
 
           val result = taxCheckService.matchTaxCheck(taxCheckMatchRequest)
