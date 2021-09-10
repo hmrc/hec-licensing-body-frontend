@@ -115,7 +115,6 @@ class TaxCheckResultControllerSpec
           }
 
           "tax check code is checked afternoon" in {
-
             val dateTime = ZonedDateTime.of(2021, 9, 10, 17, 16, 0, 0, ZoneId.of("Europe/London"))
             testValidPage(dateTime, "10 September 2021, 5:16pm")
 

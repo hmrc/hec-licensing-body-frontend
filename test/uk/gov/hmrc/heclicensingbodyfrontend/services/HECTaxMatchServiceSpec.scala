@@ -30,7 +30,6 @@ import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, Error, HECTaxCh
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
 import java.time.{LocalDate, ZoneId, ZonedDateTime}
-
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class HECTaxMatchServiceSpec extends AnyWordSpec with Matchers with MockFactory {
