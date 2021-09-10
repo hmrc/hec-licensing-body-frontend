@@ -1,0 +1,57 @@
+@import play.api.i18n.Messages
+@import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckMatchRequest
+@import uk.gov.hmrc.govukfrontend.views.html.components._
+@import uk.gov.hmrc.heclicensingbodyfrontend.models.views.LicenceTypeOption
+@import uk.gov.hmrc.heclicensingbodyfrontend.models.DateOfBirth
+@import uk.gov.hmrc.heclicensingbodyfrontend.models.ids.CRN
+@import uk.gov.hmrc.heclicensingbodyfrontend.util.TimeUtils
+
+@this(govukSummaryList : GovukSummaryList)
+
+@(hecTaxCheckMatchRequest: HECTaxCheckMatchRequest)(implicit messages: Messages)
+
+@key = @{"detailsEntered"}
+@verifierRow = @{
+  hecTaxCheckMatchRequest.verifier.fold(
+    (fa: CRN) => SummaryListRow(
+      key = Key(
+        content = Text(messages(s"$key.crnKey"))
+      ),
+      value = Value(
+        content = Text(fa.value)
+      )
+    ),
+    (fb: DateOfBirth) => SummaryListRow(
+      key = Key(
+        content = Text(messages(s"$key.dateOfBirthKey"))
+      ),
+      value = Value(
+        content = Text(TimeUtils.govDisplayFormat(fb.value))
+      )
+    )
+  )
+}
+
+<h2 class="govuk-heading-m">@messages(s"$key.title")</h2>
+
+@govukSummaryList(SummaryList(
+  rows = Seq(
+    SummaryListRow(
+      key = Key(
+        content = Text(messages(s"$key.taxCheckCodeKey"))
+      ),
+      value = Value(
+        content = Text(hecTaxCheckMatchRequest.taxCheckCode.value.grouped(3).mkString(" "))
+      )
+    ),
+    SummaryListRow(
+      key = Key(
+        content = Text(messages(s"$key.licenceTypeKey"))
+      ),
+      value = Value(
+        content = Text(messages(s"licenceType.${LicenceTypeOption.licenceTypeOption(hecTaxCheckMatchRequest.licenceType).messageKey}"))
+      )
+    ),
+    verifierRow
+  )
+))
