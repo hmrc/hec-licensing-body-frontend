@@ -119,10 +119,7 @@ class TaxCheckResultControllerSpec
             checkPageIsDisplayed(
               performAction(),
               messageFromMessageKey("taxCheckValid.title"),
-              doc => {
-                doc.select(".govuk-panel__body").text  should include regex matchRegex
-                doc.select(".govuk-panel__title").text should include regex "Tax check code valid"
-              }
+              doc => doc.select(".govuk-panel__body").text should include regex matchRegex
             )
           }
 
