@@ -67,6 +67,8 @@ class TaxCheckResultController @Inject() (
 
   //Reuse the same code in other pages
   //Will add cases for NoMatch and Expired in another ticket
+  //for example case NoMatch(matchRequest, dateTime) if str === "NoMatch" => Ok(taxCheckNoMatchPage(matchRequest, dateTime))
+  //Added str variable to make sure, if the case is not match , then it should go to case _
   private def getTaxResultPage(taxCheckMatchResult: HECTaxCheckMatchResult, str: String)(implicit
     request: RequestWithSessionData[_]
   ) = taxCheckMatchResult match {
