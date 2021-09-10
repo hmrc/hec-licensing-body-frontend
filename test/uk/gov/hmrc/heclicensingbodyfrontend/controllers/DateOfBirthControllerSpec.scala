@@ -56,7 +56,7 @@ class DateOfBirthControllerSpec
   val dateOfBirth     = DateOfBirth(LocalDate.of(1922, 12, 1))
 
   val date            = TimeUtils.today().minusYears(20)
-  val dateTimeChecked = TimeUtils.todayByZone()
+  val dateTimeChecked = TimeUtils.now()
 
   val taxCheckMatchRequest =
     HECTaxCheckMatchRequest(hecTaxCheckCode, LicenceType.DriverOfTaxisAndPrivateHires, Right(DateOfBirth(date)))

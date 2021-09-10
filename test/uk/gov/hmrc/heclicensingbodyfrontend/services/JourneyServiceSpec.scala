@@ -44,7 +44,7 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
 
   val hecTaxCheckCode                = HECTaxCheckCode("ABC DEF 123")
   val dateOfBirth                    = DateOfBirth(LocalDate.of(1922, 12, 1))
-  val dateTimeChecked: ZonedDateTime = TimeUtils.todayByZone()
+  val dateTimeChecked: ZonedDateTime = TimeUtils.now()
   val taxCheckMatchRequest           =
     HECTaxCheckMatchRequest(hecTaxCheckCode, LicenceType.DriverOfTaxisAndPrivateHires, Right(dateOfBirth))
   val userAnswers                    = UserAnswers(

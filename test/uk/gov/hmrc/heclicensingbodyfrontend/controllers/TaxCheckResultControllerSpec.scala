@@ -51,7 +51,7 @@ class TaxCheckResultControllerSpec
   val dateOfBirth     = DateOfBirth(LocalDate.of(1922, 12, 1))
 
   val date: LocalDate                = TimeUtils.today().minusYears(20)
-  val dateTimeChecked: ZonedDateTime = TimeUtils.todayByZone()
+  val dateTimeChecked: ZonedDateTime = TimeUtils.now()
 
   val answers = UserAnswers.empty.copy(
     taxCheckCode = Some(hecTaxCheckCode),
