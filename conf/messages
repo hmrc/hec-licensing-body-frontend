@@ -84,6 +84,16 @@ detailsEntered.licenceTypeKey = Licence type
 detailsEntered.dateOfBirthKey = Date of birth
 detailsEntered.crnKey = Company registration number
 
+# Tax check Expired page
+taxCheckExpired.title = Expired tax check code
+taxCheckExpired.subtitle = Checked on
+taxCheckExpired.print = You can <a href="#print-dialogue" class="govuk-link">print or save this page as a PDF</a>.
+taxCheckExpired.whatNext.heading = What you must do next
+taxCheckExpired.whatNext.p1 = Tax check codes are valid for 120 days.
+taxCheckExpired.whatNext.p2 = You must ask the applicant to do a new tax check, and provide a new tax check code.
+taxCheckExpired.viewAnother.heading = If you want to view another code
+taxCheckExpired.viewAnother.link = View another tax check code
+
 
 # Tax check Expired page
 taxCheckExpired.title = Expired tax check code
