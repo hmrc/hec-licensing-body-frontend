@@ -18,7 +18,6 @@
 @layout(pageTitle = Some(title)) {
 
     @govukPanel(Panel(
-
         classes = "expired",
         title = HtmlContent(s"""<span aria-hidden="true" class="cross"></span>${title}"""),
         content = HtmlContent(s"""${messages(s"$key.subtitle")}<br><strong>${TimeUtils.govDateTimeDisplayFormat(dateTimeChecked)}</strong>""")
