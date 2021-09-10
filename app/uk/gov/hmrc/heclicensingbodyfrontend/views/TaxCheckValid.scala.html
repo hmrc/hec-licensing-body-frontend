@@ -2,6 +2,8 @@
 @import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckMatchRequest
 @import play.api.mvc.Request
 @import play.twirl.api.Html
+@import java.time.ZonedDateTime
+
 
 @import uk.gov.hmrc.govukfrontend.views.html.components._
 @import uk.gov.hmrc.heclicensingbodyfrontend.views.html.components._
@@ -10,7 +12,7 @@
 
 @this(layout: Layout, govukPanel : GovukPanel, detailsEntered: DetailsEntered)
 
-@(hecTaxCheckMatchRequest:HECTaxCheckMatchRequest)(implicit request: Request[_], messages: Messages)
+@(hecTaxCheckMatchRequest:HECTaxCheckMatchRequest, dateTimeChecked: ZonedDateTime)(implicit request: Request[_], messages: Messages)
 @key = @{"taxCheckValid"}
 @title = @{messages(s"$key.title")}
 
@@ -18,7 +20,7 @@
 
     @govukPanel(Panel(
         title = HtmlContent(s"""<span aria-hidden="true" class="check"></span>${title}"""),
-        content = HtmlContent(s"""${messages(s"$key.subtitle")}<br><strong>${TimeUtils.today()}</strong>""")
+        content = HtmlContent(s"""${messages(s"$key.subtitle")}<br><strong>${TimeUtils.govDateTimeDisplayFormat(dateTimeChecked)}</strong>""")
     ))
 
     @detailsEntered(hecTaxCheckMatchRequest)

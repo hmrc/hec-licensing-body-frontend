@@ -28,9 +28,10 @@ import uk.gov.hmrc.heclicensingbodyfrontend.models.EntityType.Individual
 import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckMatchResult._
 import uk.gov.hmrc.heclicensingbodyfrontend.models._
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
+import uk.gov.hmrc.heclicensingbodyfrontend.util.TimeUtils
 import uk.gov.hmrc.http.HeaderCarrier
 
-import java.time.LocalDate
+import java.time.{LocalDate, ZonedDateTime}
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with SessionSupport {
@@ -41,11 +42,12 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
-  val hecTaxCheckCode      = HECTaxCheckCode("ABC DEF 123")
-  val dateOfBirth          = DateOfBirth(LocalDate.of(1922, 12, 1))
-  val taxCheckMatchRequest =
+  val hecTaxCheckCode                = HECTaxCheckCode("ABC DEF 123")
+  val dateOfBirth                    = DateOfBirth(LocalDate.of(1922, 12, 1))
+  val dateTimeChecked: ZonedDateTime = TimeUtils.todayByZone()
+  val taxCheckMatchRequest           =
     HECTaxCheckMatchRequest(hecTaxCheckCode, LicenceType.DriverOfTaxisAndPrivateHires, Right(dateOfBirth))
-  val userAnswers          = UserAnswers(
+  val userAnswers                    = UserAnswers(
     Some(hecTaxCheckCode),
     Some(LicenceType.DriverOfTaxisAndPrivateHires),
     Some(Individual),
@@ -224,7 +226,7 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
             nextPageTest(
               HECSession(
                 userAnswers,
-                Some(Match(taxCheckMatchRequest))
+                Some(Match(taxCheckMatchRequest, dateTimeChecked))
               ),
               routes.TaxCheckResultController.taxCheckMatch()
             )
@@ -236,7 +238,7 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
             nextPageTest(
               HECSession(
                 userAnswers,
-                Some(Expired(taxCheckMatchRequest))
+                Some(Expired(taxCheckMatchRequest, dateTimeChecked))
               ),
               routes.TaxCheckResultController.taxCheckExpired()
             )
@@ -248,7 +250,7 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
             nextPageTest(
               HECSession(
                 userAnswers,
-                Some(NoMatch(taxCheckMatchRequest))
+                Some(NoMatch(taxCheckMatchRequest, dateTimeChecked))
               ),
               routes.TaxCheckResultController.taxCheckNotMatch()
             )
@@ -409,7 +411,7 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
         "Tax Check Code not match page" in {
           val session                                     = HECSession(
             userAnswers,
-            Some(NoMatch(taxCheckMatchRequest))
+            Some(NoMatch(taxCheckMatchRequest, dateTimeChecked))
           )
           implicit val request: RequestWithSessionData[_] =
             requestWithSessionData(session)
@@ -424,7 +426,7 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
         "Tax Check Code expired page" in {
           val session                                     = HECSession(
             userAnswers,
-            Some(Expired(taxCheckMatchRequest))
+            Some(Expired(taxCheckMatchRequest, dateTimeChecked))
           )
           implicit val request: RequestWithSessionData[_] =
             requestWithSessionData(session)
@@ -439,7 +441,7 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
         "Tax Check Code valid page" in {
           val session                                     = HECSession(
             userAnswers,
-            Some(Match(taxCheckMatchRequest))
+            Some(Match(taxCheckMatchRequest, dateTimeChecked))
           )
           implicit val request: RequestWithSessionData[_] =
             requestWithSessionData(session)

@@ -70,8 +70,8 @@ class TaxCheckResultController @Inject() (
   private def getTaxResultPage(taxCheckMatchResult: HECTaxCheckMatchResult, str: String)(implicit
     request: RequestWithSessionData[_]
   ) = taxCheckMatchResult match {
-    case Match(matchRequest) if str === "Match" => Ok(taxCheckValidPage(matchRequest))
-    case _                                      =>
+    case Match(matchRequest, dateTime) if str === "Match" => Ok(taxCheckValidPage(matchRequest, dateTime))
+    case _                                                =>
       logger.warn("Tax check match Result  not found")
       InternalServerError
   }

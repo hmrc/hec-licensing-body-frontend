@@ -22,14 +22,15 @@ import play.api.data.FormError
 import play.api.data.format.Formatter
 import play.api.i18n.Messages
 
-import java.time.{Clock, LocalDate}
+import java.time.{Clock, LocalDate, ZoneId, ZonedDateTime}
 import scala.util.Try
 
 object TimeUtils {
 
   val clock: Clock = Clock.systemUTC()
 
-  def today(): LocalDate = LocalDate.now(clock)
+  def today(): LocalDate           = LocalDate.now(clock)
+  def todayByZone(): ZonedDateTime = ZonedDateTime.now(ZoneId.of("Europe/London"))
 
   def dateFormatter(
     maximumDateInclusive: Option[LocalDate],
@@ -122,6 +123,20 @@ object TimeUtils {
     s"""${date.getDayOfMonth()} ${messages(
       s"date.${date.getMonthValue()}"
     )} ${date.getYear()}"""
+
+  private def hours12(date: ZonedDateTime) = {
+    val getHour = date.getHour
+    if (getHour >= 12) (getHour - 12) else getHour
+  }
+
+  private def getAmPm(date: ZonedDateTime) = if (date.getHour >= 12) "evening" else "morning"
+
+  def govDateTimeDisplayFormat(date: ZonedDateTime)(implicit messages: Messages): String =
+    s"""${date.getDayOfMonth()} ${messages(
+      s"date.${date.getMonthValue()}"
+    )} ${date.getYear()}, ${hours12(date)}:${date.getMinute} ${messages(
+      s"date.${getAmPm(date)}"
+    )}"""
 
   implicit class LocalDateOps(private val d: LocalDate) extends AnyVal {
 

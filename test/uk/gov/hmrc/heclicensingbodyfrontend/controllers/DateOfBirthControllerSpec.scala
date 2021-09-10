@@ -55,7 +55,8 @@ class DateOfBirthControllerSpec
   val hecTaxCheckCode = HECTaxCheckCode("ABC DEF 123")
   val dateOfBirth     = DateOfBirth(LocalDate.of(1922, 12, 1))
 
-  val date = TimeUtils.today().minusYears(20)
+  val date            = TimeUtils.today().minusYears(20)
+  val dateTimeChecked = TimeUtils.todayByZone()
 
   val taxCheckMatchRequest =
     HECTaxCheckMatchRequest(hecTaxCheckCode, LicenceType.DriverOfTaxisAndPrivateHires, Right(DateOfBirth(date)))
@@ -237,12 +238,12 @@ class DateOfBirthControllerSpec
           val updatedSession =
             session.copy(
               userAnswers = answers.copy(dateOfBirth = Some(DateOfBirth(date))),
-              taxCheckMatch = Some(Match(taxCheckMatchRequest))
+              taxCheckMatch = Some(Match(taxCheckMatchRequest, dateTimeChecked))
             )
 
           inSequence {
             mockGetSession(session)
-            mockMatchTaxCheck(taxCheckMatchRequest)(Right(Match(taxCheckMatchRequest)))
+            mockMatchTaxCheck(taxCheckMatchRequest)(Right(Match(taxCheckMatchRequest, dateTimeChecked)))
             mockJourneyServiceUpdateAndNext(routes.DateOfBirthController.dateOfBirth(), session, updatedSession)(
               Left(Error(""))
             )
@@ -265,11 +266,14 @@ class DateOfBirthControllerSpec
 
           val updatedAnswers = answers.copy(dateOfBirth = Some(DateOfBirth(date)))
           val updatedSession =
-            session.copy(userAnswers = updatedAnswers, taxCheckMatch = Some(Match(taxCheckMatchRequest)))
+            session.copy(
+              userAnswers = updatedAnswers,
+              taxCheckMatch = Some(Match(taxCheckMatchRequest, dateTimeChecked))
+            )
 
           inSequence {
             mockGetSession(session)
-            mockMatchTaxCheck(taxCheckMatchRequest)(Right(Match(taxCheckMatchRequest)))
+            mockMatchTaxCheck(taxCheckMatchRequest)(Right(Match(taxCheckMatchRequest, dateTimeChecked)))
             mockJourneyServiceUpdateAndNext(routes.DateOfBirthController.dateOfBirth(), session, updatedSession)(
               Right(mockNextCall)
             )

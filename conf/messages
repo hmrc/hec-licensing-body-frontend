@@ -48,6 +48,10 @@ date.10=October
 date.11=November
 date.12=December
 
+#AM/PM
+date.morning = am
+date.evening = pm
+
 # Date Of Birth
 dateOfBirth.title = What is the applicant’s date of birth?
 dateOfBirth.hint = For example, 23 11 1995.
@@ -66,7 +70,7 @@ dateOfBirth.error.tooFarInPast = Date of Birth must be after {0}
 
 # Tax check valid page
 taxCheckValid.title = Tax check code valid
-taxCheckValid.subtitle = Checked On
+taxCheckValid.subtitle = Checked on
 taxCheckValid.print = You can <a href="#print-dialogue" class="govuk-link">print or save this page as a PDF</a>.
 taxCheckValid.whatNext.heading = What happens next
 taxCheckValid.whatNext.p1 = The applicant has completed their tax check. This means you can consider their application for a licence.
