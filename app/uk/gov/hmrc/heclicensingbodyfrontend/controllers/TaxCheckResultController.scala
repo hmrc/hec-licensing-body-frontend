@@ -74,7 +74,7 @@ class TaxCheckResultController @Inject() (
   ) = taxCheckMatchResult match {
     case Match(matchRequest, dateTime) if str === "Match" => Ok(taxCheckValidPage(matchRequest, dateTime))
     case _                                                =>
-      logger.warn("Tax check match Result  not found")
+      logger.warn("Correct tax check match result not found")
       InternalServerError
   }
 

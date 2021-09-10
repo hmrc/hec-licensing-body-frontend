@@ -124,19 +124,23 @@ object TimeUtils {
       s"date.${date.getMonthValue()}"
     )} ${date.getYear()}"""
 
-  private def hours12(date: ZonedDateTime) = {
-    val getHour = date.getHour
-    if (getHour >= 12) (getHour - 12) else getHour
-  }
+  private def getAmPm(date: ZonedDateTime) = if (date.getHour >= 12) "beforeNoon" else "afterNoon"
 
-  private def getAmPm(date: ZonedDateTime) = if (date.getHour >= 12) "evening" else "morning"
+  def govDateTimeDisplayFormat(date: ZonedDateTime)(implicit messages: Messages): String = {
 
-  def govDateTimeDisplayFormat(date: ZonedDateTime)(implicit messages: Messages): String =
-    s"""${date.getDayOfMonth()} ${messages(
-      s"date.${date.getMonthValue()}"
-    )} ${date.getYear()}, ${hours12(date)}:${date.getMinute} ${messages(
-      s"date.${getAmPm(date)}"
+    val day     = date.getDayOfMonth()
+    val month   = date.getMonthValue()
+    val year    = date.getYear
+    val hours   = date.getHour % 12
+    val minutes = date.getMinute
+    val amOrPm  = getAmPm(date)
+
+    s"""$day ${messages(
+      s"date.$month"
+    )} $year, $hours:$minutes ${messages(
+      s"date.$amOrPm"
     )}"""
+  }
 
   implicit class LocalDateOps(private val d: LocalDate) extends AnyVal {
 

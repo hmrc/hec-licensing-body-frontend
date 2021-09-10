@@ -49,8 +49,8 @@ date.11=November
 date.12=December
 
 #AM/PM
-date.morning = am
-date.evening = pm
+date.beforeNoon = am
+date.afterNoon = pm
 
 # Date Of Birth
 dateOfBirth.title = What is the applicant’s date of birth?
