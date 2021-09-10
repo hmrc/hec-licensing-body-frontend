@@ -113,7 +113,7 @@ class TaxCheckResultControllerSpec
         "current page is tax check expired page " when {
 
           "No match data in session " in {
-            val session = HECSession(UserAnswers.empty, Some(NoMatch(matchRequest)))
+            val session = HECSession(UserAnswers.empty, Some(NoMatch(matchRequest, dateTimeChecked)))
             inSequence {
               mockGetSession(session)
             }
@@ -122,7 +122,7 @@ class TaxCheckResultControllerSpec
           }
 
           "valid data in session " in {
-            val session = HECSession(UserAnswers.empty, Some(Match(matchRequest)))
+            val session = HECSession(UserAnswers.empty, Some(Match(matchRequest, dateTimeChecked)))
             inSequence {
               mockGetSession(session)
             }
@@ -148,7 +148,7 @@ class TaxCheckResultControllerSpec
 
       "display the page" when {
 
-        "tax check code has been validated for the user " when {
+        "tax check code is a match for an applicant and is valid " when {
 
           def testValidPage(dateTimeChecked: ZonedDateTime, matchRegex: String) = {
             val session = HECSession(answers, Some(Match(matchRequest, dateTimeChecked)))
@@ -191,17 +191,46 @@ class TaxCheckResultControllerSpec
 
         }
 
-        "tax check code is expired for the user " in {
-          val session = HECSession(answers, Some(Expired(matchRequest)))
+        "tax check code is a match for an applicant but  expired" when {
 
-          inSequence {
-            mockGetSession(session)
+          def testExpirePage(dateTimeChecked: ZonedDateTime, matchRegex: String) = {
+            val session = HECSession(answers, Some(Expired(matchRequest, dateTimeChecked)))
+
+            inSequence {
+              mockGetSession(session)
+            }
+
+            checkPageIsDisplayed(
+              performActionExpired(),
+              messageFromMessageKey("taxCheckExpired.title"),
+              doc => doc.select(".govuk-panel__body").text should include regex matchRegex
+            )
           }
 
-          checkPageIsDisplayed(
-            performActionExpired(),
-            messageFromMessageKey("taxCheckExpired.title")
-          )
+          "tax check code is checked in morning" in {
+            testExpirePage(dateTimeChecked, "10 September 2021, 8:02am")
+          }
+
+          "tax check code is checked at Noon" in {
+
+            val dateTimeNoon = ZonedDateTime.of(2021, 9, 10, 12, 0, 0, 0, ZoneId.of("Europe/London"))
+            testExpirePage(dateTimeNoon, "10 September 2021, 12:00pm")
+
+          }
+
+          "tax check code is checked afternoon" in {
+
+            val dateTime = ZonedDateTime.of(2021, 9, 10, 17, 16, 0, 0, ZoneId.of("Europe/London"))
+            testExpirePage(dateTime, "10 September 2021, 5:16pm")
+
+          }
+
+          "tax check code is checked at midnight" in {
+
+            val dateTime = ZonedDateTime.of(2021, 9, 10, 0, 0, 0, 0, ZoneId.of("Europe/London"))
+            testExpirePage(dateTime, "10 September 2021, 12:00am")
+
+          }
 
         }
 

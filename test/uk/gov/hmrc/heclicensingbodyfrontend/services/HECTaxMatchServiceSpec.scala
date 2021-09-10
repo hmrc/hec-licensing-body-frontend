@@ -29,7 +29,7 @@ import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, Error, HECTaxCheckCode, HECTaxCheckMatchRequest, HECTaxCheckMatchResult}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
-import java.time.LocalDate
+import java.time.{LocalDate, ZoneId, ZonedDateTime}
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class HECTaxMatchServiceSpec extends AnyWordSpec with Matchers with MockFactory {
@@ -47,15 +47,16 @@ class HECTaxMatchServiceSpec extends AnyWordSpec with Matchers with MockFactory 
 
   val emptyHeaders = Map.empty[String, Seq[String]]
 
-  val hecTaxCheckCode = HECTaxCheckCode("ABC DEF 123")
-  val dateOfBirth     = DateOfBirth(LocalDate.of(1922, 12, 1))
+  val hecTaxCheckCode                = HECTaxCheckCode("ABC DEF 123")
+  val dateOfBirth                    = DateOfBirth(LocalDate.of(1922, 12, 1))
+  val dateTimeChecked: ZonedDateTime = ZonedDateTime.of(2021, 9, 10, 8, 2, 0, 0, ZoneId.of("Europe/London"))
 
   val taxCheckMatchRequest =
     HECTaxCheckMatchRequest(hecTaxCheckCode, LicenceType.DriverOfTaxisAndPrivateHires, Right(dateOfBirth))
 
-  val taxCheckMatchResult: HECTaxCheckMatchResult   = Match(taxCheckMatchRequest)
-  val taxCheckNoMatchResult: HECTaxCheckMatchResult = NoMatch(taxCheckMatchRequest)
-  val taxCheckExpiredResult: HECTaxCheckMatchResult = Expired(taxCheckMatchRequest)
+  val taxCheckMatchResult: HECTaxCheckMatchResult   = Match(taxCheckMatchRequest, dateTimeChecked)
+  val taxCheckNoMatchResult: HECTaxCheckMatchResult = NoMatch(taxCheckMatchRequest, dateTimeChecked)
+  val taxCheckExpiredResult: HECTaxCheckMatchResult = Expired(taxCheckMatchRequest, dateTimeChecked)
   val taxCheckMatchResultJson                       = Json.toJson(taxCheckMatchResult)
   val taxCheckNoMatchResultJson                     = Json.toJson(taxCheckNoMatchResult)
   val taxCheckExpiredResultJson                     = Json.toJson(taxCheckExpiredResult)
