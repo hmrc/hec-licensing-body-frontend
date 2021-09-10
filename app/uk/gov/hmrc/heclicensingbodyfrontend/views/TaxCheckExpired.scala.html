@@ -1,23 +1,35 @@
 @import play.api.i18n.Messages
 @import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckMatchRequest
 @import play.api.mvc.Request
-
+@import play.twirl.api.Html
+@import java.time.ZonedDateTime
 @import uk.gov.hmrc.govukfrontend.views.html.components._
+@import uk.gov.hmrc.heclicensingbodyfrontend.views.html.components._
+@import uk.gov.hmrc.heclicensingbodyfrontend.controllers.routes
+@import uk.gov.hmrc.heclicensingbodyfrontend.util.TimeUtils
 
-@import views.html.helper.CSPNonce
 
-@this(layout: Layout, govukPanel : GovukPanel)
+@this(layout: Layout, govukPanel : GovukPanel, detailsEntered: DetailsEntered)
 
-@(hecTaxCheckMatchRequest:HECTaxCheckMatchRequest)(implicit request: Request[_], messages: Messages)
+@(hecTaxCheckMatchRequest:HECTaxCheckMatchRequest, dateTimeChecked: ZonedDateTime)(implicit request: Request[_], messages: Messages)
 @key = @{"taxCheckExpired"}
 @title = @{messages(s"$key.title")}
 
-@scripts = { <script src="@{controllers.routes.Assets.versioned("javascripts/application.js")}" @{CSPNonce.attr}></script> }
-@layout(pageTitle = Some(title), scriptsBlock = Some(scripts)) {
-    @govukPanel(Panel(
-        title = Text(title),
-content = HtmlContent(s"""${messages(s"$key.subtitle")}<br><strong>${hecTaxCheckMatchRequest.taxCheckCode.value.grouped(3).mkString(" ")}</strong>""")
-))
+@layout(pageTitle = Some(title)) {
 
+    @govukPanel(Panel(
+        title = HtmlContent(s"""<span aria-hidden="true" class="check"></span>${title}"""),
+        content = HtmlContent(s"""${messages(s"$key.subtitle")}<br><strong>${TimeUtils.govDateTimeDisplayFormat(dateTimeChecked)}</strong>""")
+    ))
+
+
+    @detailsEntered(hecTaxCheckMatchRequest)
+
+    <p class="js-visible govuk-body">@Html(messages(s"$key.print"))</p>
+    <h2 class="govuk-heading-m">@messages(s"$key.whatNext.heading")</h2>
+    <p class="govuk-body">@messages(s"$key.whatNext.p1")</p>
+    <p class="govuk-body">@messages(s"$key.whatNext.p2")</p>
+    <h2 class="govuk-heading-m">@messages(s"$key.viewAnother.heading")</h2>
+    <p class="govuk-body govuk-!-margin-bottom-9"><a class="govuk-link" href="@{routes.StartController.start()}">@messages(s"$key.viewAnother.link")</a></p>
 
 }

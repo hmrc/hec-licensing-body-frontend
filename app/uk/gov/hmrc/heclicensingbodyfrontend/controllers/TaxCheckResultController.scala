@@ -20,9 +20,6 @@ import com.google.inject.Singleton
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.SessionDataAction
-import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckMatchResult.Match
-import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.{RequestWithSessionData, SessionDataAction}
-import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckMatchResult
 import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckMatchResult.{Expired, Match}
 import uk.gov.hmrc.heclicensingbodyfrontend.services.JourneyService
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging
@@ -57,7 +54,7 @@ class TaxCheckResultController @Inject() (
   val taxCheckExpired: Action[AnyContent] = sessionDataAction { implicit request =>
     request.sessionData.taxCheckMatch match {
       case Some(Expired(taxCheckMatchResult, dateTime)) => Ok(taxCheckExpiredPage(taxCheckMatchResult, dateTime))
-      case None                                         =>
+      case _                                            =>
         logger.warn("Tax check match Result  not found")
         InternalServerError
     }
