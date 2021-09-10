@@ -100,23 +100,32 @@ class JourneyServiceImpl @Inject() (sessionStore: SessionStore)(implicit ex: Exe
         .getOrElse(sys.error(s"Could not find previous for $current"))
   }
 
-  private def licenceTypeRoute(session: HECSession): Call = {
-    val licenceType = session.userAnswers.licenceType
-    if (licenceType.exists(licenceTypeForIndividualAndCompany)) routes.EntityTypeController.entityType()
-    else routes.DateOfBirthController.dateOfBirth()
-  }
+  private def licenceTypeRoute(session: HECSession): Call =
+    session.userAnswers.licenceType match {
+      case None =>
+        sys.error("Could not find licence type for licence type route")
+
+      case Some(licenceType) =>
+        if (licenceTypeForIndividualAndCompany(licenceType)) routes.EntityTypeController.entityType()
+        else routes.DateOfBirthController.dateOfBirth()
+
+    }
 
   private def licenceTypeForIndividualAndCompany(licenceType: LicenceType): Boolean =
     licenceType =!= LicenceType.DriverOfTaxisAndPrivateHires
 
-  private def entityTypeRoute(session: HECSession): Call = {
-    val entityType = session.userAnswers.entityType
-    if (entityType.contains(EntityType.Individual)) {
-      routes.DateOfBirthController.dateOfBirth()
-    } else {
-      routes.CRNController.companyRegistrationNumber()
+  private def entityTypeRoute(session: HECSession): Call =
+    session.userAnswers.entityType match {
+      case None =>
+        sys.error("Could not find entity type for entity type route")
+
+      case Some(EntityType.Individual) =>
+        routes.DateOfBirthController.dateOfBirth()
+
+      case Some(EntityType.Company) =>
+        routes.CRNController.companyRegistrationNumber()
+
     }
-  }
 
   private def dateOfBirthRoute(session: HECSession): Call =
     session.taxCheckMatch match {
@@ -126,8 +135,9 @@ class JourneyServiceImpl @Inject() (sessionStore: SessionStore)(implicit ex: Exe
           case Expired(_) => routes.TaxCheckResultController.taxCheckExpired()
           case NoMatch(_) => routes.TaxCheckResultController.taxCheckNotMatch()
         }
-      case None           =>
-        routes.TaxCheckResultController.taxCheckNotMatch()
+
+      case None =>
+        sys.error("Could not find tax match result for date of birth route")
     }
 
 }
