@@ -22,6 +22,7 @@ import play.api.data.FormError
 import play.api.data.format.Formatter
 import play.api.i18n.Messages
 
+import java.time.format.DateTimeFormatter
 import java.time.{Clock, LocalDate, ZoneId, ZonedDateTime}
 import scala.util.Try
 
@@ -124,22 +125,19 @@ object TimeUtils {
       s"date.${date.getMonthValue()}"
     )} ${date.getYear()}"""
 
-  private def getAmPm(date: ZonedDateTime) = if (date.getHour >= 12) "beforeNoon" else "afterNoon"
+  private def getAmPm(date: ZonedDateTime) = if (date.getHour >= 12) "afterNoon" else "beforeNoon"
+
+  private def formatHourMinutes(time: ZonedDateTime): String =
+    time.format(DateTimeFormatter.ofPattern("h:mm"))
 
   def govDateTimeDisplayFormat(date: ZonedDateTime)(implicit messages: Messages): String = {
 
     val day     = date.getDayOfMonth()
-    val month   = date.getMonthValue()
+    val month   = messages(s"date.${date.getMonthValue()}")
     val year    = date.getYear
-    val hours   = date.getHour % 12
-    val minutes = date.getMinute
-    val amOrPm  = getAmPm(date)
-
-    s"""$day ${messages(
-      s"date.$month"
-    )} $year, $hours:$minutes ${messages(
-      s"date.$amOrPm"
-    )}"""
+    val hourMin = formatHourMinutes(date)
+    val amOrPm  = messages(s"date.${getAmPm(date)}")
+    s"""$day $month $year, $hourMin$amOrPm"""
   }
 
   implicit class LocalDateOps(private val d: LocalDate) extends AnyVal {
