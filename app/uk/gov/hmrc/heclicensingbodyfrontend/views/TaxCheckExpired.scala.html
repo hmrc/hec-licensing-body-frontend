@@ -12,22 +12,23 @@
 @this(layout: Layout, govukPanel : GovukPanel, detailsEntered: DetailsEntered)
 
 @(hecTaxCheckMatchRequest:HECTaxCheckMatchRequest, dateTimeChecked: ZonedDateTime)(implicit request: Request[_], messages: Messages)
-@key = @{"taxCheckValid"}
+@key = @{"taxCheckExpired"}
 @title = @{messages(s"$key.title")}
 
 @layout(pageTitle = Some(title)) {
 
     @govukPanel(Panel(
-        title = HtmlContent(s"""<span aria-hidden="true" class="check"></span>${title}"""),
+        classes = "expired",
+        title = HtmlContent(s"""<span aria-hidden="true" class="cross"></span>${title}"""),
         content = HtmlContent(s"""${messages(s"$key.subtitle")}<br><strong>${TimeUtils.govDateTimeDisplayFormat(dateTimeChecked)}</strong>""")
     ))
-
 
     @detailsEntered(hecTaxCheckMatchRequest)
 
     <p class="js-visible govuk-body">@Html(messages(s"$key.print"))</p>
     <h2 class="govuk-heading-m">@messages(s"$key.whatNext.heading")</h2>
     <p class="govuk-body">@messages(s"$key.whatNext.p1")</p>
+    <p class="govuk-body">@messages(s"$key.whatNext.p2")</p>
     <h2 class="govuk-heading-m">@messages(s"$key.viewAnother.heading")</h2>
     <p class="govuk-body govuk-!-margin-bottom-9"><a class="govuk-link" href="@{routes.StartController.start()}">@messages(s"$key.viewAnother.link")</a></p>
 

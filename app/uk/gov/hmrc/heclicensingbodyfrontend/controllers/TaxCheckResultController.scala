@@ -20,7 +20,7 @@ import com.google.inject.Singleton
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.SessionDataAction
-import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckMatchResult.Match
+import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckMatchResult.{Expired, Match}
 import uk.gov.hmrc.heclicensingbodyfrontend.services.JourneyService
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging
 import uk.gov.hmrc.heclicensingbodyfrontend.views.html
@@ -33,6 +33,7 @@ class TaxCheckResultController @Inject() (
   sessionDataAction: SessionDataAction,
   journeyService: JourneyService,
   taxCheckValidPage: html.TaxCheckValid,
+  taxCheckExpiredPage: html.TaxCheckExpired,
   mcc: MessagesControllerComponents
 ) extends FrontendController(mcc)
     with I18nSupport
@@ -51,9 +52,12 @@ class TaxCheckResultController @Inject() (
   //If tax check code comes as Expired, then user click on View another tax check code button and
   // it takes back to start of the LB journey, so no back link
   val taxCheckExpired: Action[AnyContent] = sessionDataAction { implicit request =>
-    Ok(
-      s"Session is ${request.sessionData}}"
-    )
+    request.sessionData.taxCheckMatch match {
+      case Some(Expired(taxCheckMatchResult, dateTime)) => Ok(taxCheckExpiredPage(taxCheckMatchResult, dateTime))
+      case _                                            =>
+        logger.warn("Tax check match Result  not found")
+        InternalServerError
+    }
   }
 
 //back link is there only in case of NO match

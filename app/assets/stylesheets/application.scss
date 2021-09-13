@@ -16,3 +16,27 @@ body:not(.js-enabled) .js-visible {
     border-color: govuk-colour("black");
   }
 }
+
+.govuk-panel--confirmation.expired {
+  background: $govuk-error-colour;
+}
+
+.cross {
+  display: block;
+  position: relative;
+  height: 50px;
+  &:before, &:after {
+    position: absolute;
+    left: 50%;
+    content: '';
+    height: 50px;
+    border-right: 10px solid govuk-colour("white");
+    transform: rotate(45deg);
+    @media print {
+      border-color: govuk-colour("black");
+    }
+  }
+  &:after {
+    transform: rotate(-45deg);
+  }
+}
