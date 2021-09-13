@@ -110,6 +110,30 @@ class TaxCheckResultControllerSpec
 
         }
 
+        "tax check code is No Match in the session for Match page " in {
+
+          val session = HECSession(answers, Some(NoMatch(matchRequest, dateTimeChecked)))
+
+          inSequence {
+            mockGetSession(session)
+          }
+
+          status(performAction()) shouldBe INTERNAL_SERVER_ERROR
+
+        }
+
+        "tax check code is expired in the session for the Match page " in {
+
+          val session = HECSession(answers, Some(Expired(matchRequest, dateTimeChecked)))
+
+          inSequence {
+            mockGetSession(session)
+          }
+
+          status(performAction()) shouldBe INTERNAL_SERVER_ERROR
+
+        }
+
       }
 
       "display the page" when {
@@ -180,9 +204,33 @@ class TaxCheckResultControllerSpec
 
       "return an InternalServerError" when {
 
-        "a tax check code cannot be found in session " in {
+        "tax check code cannot be found in session " in {
 
           val session = HECSession(UserAnswers.empty, None)
+
+          inSequence {
+            mockGetSession(session)
+          }
+
+          status(performAction()) shouldBe INTERNAL_SERVER_ERROR
+
+        }
+
+        "tax check code is Match in the session for Expired page " in {
+
+          val session = HECSession(answers, Some(Match(matchRequest, dateTimeChecked)))
+
+          inSequence {
+            mockGetSession(session)
+          }
+
+          status(performAction()) shouldBe INTERNAL_SERVER_ERROR
+
+        }
+
+        "tax check code is No Match in the session for the Expired page " in {
+
+          val session = HECSession(answers, Some(NoMatch(matchRequest, dateTimeChecked)))
 
           inSequence {
             mockGetSession(session)
@@ -251,9 +299,39 @@ class TaxCheckResultControllerSpec
 
       "return an InternalServerError" when {
 
-        "a tax check code cannot be found in session " in {
+        "tax check code cannot be found in session " in {
 
           val session = HECSession(UserAnswers.empty, None)
+
+          inSequence {
+            mockGetSession(session)
+            mockJourneyServiceGetPrevious(routes.TaxCheckResultController.taxCheckNotMatch(), session)(
+              mockPreviousCall
+            )
+          }
+
+          status(performAction()) shouldBe INTERNAL_SERVER_ERROR
+
+        }
+
+        "tax check code is Match in the session for No Match page " in {
+
+          val session = HECSession(answers, Some(Match(matchRequest, dateTimeChecked)))
+
+          inSequence {
+            mockGetSession(session)
+            mockJourneyServiceGetPrevious(routes.TaxCheckResultController.taxCheckNotMatch(), session)(
+              mockPreviousCall
+            )
+          }
+
+          status(performAction()) shouldBe INTERNAL_SERVER_ERROR
+
+        }
+
+        "tax check code is Expired in the session for No Match page " in {
+
+          val session = HECSession(answers, Some(Expired(matchRequest, dateTimeChecked)))
 
           inSequence {
             mockGetSession(session)
