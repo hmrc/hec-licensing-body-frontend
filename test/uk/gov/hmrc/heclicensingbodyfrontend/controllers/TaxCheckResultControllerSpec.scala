@@ -22,7 +22,7 @@ import play.api.mvc.Result
 import org.jsoup.nodes.Document
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status, _}
-import uk.gov.hmrc.heclicensingbodyfrontend.controllers.TaxCheckResultControllerSpec.CheckYourAnswersRow
+import uk.gov.hmrc.heclicensingbodyfrontend.controllers.TaxCheckResultControllerSpec.DetailsEnteredRow
 import uk.gov.hmrc.heclicensingbodyfrontend.models.EntityType.Individual
 import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckMatchResult.{Expired, Match, NoMatch}
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
@@ -68,17 +68,17 @@ class TaxCheckResultControllerSpec
 
   "TaxCheckResultControllerSpec" when {
 
-    def checkRows(doc: Document) = {
+    def checkDetailsEnteredRows(doc: Document) = {
       val expectedRows = List(
-        CheckYourAnswersRow(
+        DetailsEnteredRow(
           messageFromMessageKey("detailsEntered.taxCheckCodeKey"),
           matchRequest.taxCheckCode.value.grouped(3).mkString(" ")
         ),
-        CheckYourAnswersRow(
+        DetailsEnteredRow(
           messageFromMessageKey("detailsEntered.licenceTypeKey"),
           messageFromMessageKey("licenceType.driverOfTaxis")
         ),
-        CheckYourAnswersRow(
+        DetailsEnteredRow(
           messageFromMessageKey("detailsEntered.dateOfBirthKey"),
           TimeUtils.govDisplayFormat(date)
         )
@@ -87,7 +87,7 @@ class TaxCheckResultControllerSpec
       val rows = doc.select(".govuk-summary-list__row").iterator().asScala.toList.map { element =>
         val question = element.select(".govuk-summary-list__key").text()
         val answer   = element.select(".govuk-summary-list__value").text()
-        CheckYourAnswersRow(question, answer)
+        DetailsEnteredRow(question, answer)
       }
       rows shouldBe expectedRows
     }
@@ -127,7 +127,7 @@ class TaxCheckResultControllerSpec
               messageFromMessageKey("taxCheckValid.title"),
               { doc =>
                 doc.select(".govuk-panel__body").text should include regex matchRegex
-                checkRows(doc)
+                checkDetailsEnteredRows(doc)
               }
             )
           }
@@ -209,7 +209,7 @@ class TaxCheckResultControllerSpec
               messageFromMessageKey("taxCheckExpired.title"),
               { doc =>
                 doc.select(".govuk-panel__body").text should include regex matchRegex
-                checkRows(doc)
+                checkDetailsEnteredRows(doc)
               }
             )
           }
@@ -283,7 +283,7 @@ class TaxCheckResultControllerSpec
           checkPageIsDisplayed(
             performAction(),
             messageFromMessageKey("taxCheckNoMatch.title"),
-            checkRows
+            checkDetailsEnteredRows
           )
 
         }
@@ -297,6 +297,6 @@ class TaxCheckResultControllerSpec
 
 object TaxCheckResultControllerSpec {
 
-  final case class CheckYourAnswersRow(question: String, answer: String)
+  final case class DetailsEnteredRow(question: String, answer: String)
 
 }

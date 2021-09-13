@@ -45,7 +45,7 @@ class TaxCheckResultController @Inject() (
     request.sessionData.taxCheckMatch match {
       case Some(Match(taxCheckMatchResult, dateTime)) => Ok(taxCheckValidPage(taxCheckMatchResult, dateTime))
       case _                                          =>
-        logger.warn("Tax check match Result  not found")
+        logger.warn("Tax check match Result not found for 'Match' page")
         InternalServerError
     }
   }
@@ -56,7 +56,7 @@ class TaxCheckResultController @Inject() (
     request.sessionData.taxCheckMatch match {
       case Some(Expired(taxCheckMatchResult, dateTime)) => Ok(taxCheckExpiredPage(taxCheckMatchResult, dateTime))
       case _                                            =>
-        logger.warn("Tax check match Result  not found")
+        logger.warn("Tax check match Result not found for 'Expired' page")
         InternalServerError
 
     }
@@ -74,7 +74,7 @@ class TaxCheckResultController @Inject() (
           )
         )
       case _                                     =>
-        logger.warn("Tax check match Result  not found")
+        logger.warn("Tax check match Result not found for 'No Match' page")
         InternalServerError
     }
   }
