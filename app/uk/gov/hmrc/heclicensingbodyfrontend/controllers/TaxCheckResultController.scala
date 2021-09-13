@@ -63,7 +63,8 @@ class TaxCheckResultController @Inject() (
 //back link is there only in case of NO match
   val taxCheckNotMatch: Action[AnyContent] = sessionDataAction { implicit request =>
     request.sessionData.taxCheckMatch match {
-      case Some(NoMatch(taxCheckMatchResult, _)) => Ok(taxCheckNoMatchPage(taxCheckMatchResult))
+      case Some(NoMatch(taxCheckMatchResult, _)) =>
+        Ok(taxCheckNoMatchPage(taxCheckMatchResult, routes.TaxCheckResultController.taxCheckNotMatch()))
       case _                                     =>
         logger.warn("Tax check match Result  not found")
         InternalServerError
