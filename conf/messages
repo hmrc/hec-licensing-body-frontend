@@ -97,7 +97,9 @@ taxCheckExpired.viewAnother.link = View another tax check code
 # Tax check Not Matched
 taxCheckNoMatch.title = We could not match these details
 taxCheckNoMatch.whatNext.p1 = You’ll need to check you have the correct details from the applicant, such as their:
-taxCheckNoMatch.viewAnother.link = Try agian
+taxCheckNoMatch.bullet1 = valid 9-character tax check code
+taxCheckNoMatch.bullet2 = date of birth or company registration number
+taxCheckNoMatch.viewAnother.link = Try again
 
 
 # Tax check Expired page
