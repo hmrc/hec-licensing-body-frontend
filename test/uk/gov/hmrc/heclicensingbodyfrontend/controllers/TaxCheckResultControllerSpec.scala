@@ -19,19 +19,22 @@ package uk.gov.hmrc.heclicensingbodyfrontend.controllers
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.mvc.Result
+import org.jsoup.nodes.Document
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status, _}
+import uk.gov.hmrc.heclicensingbodyfrontend.controllers.TaxCheckResultControllerSpec.DetailsEnteredRow
 import uk.gov.hmrc.heclicensingbodyfrontend.models.EntityType.Individual
-import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckMatchResult.{Expired, Match}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckMatchResult.{Expired, Match, NoMatch}
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, HECSession, HECTaxCheckCode, HECTaxCheckMatchRequest, UserAnswers}
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
 import uk.gov.hmrc.heclicensingbodyfrontend.services.JourneyService
 import uk.gov.hmrc.heclicensingbodyfrontend.util.TimeUtils
-import java.time.{LocalDate, ZoneId, ZonedDateTime}
 
+import java.time.{LocalDate, ZoneId, ZonedDateTime}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import collection.JavaConverters._
 
 class TaxCheckResultControllerSpec
     extends ControllerSpec
@@ -39,31 +42,55 @@ class TaxCheckResultControllerSpec
     with SessionDataActionBehaviour
     with JourneyServiceSupport {
 
-  override val overrideBindings =
+  override val overrideBindings: List[GuiceableModule] =
     List[GuiceableModule](
       bind[SessionStore].toInstance(mockSessionStore),
       bind[JourneyService].toInstance(mockJourneyService)
     )
 
-  val controller = instanceOf[TaxCheckResultController]
+  val controller: TaxCheckResultController = instanceOf[TaxCheckResultController]
 
-  val hecTaxCheckCode = HECTaxCheckCode("ABC DEF 123")
-  val dateOfBirth     = DateOfBirth(LocalDate.of(1922, 12, 1))
+  val hecTaxCheckCode: HECTaxCheckCode = HECTaxCheckCode("ABCDEF123")
+  val dateOfBirth: DateOfBirth         = DateOfBirth(LocalDate.of(1922, 12, 1))
 
   val date: LocalDate                = TimeUtils.today().minusYears(20)
   val dateTimeChecked: ZonedDateTime = ZonedDateTime.of(2021, 9, 10, 8, 2, 0, 0, ZoneId.of("Europe/London"))
 
-  val answers = UserAnswers.empty.copy(
+  val answers: UserAnswers = UserAnswers.empty.copy(
     taxCheckCode = Some(hecTaxCheckCode),
     licenceType = Some(LicenceType.DriverOfTaxisAndPrivateHires),
     entityType = Some(Individual),
     dateOfBirth = Some(DateOfBirth(date))
   )
 
-  val matchRequest =
+  val matchRequest: HECTaxCheckMatchRequest =
     HECTaxCheckMatchRequest(hecTaxCheckCode, LicenceType.DriverOfTaxisAndPrivateHires, Right(DateOfBirth(date)))
 
   "TaxCheckResultControllerSpec" when {
+
+    def checkDetailsEnteredRows(doc: Document) = {
+      val expectedRows = List(
+        DetailsEnteredRow(
+          messageFromMessageKey("detailsEntered.taxCheckCodeKey"),
+          matchRequest.taxCheckCode.value.grouped(3).mkString(" ")
+        ),
+        DetailsEnteredRow(
+          messageFromMessageKey("detailsEntered.licenceTypeKey"),
+          messageFromMessageKey("licenceType.driverOfTaxis")
+        ),
+        DetailsEnteredRow(
+          messageFromMessageKey("detailsEntered.dateOfBirthKey"),
+          TimeUtils.govDisplayFormat(date)
+        )
+      )
+
+      val rows = doc.select(".govuk-summary-list__row").iterator().asScala.toList.map { element =>
+        val question = element.select(".govuk-summary-list__key").text()
+        val answer   = element.select(".govuk-summary-list__value").text()
+        DetailsEnteredRow(question, answer)
+      }
+      rows shouldBe expectedRows
+    }
 
     "handling request to tax check Valid page " must {
 
@@ -83,15 +110,38 @@ class TaxCheckResultControllerSpec
 
         }
 
+        "tax check code is No Match in the session for Match page " in {
+
+          val session = HECSession(answers, Some(NoMatch(matchRequest, dateTimeChecked)))
+
+          inSequence {
+            mockGetSession(session)
+          }
+
+          status(performAction()) shouldBe INTERNAL_SERVER_ERROR
+
+        }
+
+        "tax check code is expired in the session for the Match page " in {
+
+          val session = HECSession(answers, Some(Expired(matchRequest, dateTimeChecked)))
+
+          inSequence {
+            mockGetSession(session)
+          }
+
+          status(performAction()) shouldBe INTERNAL_SERVER_ERROR
+
+        }
+
       }
 
       "display the page" when {
 
         "tax check code is a match for an applicant and is valid " when {
 
-          def testValidPage(dateTimeChecked: ZonedDateTime, matchRegex: String) = {
+          def testValidPage(dateTimeChecked: ZonedDateTime, matchRegex: String): Unit = {
             val session = HECSession(answers, Some(Match(matchRequest, dateTimeChecked)))
-
             inSequence {
               mockGetSession(session)
             }
@@ -99,7 +149,10 @@ class TaxCheckResultControllerSpec
             checkPageIsDisplayed(
               performAction(),
               messageFromMessageKey("taxCheckValid.title"),
-              doc => doc.select(".govuk-panel__body").text should include regex matchRegex
+              { doc =>
+                doc.select(".govuk-panel__body").text should include regex matchRegex
+                checkDetailsEnteredRows(doc)
+              }
             )
           }
 
@@ -115,7 +168,6 @@ class TaxCheckResultControllerSpec
           }
 
           "tax check code is checked afternoon" in {
-
             val dateTime = ZonedDateTime.of(2021, 9, 10, 17, 16, 0, 0, ZoneId.of("Europe/London"))
             testValidPage(dateTime, "10 September 2021, 5:16pm")
 
@@ -125,6 +177,18 @@ class TaxCheckResultControllerSpec
 
             val dateTime = ZonedDateTime.of(2021, 9, 10, 0, 0, 0, 0, ZoneId.of("Europe/London"))
             testValidPage(dateTime, "10 September 2021, 12:00am")
+
+          }
+
+          "a tax check code cannot be found in session " in {
+
+            val session = HECSession(UserAnswers.empty, None)
+
+            inSequence {
+              mockGetSession(session)
+            }
+
+            status(performAction()) shouldBe INTERNAL_SERVER_ERROR
 
           }
 
@@ -140,9 +204,33 @@ class TaxCheckResultControllerSpec
 
       "return an InternalServerError" when {
 
-        "a tax check code cannot be found in session " in {
+        "tax check code cannot be found in session " in {
 
           val session = HECSession(UserAnswers.empty, None)
+
+          inSequence {
+            mockGetSession(session)
+          }
+
+          status(performAction()) shouldBe INTERNAL_SERVER_ERROR
+
+        }
+
+        "tax check code is Match in the session for Expired page " in {
+
+          val session = HECSession(answers, Some(Match(matchRequest, dateTimeChecked)))
+
+          inSequence {
+            mockGetSession(session)
+          }
+
+          status(performAction()) shouldBe INTERNAL_SERVER_ERROR
+
+        }
+
+        "tax check code is No Match in the session for the Expired page " in {
+
+          val session = HECSession(answers, Some(NoMatch(matchRequest, dateTimeChecked)))
 
           inSequence {
             mockGetSession(session)
@@ -157,7 +245,7 @@ class TaxCheckResultControllerSpec
 
         "tax check code is a match for an applicant but  expired" when {
 
-          def testExpirePage(dateTimeChecked: ZonedDateTime, matchRegex: String) = {
+          def testExpirePage(dateTimeChecked: ZonedDateTime, matchRegex: String): Unit = {
             val session = HECSession(answers, Some(Expired(matchRequest, dateTimeChecked)))
 
             inSequence {
@@ -167,7 +255,10 @@ class TaxCheckResultControllerSpec
             checkPageIsDisplayed(
               performAction(),
               messageFromMessageKey("taxCheckExpired.title"),
-              doc => doc.select(".govuk-panel__body").text should include regex matchRegex
+              { doc =>
+                doc.select(".govuk-panel__body").text should include regex matchRegex
+                checkDetailsEnteredRows(doc)
+              }
             )
           }
 
@@ -197,9 +288,93 @@ class TaxCheckResultControllerSpec
           }
 
         }
+
+      }
+
+    }
+
+    "handling request to tax check Not Match page" must {
+
+      def performAction(): Future[Result] = controller.taxCheckNotMatch(FakeRequest())
+
+      "return an InternalServerError" when {
+
+        "tax check code cannot be found in session " in {
+
+          val session = HECSession(UserAnswers.empty, None)
+
+          inSequence {
+            mockGetSession(session)
+            mockJourneyServiceGetPrevious(routes.TaxCheckResultController.taxCheckNotMatch(), session)(
+              mockPreviousCall
+            )
+          }
+
+          status(performAction()) shouldBe INTERNAL_SERVER_ERROR
+
+        }
+
+        "tax check code is Match in the session for No Match page " in {
+
+          val session = HECSession(answers, Some(Match(matchRequest, dateTimeChecked)))
+
+          inSequence {
+            mockGetSession(session)
+            mockJourneyServiceGetPrevious(routes.TaxCheckResultController.taxCheckNotMatch(), session)(
+              mockPreviousCall
+            )
+          }
+
+          status(performAction()) shouldBe INTERNAL_SERVER_ERROR
+
+        }
+
+        "tax check code is Expired in the session for No Match page " in {
+
+          val session = HECSession(answers, Some(Expired(matchRequest, dateTimeChecked)))
+
+          inSequence {
+            mockGetSession(session)
+            mockJourneyServiceGetPrevious(routes.TaxCheckResultController.taxCheckNotMatch(), session)(
+              mockPreviousCall
+            )
+          }
+
+          status(performAction()) shouldBe INTERNAL_SERVER_ERROR
+
+        }
+      }
+
+      "display the page " when {
+
+        "tax check code is not a match in database" in {
+
+          val session = HECSession(answers, Some(NoMatch(matchRequest, dateTimeChecked)))
+
+          inSequence {
+            mockGetSession(session)
+            mockJourneyServiceGetPrevious(routes.TaxCheckResultController.taxCheckNotMatch(), session)(
+              mockPreviousCall
+            )
+          }
+
+          checkPageIsDisplayed(
+            performAction(),
+            messageFromMessageKey("taxCheckNoMatch.title"),
+            checkDetailsEnteredRows
+          )
+
+        }
+
       }
 
     }
 
   }
+}
+
+object TaxCheckResultControllerSpec {
+
+  final case class DetailsEnteredRow(question: String, answer: String)
+
 }
