@@ -95,9 +95,9 @@ taxCheckExpired.viewAnother.heading = If you want to view another code
 taxCheckExpired.viewAnother.link = View another tax check code
 
 # Tax check Not Matched
-taxCheckExpired.title = We could not match these details
-taxCheckExpired.whatNext.p1 = You’ll need to check you have the correct details from the applicant, such as their:
-taxCheckExpired.viewAnother.link = View another tax check code
+taxCheckNoMatch.title = We could not match these details
+taxCheckNoMatch.whatNext.p1 = You’ll need to check you have the correct details from the applicant, such as their:
+taxCheckNoMatch.viewAnother.link = Try agian
 
 
 # Tax check Expired page
