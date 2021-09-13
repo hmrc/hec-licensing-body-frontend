@@ -140,11 +140,4 @@ object TimeUtils {
     s"""$day $month $year, $hourMin$amOrPm"""
   }
 
-  implicit class LocalDateOps(private val d: LocalDate) extends AnyVal {
-
-    def isAfterOrOn(other: LocalDate): Boolean =
-      d.isEqual(other) || d.isAfter(other)
-
-  }
-
 }
