@@ -74,7 +74,7 @@ class HECTaxMatchServiceSpec extends AnyWordSpec with Matchers with MockFactory 
           await(result.value) shouldBe a[Left[_, _]]
         }
 
-        "the http response does not come back with a non-ok (200) response" in {
+        "the http response does come back with a non-ok (200) response" in {
           mockMatchTaxCheck(taxCheckMatchRequest)(Right(HttpResponse(ACCEPTED, taxCheckMatchResultJson, emptyHeaders)))
 
           val result = taxCheckService.matchTaxCheck(taxCheckMatchRequest)

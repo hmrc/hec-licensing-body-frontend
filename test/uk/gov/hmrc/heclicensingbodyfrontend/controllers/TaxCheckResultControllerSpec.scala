@@ -22,7 +22,7 @@ import play.api.mvc.Result
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status, _}
 import uk.gov.hmrc.heclicensingbodyfrontend.models.EntityType.Individual
-import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckMatchResult.{Expired, Match, NoMatch}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckMatchResult.{Expired, Match}
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, HECSession, HECTaxCheckCode, HECTaxCheckMatchRequest, UserAnswers}
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
@@ -65,82 +65,21 @@ class TaxCheckResultControllerSpec
 
   "TaxCheckResultControllerSpec" when {
 
-    "handling request to tax check result page " must {
+    "handling request to tax check Valid page " must {
 
-      def performAction(): Future[Result]        = controller.taxCheckMatch(FakeRequest())
-      def performActionExpired(): Future[Result] = controller.taxCheckExpired(FakeRequest())
+      def performAction(): Future[Result] = controller.taxCheckMatch(FakeRequest())
 
       "return an InternalServerError" when {
 
-        "current page is tax check valid page " when {
+        "a tax check code cannot be found in session " in {
 
-          "No match data in session " in {
+          val session = HECSession(UserAnswers.empty, None)
 
-            val session = HECSession(UserAnswers.empty, Some(NoMatch(matchRequest, dateTimeChecked)))
-
-            inSequence {
-              mockGetSession(session)
-            }
-
-            status(performAction()) shouldBe INTERNAL_SERVER_ERROR
+          inSequence {
+            mockGetSession(session)
           }
 
-          "Expired data in session " in {
-
-            val session = HECSession(UserAnswers.empty, Some(Expired(matchRequest, dateTimeChecked)))
-
-            inSequence {
-              mockGetSession(session)
-            }
-
-            status(performAction()) shouldBe INTERNAL_SERVER_ERROR
-          }
-
-          "a tax check code cannot be found in session " in {
-
-            val session = HECSession(UserAnswers.empty, None)
-
-            inSequence {
-              mockGetSession(session)
-            }
-
-            status(performAction()) shouldBe INTERNAL_SERVER_ERROR
-
-          }
-
-        }
-
-        "current page is tax check expired page " when {
-
-          "No match data in session " in {
-            val session = HECSession(UserAnswers.empty, Some(NoMatch(matchRequest, dateTimeChecked)))
-            inSequence {
-              mockGetSession(session)
-            }
-
-            status(performActionExpired()) shouldBe INTERNAL_SERVER_ERROR
-          }
-
-          "valid data in session " in {
-            val session = HECSession(UserAnswers.empty, Some(Match(matchRequest, dateTimeChecked)))
-            inSequence {
-              mockGetSession(session)
-            }
-
-            status(performActionExpired()) shouldBe INTERNAL_SERVER_ERROR
-          }
-
-          "a tax check code cannot be found in session " in {
-
-            val session = HECSession(UserAnswers.empty, None)
-
-            inSequence {
-              mockGetSession(session)
-            }
-
-            status(performActionExpired()) shouldBe INTERNAL_SERVER_ERROR
-
-          }
+          status(performAction()) shouldBe INTERNAL_SERVER_ERROR
 
         }
 
@@ -191,6 +130,31 @@ class TaxCheckResultControllerSpec
 
         }
 
+      }
+
+    }
+
+    "handling request to tax  check expired page" must {
+
+      def performAction(): Future[Result] = controller.taxCheckExpired(FakeRequest())
+
+      "return an InternalServerError" when {
+
+        "a tax check code cannot be found in session " in {
+
+          val session = HECSession(UserAnswers.empty, None)
+
+          inSequence {
+            mockGetSession(session)
+          }
+
+          status(performAction()) shouldBe INTERNAL_SERVER_ERROR
+
+        }
+      }
+
+      "display the page " when {
+
         "tax check code is a match for an applicant but  expired" when {
 
           def testExpirePage(dateTimeChecked: ZonedDateTime, matchRegex: String) = {
@@ -201,7 +165,7 @@ class TaxCheckResultControllerSpec
             }
 
             checkPageIsDisplayed(
-              performActionExpired(),
+              performAction(),
               messageFromMessageKey("taxCheckExpired.title"),
               doc => doc.select(".govuk-panel__body").text should include regex matchRegex
             )
@@ -233,7 +197,6 @@ class TaxCheckResultControllerSpec
           }
 
         }
-
       }
 
     }
