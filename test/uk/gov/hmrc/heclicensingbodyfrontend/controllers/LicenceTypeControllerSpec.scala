@@ -199,6 +199,7 @@ class LicenceTypeControllerSpec
               taxCheckCode = Some(taxCheckCode),
               Some(LicenceType.DriverOfTaxisAndPrivateHires),
               None,
+              None,
               None
             )
             val updatedAnswers = answers.copy(licenceType = Some(LicenceType.ScrapMetalMobileCollector))

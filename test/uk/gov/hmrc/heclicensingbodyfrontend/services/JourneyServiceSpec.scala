@@ -51,7 +51,8 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
     Some(hecTaxCheckCode),
     Some(LicenceType.DriverOfTaxisAndPrivateHires),
     Some(Individual),
-    Some(dateOfBirth)
+    Some(dateOfBirth),
+    None
   )
 
   "JourneyServiceImpl" when {
@@ -192,6 +193,7 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
                 taxCheckCode = Some(hecTaxCheckCode),
                 licenceType = Some(LicenceType.DriverOfTaxisAndPrivateHires),
                 entityType = Some(entityType),
+                None,
                 None
               ),
               None
@@ -366,7 +368,8 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
               taxCheckCode = Some(hecTaxCheckCode),
               licenceType = Some(LicenceType.DriverOfTaxisAndPrivateHires),
               entityType = None,
-              dateOfBirth = None
+              dateOfBirth = None,
+              None
             ),
             None
           )
@@ -386,6 +389,7 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
               taxCheckCode = Some(hecTaxCheckCode),
               licenceType = Some(LicenceType.ScrapMetalMobileCollector),
               entityType = Some(EntityType.Individual),
+              None,
               None
             ),
             None
@@ -412,6 +416,7 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
                   taxCheckCode = Some(hecTaxCheckCode),
                   licenceType = Some(licenceType),
                   entityType = None,
+                  None,
                   None
                 ),
                 None
@@ -434,6 +439,7 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
               taxCheckCode = Some(hecTaxCheckCode),
               licenceType = Some(LicenceType.ScrapMetalMobileCollector),
               entityType = Some(EntityType.Company),
+              None,
               None
             ),
             None

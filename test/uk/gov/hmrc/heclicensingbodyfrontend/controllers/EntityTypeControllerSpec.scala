@@ -203,6 +203,7 @@ class EntityTypeControllerSpec
               taxCheckCode = Some(taxCheckCode),
               licenceType = Some(licenceType),
               entityType = Some(EntityType.Individual),
+              None,
               None
             )
             val updatedAnswers = answers.copy(entityType = Some(EntityType.Company))
