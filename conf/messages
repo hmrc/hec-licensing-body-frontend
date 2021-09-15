@@ -112,4 +112,15 @@ taxCheckExpired.whatNext.p2 = You must ask the applicant to do a new tax check, 
 taxCheckExpired.viewAnother.heading = If you want to view another code
 taxCheckExpired.viewAnother.link = View another tax check code
 
+#CRN
+# error messages needs confirmation
+crn.title = What is the applicant's company registration number?
+crn.hint = Companies House sent this to the applicant when they set up their company. This is also called a company number. For example, SN898989 or 12345678.
+crn.link = Search for a company registration number (opens in new tab)
+crn.error.required = Enter the applicant’s company registration number
+crn.error.tooLong = The company registration number must be 8 characters long
+crn.error.tooShort = The company registration number must be 8 characters long
+crn.error.crnInvalid = The company registration number may have first 2 characters as alphanumeric, subsequent 6 characters must be numbers
+
+
 

@@ -1,0 +1,52 @@
+@import play.api.data.Form
+@import play.api.i18n.Messages
+@import play.api.mvc.{Call, Request}
+@import uk.gov.hmrc.heclicensingbodyfrontend.models.ids
+@import uk.gov.hmrc.heclicensingbodyfrontend.controllers.routes
+@import uk.gov.hmrc.govukfrontend.views.html.components._
+
+
+@this(layout: Layout, govukInput: GovukInput, govukButton: GovukButton, formWithCSRF: FormWithCSRF, govukErrorSummary : GovukErrorSummary)
+
+
+@(form: Form[ids.CRN], back: Call)(implicit request: Request[_], messages: Messages)
+@key = @{"crn"}
+@title = @{messages(s"$key.title")}
+
+@layout(pageTitle = Some(title), hasErrors = form.hasErrors, backLocation = Some(back)) {
+  @if(form.errors.nonEmpty) {
+    @govukErrorSummary(ErrorSummary(errorList = form.errors.map(e => ErrorLink(
+      href = Some(s"#${e.key}"),
+      content = Text(s"${messages(s"${e.key}.${e.message}")}")
+    )), title = Text(messages("generic.errorSummary"))))
+  }
+
+  @formWithCSRF(action = routes.CRNController.companyRegistrationNumberSubmit()) {
+    @govukInput(Input(
+      id = key,
+      name = key,
+      value = form(key).value,
+      label = Label(
+        isPageHeading = true,
+        classes = "govuk-label--xl",
+        content = Text(title)
+      ),
+      classes = "govuk-!-width-one-third",
+      hint = Some(Hint(
+        content = Text(messages(s"$key.hint"))
+      )),
+      errorMessage = form.error(key).map(e => ErrorMessage(
+        content = Text(messages(s"$key.${e.message}"))
+      ))
+    ))
+
+    <p class="govuk-body">
+      <a class="govuk-link" href="" target="_blank">@{messages(s"$key.link")}</a>
+    </p>
+
+    @govukButton(Button(
+      content = Text(messages("button.continue"))
+    ))
+  }
+
+}
