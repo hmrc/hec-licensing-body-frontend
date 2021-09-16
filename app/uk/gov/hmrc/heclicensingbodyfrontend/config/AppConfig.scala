@@ -37,4 +37,6 @@ class AppConfig @Inject() (config: Configuration, contactFrontendConfig: Contact
 
   val licencingBodyStartUrl: String = config.get[String]("external-url.licencing-body-start")
 
+  val companiesHouseSearchUrl: String = config.get[String]("external-url.companies-house-search")
+
 }
