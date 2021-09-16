@@ -290,7 +290,7 @@ class CRNControllerSpec
           status(performAction("crn" -> validCRN(0).value)) shouldBe INTERNAL_SERVER_ERROR
         }
 
-        "there is no hexcode in the session" in {
+        "there is no taxCheckCode in the session" in {
 
           val answers = UserAnswers.empty.copy(
             taxCheckCode = None,

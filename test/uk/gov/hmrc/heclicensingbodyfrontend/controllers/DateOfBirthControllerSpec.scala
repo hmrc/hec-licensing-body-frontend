@@ -252,7 +252,7 @@ class DateOfBirthControllerSpec
           status(performAction(formData(date): _*)) shouldBe INTERNAL_SERVER_ERROR
         }
 
-        "there is no hexcode in the session" in {
+        "there is no taxCheckCode in the session" in {
 
           val answers = UserAnswers.empty.copy(
             taxCheckCode = None,
