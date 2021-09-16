@@ -23,18 +23,19 @@ import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.mvc.Result
 import play.api.test.FakeRequest
-import play.api.test.Helpers._
-import play.api.test.Helpers.status
+import play.api.test.Helpers.{status, _}
 import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckMatchResult.Match
 import uk.gov.hmrc.heclicensingbodyfrontend.models.ids.CRN
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType.OperatorOfPrivateHireVehicles
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECSession, HECTaxCheckCode, HECTaxCheckMatchRequest, HECTaxCheckMatchResult, UserAnswers}
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
+import uk.gov.hmrc.heclicensingbodyfrontend.util.StringUtils.StringOps
 import uk.gov.hmrc.heclicensingbodyfrontend.services.{HECTaxMatchService, JourneyService}
 import uk.gov.hmrc.heclicensingbodyfrontend.util.TimeUtils
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.util.Locale
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -53,10 +54,10 @@ class CRNControllerSpec
       bind[HECTaxMatchService].toInstance(taxCheckService)
     )
 
-  val controller      = instanceOf[CRNController]
-  val hecTaxCheckCode = HECTaxCheckCode("ABC DEF 123")
-  val validCRN        = List(CRN("SS12345"), CRN("SS123456"), CRN("11123456"), CRN("1112345"))
-
+  val controller           = instanceOf[CRNController]
+  val hecTaxCheckCode      = HECTaxCheckCode("ABC DEF 123")
+  val validCRN             =
+    List(CRN("SS12345"), CRN("SS1 23 45"), CRN("SS123456"), CRN("ss123456"), CRN("11123456"), CRN("1112345"))
   val nonAlphaNumCRN       = List(CRN("$£%^&"), CRN("AA1244&"))
   val inValidCRN           =
     List(CRN("AAB3456"), CRN("12345AAA"))
@@ -73,6 +74,7 @@ class CRNControllerSpec
   "CRNControllerSpec" when {
 
     "handling requests to display the company registration number  page" must {
+
       def performAction(): Future[Result] = controller.companyRegistrationNumber(FakeRequest())
 
       behave like sessionDataActionBehaviour(performAction)
@@ -190,7 +192,7 @@ class CRNControllerSpec
           checkFormErrorIsDisplayed(
             performAction("crn" -> "1234567890"),
             messageFromMessageKey("crn.title"),
-            messageFromMessageKey("crn.error.inValidLength")
+            messageFromMessageKey("crn.error.crnInvalid")
           )
         }
 
@@ -205,7 +207,7 @@ class CRNControllerSpec
           checkFormErrorIsDisplayed(
             performAction("crn" -> "12345"),
             messageFromMessageKey("crn.title"),
-            messageFromMessageKey("crn.error.inValidLength")
+            messageFromMessageKey("crn.error.crnInvalid")
           )
         }
 
@@ -286,6 +288,57 @@ class CRNControllerSpec
           }
 
           status(performAction("crn" -> validCRN(0).value)) shouldBe INTERNAL_SERVER_ERROR
+        }
+
+      }
+
+      "redirect to the next page" when {
+
+        "a valid CRN is submitted" in {
+
+          validCRN.foreach { crn =>
+            withClue(s" For CRN : $crn") {
+
+              val formattedCrn    = CRN(crn.value.removeWhitespace.toUpperCase(Locale.UK))
+              val newMatchRequest = taxCheckMatchRequest.copy(verifier = Left(formattedCrn))
+
+              val answers = UserAnswers.empty.copy(
+                taxCheckCode = Some(hecTaxCheckCode),
+                licenceType = Some(LicenceType.OperatorOfPrivateHireVehicles)
+              )
+              val session = HECSession(answers, None)
+
+              val updatedAnswers = answers.copy(crn = Some(formattedCrn))
+              val updatedSession =
+                session.copy(
+                  userAnswers = updatedAnswers,
+                  taxCheckMatch = Some(
+                    Match(
+                      newMatchRequest,
+                      dateTimeChecked
+                    )
+                  )
+                )
+              inSequence {
+                mockGetSession(session)
+                mockMatchTaxCheck(newMatchRequest)(
+                  Right(Match(newMatchRequest, dateTimeChecked))
+                )
+                mockJourneyServiceUpdateAndNext(
+                  routes.CRNController.companyRegistrationNumber(),
+                  session,
+                  updatedSession
+                )(
+                  Right(mockNextCall)
+                )
+              }
+
+              checkIsRedirect(performAction("crn" -> crn.value), mockNextCall)
+
+            }
+
+          }
+
         }
 
       }

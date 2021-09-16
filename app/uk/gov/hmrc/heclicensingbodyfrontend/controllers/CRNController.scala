@@ -111,16 +111,15 @@ class CRNController @Inject() (
 object CRNController {
 
   //This regex checks first two characters as alphanumeric but the next 5/6 chars should be number
-  val crnRegex = "^[a-zA-Z0-9]{2}[0-9]{5,6}"
+  val crnRegex = "^[A-Z0-9]{2}[0-9]{5,6}"
 
   //Checking CRN constraint based on rules on following priority
   //Should have only alphanumeric characters
-  //Should have only either 7 or 8 characters
   //Should be in correct format - first two chars alphanumeric and rest 5/6 chars as number
+  // and Should have only either 7 or 8 characters
   private val crnConstraint: Constraint[CRN] =
     Constraint(code =>
       if (!code.value.forall(_.isLetterOrDigit)) Invalid("error.nonAlphanumericChars")
-      else if (code.value.length < 7 || code.value.length > 8) Invalid("error.inValidLength")
       else if (code.value.matches(crnRegex)) Valid
       else Invalid("error.crnInvalid")
     )
