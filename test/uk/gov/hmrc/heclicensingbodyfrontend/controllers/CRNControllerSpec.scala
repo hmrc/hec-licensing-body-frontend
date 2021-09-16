@@ -290,6 +290,21 @@ class CRNControllerSpec
           status(performAction("crn" -> validCRN(0).value)) shouldBe INTERNAL_SERVER_ERROR
         }
 
+        "there is no hexcode in the session" in {
+
+          val answers = UserAnswers.empty.copy(
+            taxCheckCode = None,
+            licenceType = Some(LicenceType.OperatorOfPrivateHireVehicles)
+          )
+          val session = HECSession(answers, None)
+
+          inSequence {
+            mockGetSession(session)
+          }
+
+          status(performAction("crn" -> validCRN(0).value)) shouldBe INTERNAL_SERVER_ERROR
+        }
+
       }
 
       "redirect to the next page" when {

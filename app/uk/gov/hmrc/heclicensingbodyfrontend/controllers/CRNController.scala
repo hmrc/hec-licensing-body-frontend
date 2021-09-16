@@ -111,7 +111,7 @@ class CRNController @Inject() (
 object CRNController {
 
   //This regex checks first two characters as alphanumeric but the next 5/6 chars should be number
-  val crnRegex = "^[A-Z0-9]{2}[0-9]{5,6}"
+  private val crnRegex = "^[A-Z0-9]{2}[0-9]{5,6}"
 
   //Checking CRN constraint based on rules on following priority
   //Should have only alphanumeric characters
