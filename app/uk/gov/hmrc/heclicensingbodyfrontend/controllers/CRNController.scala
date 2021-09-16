@@ -100,7 +100,7 @@ class CRNController @Inject() (
         EitherT.leftT(
           Error(
             Left(
-              "Insufficient data to proceed and submit, one of the data is missing : HECTaxCheckCode or LicenceType"
+              "Insufficient data to proceed and submit, one or both of : HECTaxCheckCode or LicenceType are missing."
             )
           )
         )
