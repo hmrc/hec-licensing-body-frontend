@@ -252,6 +252,21 @@ class DateOfBirthControllerSpec
           status(performAction(formData(date): _*)) shouldBe INTERNAL_SERVER_ERROR
         }
 
+        "there is no taxCheckCode in the session" in {
+
+          val answers = UserAnswers.empty.copy(
+            taxCheckCode = None,
+            licenceType = Some(LicenceType.DriverOfTaxisAndPrivateHires)
+          )
+          val session = HECSession(answers, None)
+
+          inSequence {
+            mockGetSession(session)
+          }
+
+          status(performAction(formData(date): _*)) shouldBe INTERNAL_SERVER_ERROR
+        }
+
       }
 
       "redirect to the next page" when {

@@ -17,18 +17,20 @@
 package uk.gov.hmrc.heclicensingbodyfrontend.models
 
 import play.api.libs.json.{Format, Json}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.ids.CRN
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
 
 final case class UserAnswers(
   taxCheckCode: Option[HECTaxCheckCode],
   licenceType: Option[LicenceType],
   entityType: Option[EntityType],
-  dateOfBirth: Option[DateOfBirth]
+  dateOfBirth: Option[DateOfBirth],
+  crn: Option[CRN]
 )
 
 object UserAnswers {
 
-  val empty: UserAnswers = UserAnswers(None, None, None, None)
+  val empty: UserAnswers = UserAnswers(None, None, None, None, None)
 
   implicit val format: Format[UserAnswers] = Json.format
 
