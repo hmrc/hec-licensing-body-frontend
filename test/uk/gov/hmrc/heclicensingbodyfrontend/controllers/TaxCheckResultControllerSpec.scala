@@ -310,7 +310,7 @@ class TaxCheckResultControllerSpec
 
         "tax check code is No Match in the session for the Expired page " in {
 
-          val session = HECSession(answers, Some(HECTaxCheckMatchResult(matchRequest, dateTimeChecked, Match)))
+          val session = HECSession(answers, Some(HECTaxCheckMatchResult(matchRequest, dateTimeChecked, NoMatch)))
 
           inSequence {
             mockGetSession(session)
