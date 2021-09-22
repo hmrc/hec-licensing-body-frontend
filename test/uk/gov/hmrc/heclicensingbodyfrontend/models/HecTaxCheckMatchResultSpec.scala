@@ -54,7 +54,6 @@ class HecTaxCheckMatchResultSpec extends AnyWordSpec with Matchers {
            |  },
            |  "dateTimeChecked" : "2021-09-10T08:02:00+01:00[Europe/London]",
            |  "status" : "Match"
-           |  
            |}
            |""".stripMargin)
 
@@ -77,6 +76,14 @@ class HecTaxCheckMatchResultSpec extends AnyWordSpec with Matchers {
 
       "serialize Company check match code" in {
         Json.toJson(hecTaxCheckMatchResultCompany) shouldBe matchResultCompany
+      }
+
+      "deserialize indviduual check match code" in {
+        Json.fromJson[HECTaxCheckMatchResult](matchResultIndividual).get shouldBe hecTaxCheckMatchResultIndividual
+      }
+
+      "deserialize Company check match code" in {
+        Json.fromJson[HECTaxCheckMatchResult](matchResultCompany).get shouldBe hecTaxCheckMatchResultCompany
       }
 
     }
