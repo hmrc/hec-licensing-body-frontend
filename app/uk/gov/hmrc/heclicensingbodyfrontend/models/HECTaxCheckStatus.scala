@@ -16,18 +16,20 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.models
 
-import play.api.libs.json.{Json, OFormat}
+import ai.x.play.json.Jsonx
+import ai.x.play.json.SingletonEncoder.simpleName
+import ai.x.play.json.implicits.formatSingleton
+import play.api.libs.json.Format
 
-import java.time.ZonedDateTime
+sealed trait HECTaxCheckStatus extends Product with Serializable
 
-final case class HECTaxCheckMatchResult(
-  matchRequest: HECTaxCheckMatchRequest,
-  dateTimeChecked: ZonedDateTime,
-  status: HECTaxCheckStatus
-)
+object HECTaxCheckStatus {
+  case object Match extends HECTaxCheckStatus
 
-object HECTaxCheckMatchResult {
+  case object NoMatch extends HECTaxCheckStatus
 
-  implicit val format: OFormat[HECTaxCheckMatchResult] = Json.format[HECTaxCheckMatchResult]
+  case object Expired extends HECTaxCheckStatus
 
+  @SuppressWarnings(Array("org.wartremover.warts.All"))
+  implicit val format: Format[HECTaxCheckStatus] = Jsonx.formatSealed[HECTaxCheckStatus]
 }

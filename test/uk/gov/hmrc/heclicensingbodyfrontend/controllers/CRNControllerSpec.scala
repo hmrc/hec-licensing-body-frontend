@@ -24,7 +24,7 @@ import play.api.inject.guice.GuiceableModule
 import play.api.mvc.Result
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status, _}
-import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckMatchResult.Match
+import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus._
 import uk.gov.hmrc.heclicensingbodyfrontend.models.ids.CRN
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType.OperatorOfPrivateHireVehicles
@@ -276,12 +276,14 @@ class CRNControllerSpec
           val updatedSession =
             session.copy(
               userAnswers = answers.copy(crn = Some(validCRN(0))),
-              taxCheckMatch = Some(Match(taxCheckMatchRequest, dateTimeChecked))
+              taxCheckMatch = Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Match))
             )
 
           inSequence {
             mockGetSession(session)
-            mockMatchTaxCheck(taxCheckMatchRequest)(Right(Match(taxCheckMatchRequest, dateTimeChecked)))
+            mockMatchTaxCheck(taxCheckMatchRequest)(
+              Right(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Match))
+            )
             mockJourneyServiceUpdateAndNext(routes.CRNController.companyRegistrationNumber(), session, updatedSession)(
               Left(Error(""))
             )
@@ -328,16 +330,17 @@ class CRNControllerSpec
                 session.copy(
                   userAnswers = updatedAnswers,
                   taxCheckMatch = Some(
-                    Match(
+                    HECTaxCheckMatchResult(
                       newMatchRequest,
-                      dateTimeChecked
+                      dateTimeChecked,
+                      Match
                     )
                   )
                 )
               inSequence {
                 mockGetSession(session)
                 mockMatchTaxCheck(newMatchRequest)(
-                  Right(Match(newMatchRequest, dateTimeChecked))
+                  Right(HECTaxCheckMatchResult(newMatchRequest, dateTimeChecked, Match))
                 )
                 mockJourneyServiceUpdateAndNext(
                   routes.CRNController.companyRegistrationNumber(),

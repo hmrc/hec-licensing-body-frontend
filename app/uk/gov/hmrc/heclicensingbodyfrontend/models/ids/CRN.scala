@@ -17,15 +17,13 @@
 package uk.gov.hmrc.heclicensingbodyfrontend.models.ids
 
 import cats.Eq
-import play.api.libs.functional.syntax.toInvariantFunctorOps
-import play.api.libs.json.Format
+import play.api.libs.json.{Format, Json}
 
 final case class CRN(value: String) extends AnyVal
 
 object CRN {
 
-  implicit val format: Format[CRN] =
-    implicitly[Format[String]].inmap(CRN(_), _.value)
+  implicit val format: Format[CRN] = Json.valueFormat
 
   implicit val eq: Eq[CRN] = Eq.fromUniversalEquals
 
