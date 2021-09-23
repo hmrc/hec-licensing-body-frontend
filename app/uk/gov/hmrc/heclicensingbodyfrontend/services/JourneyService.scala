@@ -25,9 +25,9 @@ import com.google.inject.{ImplementedBy, Inject, Singleton}
 import play.api.mvc.Call
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.RequestWithSessionData
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.routes
-import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckMatchResult._
+import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus._
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{EntityType, Error, HECSession}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{EntityType, Error, HECSession, HECTaxCheckMatchResult}
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -132,9 +132,9 @@ class JourneyServiceImpl @Inject() (sessionStore: SessionStore)(implicit ex: Exe
     session.taxCheckMatch match {
       case Some(taxMatch) =>
         taxMatch match {
-          case Match(_, _)   => routes.TaxCheckResultController.taxCheckMatch()
-          case Expired(_, _) => routes.TaxCheckResultController.taxCheckExpired()
-          case NoMatch(_, _) => routes.TaxCheckResultController.taxCheckNotMatch()
+          case HECTaxCheckMatchResult(_, _, Match)   => routes.TaxCheckResultController.taxCheckMatch()
+          case HECTaxCheckMatchResult(_, _, Expired) => routes.TaxCheckResultController.taxCheckExpired()
+          case HECTaxCheckMatchResult(_, _, NoMatch) => routes.TaxCheckResultController.taxCheckNotMatch()
         }
 
       case None =>
@@ -145,9 +145,9 @@ class JourneyServiceImpl @Inject() (sessionStore: SessionStore)(implicit ex: Exe
     session.taxCheckMatch match {
       case Some(taxMatch) =>
         taxMatch match {
-          case Match(_, _)   => routes.TaxCheckResultController.taxCheckMatch()
-          case Expired(_, _) => routes.TaxCheckResultController.taxCheckExpired()
-          case NoMatch(_, _) => routes.TaxCheckResultController.taxCheckNotMatch()
+          case HECTaxCheckMatchResult(_, _, Match)   => routes.TaxCheckResultController.taxCheckMatch()
+          case HECTaxCheckMatchResult(_, _, Expired) => routes.TaxCheckResultController.taxCheckExpired()
+          case HECTaxCheckMatchResult(_, _, NoMatch) => routes.TaxCheckResultController.taxCheckNotMatch()
         }
 
       case None =>

@@ -24,7 +24,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.{status, _}
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.TaxCheckResultControllerSpec.DetailsEnteredRow
 import uk.gov.hmrc.heclicensingbodyfrontend.models.EntityType.{Company, Individual}
-import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckMatchResult.{Expired, Match, NoMatch}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus._
 import uk.gov.hmrc.heclicensingbodyfrontend.models.ids.CRN
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
 import uk.gov.hmrc.heclicensingbodyfrontend.models._
@@ -144,7 +144,7 @@ class TaxCheckResultControllerSpec
 
         "tax check code is No Match in the session for Match page " in {
 
-          val session = HECSession(answers, Some(NoMatch(matchRequest, dateTimeChecked)))
+          val session = HECSession(answers, Some(HECTaxCheckMatchResult(matchRequest, dateTimeChecked, NoMatch)))
 
           inSequence {
             mockGetSession(session)
@@ -156,7 +156,7 @@ class TaxCheckResultControllerSpec
 
         "tax check code is expired in the session for the Match page " in {
 
-          val session = HECSession(answers, Some(Expired(matchRequest, dateTimeChecked)))
+          val session = HECSession(answers, Some(HECTaxCheckMatchResult(matchRequest, dateTimeChecked, Expired)))
 
           inSequence {
             mockGetSession(session)
@@ -175,7 +175,7 @@ class TaxCheckResultControllerSpec
           "applicant is Individual" when {
 
             def testValidPageForIndividual(dateTimeChecked: ZonedDateTime, matchRegex: String): Unit = {
-              val session = HECSession(answers, Some(Match(matchRequest, dateTimeChecked)))
+              val session = HECSession(answers, Some(HECTaxCheckMatchResult(matchRequest, dateTimeChecked, Match)))
               inSequence {
                 mockGetSession(session)
               }
@@ -218,7 +218,8 @@ class TaxCheckResultControllerSpec
 
           "applicant is Company" when {
             def testValidPageForCompany(dateTimeChecked: ZonedDateTime, matchRegex: String): Unit = {
-              val session = HECSession(companyAnswers, Some(Match(companyMatchRequest, dateTimeChecked)))
+              val session =
+                HECSession(companyAnswers, Some(HECTaxCheckMatchResult(companyMatchRequest, dateTimeChecked, Match)))
               inSequence {
                 mockGetSession(session)
               }
@@ -297,7 +298,7 @@ class TaxCheckResultControllerSpec
 
         "tax check code is Match in the session for Expired page " in {
 
-          val session = HECSession(answers, Some(Match(matchRequest, dateTimeChecked)))
+          val session = HECSession(answers, Some(HECTaxCheckMatchResult(matchRequest, dateTimeChecked, Match)))
 
           inSequence {
             mockGetSession(session)
@@ -309,7 +310,7 @@ class TaxCheckResultControllerSpec
 
         "tax check code is No Match in the session for the Expired page " in {
 
-          val session = HECSession(answers, Some(NoMatch(matchRequest, dateTimeChecked)))
+          val session = HECSession(answers, Some(HECTaxCheckMatchResult(matchRequest, dateTimeChecked, NoMatch)))
 
           inSequence {
             mockGetSession(session)
@@ -327,7 +328,7 @@ class TaxCheckResultControllerSpec
           "applicant is an Individual" when {
 
             def testExpirePageForIndividual(dateTimeChecked: ZonedDateTime, matchRegex: String): Unit = {
-              val session = HECSession(answers, Some(Expired(matchRequest, dateTimeChecked)))
+              val session = HECSession(answers, Some(HECTaxCheckMatchResult(matchRequest, dateTimeChecked, Expired)))
 
               inSequence {
                 mockGetSession(session)
@@ -373,7 +374,8 @@ class TaxCheckResultControllerSpec
           "applicant is a Company" when {
 
             def testExpirePageForCompany(dateTimeChecked: ZonedDateTime, matchRegex: String): Unit = {
-              val session = HECSession(companyAnswers, Some(Expired(companyMatchRequest, dateTimeChecked)))
+              val session =
+                HECSession(companyAnswers, Some(HECTaxCheckMatchResult(companyMatchRequest, dateTimeChecked, Expired)))
 
               inSequence {
                 mockGetSession(session)
@@ -445,7 +447,7 @@ class TaxCheckResultControllerSpec
 
         "tax check code is Match in the session for No Match page " in {
 
-          val session = HECSession(answers, Some(Match(matchRequest, dateTimeChecked)))
+          val session = HECSession(answers, Some(HECTaxCheckMatchResult(matchRequest, dateTimeChecked, Match)))
 
           inSequence {
             mockGetSession(session)
@@ -460,7 +462,7 @@ class TaxCheckResultControllerSpec
 
         "tax check code is Expired in the session for No Match page " in {
 
-          val session = HECSession(answers, Some(Expired(matchRequest, dateTimeChecked)))
+          val session = HECSession(answers, Some(HECTaxCheckMatchResult(matchRequest, dateTimeChecked, Expired)))
 
           inSequence {
             mockGetSession(session)
@@ -479,7 +481,7 @@ class TaxCheckResultControllerSpec
         "tax check code is not a match in database" when {
 
           "applicant is an Individual" in {
-            val session = HECSession(answers, Some(NoMatch(matchRequest, dateTimeChecked)))
+            val session = HECSession(answers, Some(HECTaxCheckMatchResult(matchRequest, dateTimeChecked, NoMatch)))
 
             inSequence {
               mockGetSession(session)
@@ -496,7 +498,8 @@ class TaxCheckResultControllerSpec
           }
 
           "applicant is a Company" in {
-            val session = HECSession(companyAnswers, Some(NoMatch(companyMatchRequest, dateTimeChecked)))
+            val session =
+              HECSession(companyAnswers, Some(HECTaxCheckMatchResult(companyMatchRequest, dateTimeChecked, NoMatch)))
 
             inSequence {
               mockGetSession(session)

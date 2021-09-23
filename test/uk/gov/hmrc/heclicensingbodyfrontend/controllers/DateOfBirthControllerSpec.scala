@@ -23,7 +23,7 @@ import play.api.inject.guice.GuiceableModule
 import play.api.mvc.Result
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckMatchResult.Match
+import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus._
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, Error, HECSession, HECTaxCheckCode, HECTaxCheckMatchRequest, HECTaxCheckMatchResult, UserAnswers}
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
@@ -238,12 +238,14 @@ class DateOfBirthControllerSpec
           val updatedSession =
             session.copy(
               userAnswers = answers.copy(dateOfBirth = Some(DateOfBirth(date))),
-              taxCheckMatch = Some(Match(taxCheckMatchRequest, dateTimeChecked))
+              taxCheckMatch = Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Match))
             )
 
           inSequence {
             mockGetSession(session)
-            mockMatchTaxCheck(taxCheckMatchRequest)(Right(Match(taxCheckMatchRequest, dateTimeChecked)))
+            mockMatchTaxCheck(taxCheckMatchRequest)(
+              Right(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Match))
+            )
             mockJourneyServiceUpdateAndNext(routes.DateOfBirthController.dateOfBirth(), session, updatedSession)(
               Left(Error(""))
             )
@@ -283,12 +285,14 @@ class DateOfBirthControllerSpec
           val updatedSession =
             session.copy(
               userAnswers = updatedAnswers,
-              taxCheckMatch = Some(Match(taxCheckMatchRequest, dateTimeChecked))
+              taxCheckMatch = Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Match))
             )
 
           inSequence {
             mockGetSession(session)
-            mockMatchTaxCheck(taxCheckMatchRequest)(Right(Match(taxCheckMatchRequest, dateTimeChecked)))
+            mockMatchTaxCheck(taxCheckMatchRequest)(
+              Right(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Match))
+            )
             mockJourneyServiceUpdateAndNext(routes.DateOfBirthController.dateOfBirth(), session, updatedSession)(
               Right(mockNextCall)
             )

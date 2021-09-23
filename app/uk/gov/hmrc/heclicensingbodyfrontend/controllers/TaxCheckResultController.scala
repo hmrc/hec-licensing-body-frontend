@@ -20,7 +20,8 @@ import com.google.inject.Singleton
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.SessionDataAction
-import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckMatchResult.{Expired, Match, NoMatch}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckMatchResult
+import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus._
 import uk.gov.hmrc.heclicensingbodyfrontend.services.JourneyService
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging
 import uk.gov.hmrc.heclicensingbodyfrontend.views.html
@@ -43,8 +44,9 @@ class TaxCheckResultController @Inject() (
   //If there is a tax code match, then there is no back link in there
   val taxCheckMatch: Action[AnyContent] = sessionDataAction { implicit request =>
     request.sessionData.taxCheckMatch match {
-      case Some(Match(taxCheckMatchResult, dateTime)) => Ok(taxCheckValidPage(taxCheckMatchResult, dateTime))
-      case _                                          =>
+      case Some(HECTaxCheckMatchResult(taxCheckMatchResult, dateTime, Match)) =>
+        Ok(taxCheckValidPage(taxCheckMatchResult, dateTime))
+      case _                                                                  =>
         logger.warn("Tax check match Result not found for 'Match' page")
         InternalServerError
     }
@@ -54,8 +56,9 @@ class TaxCheckResultController @Inject() (
   // it takes back to start of the LB journey, so no back link
   val taxCheckExpired: Action[AnyContent] = sessionDataAction { implicit request =>
     request.sessionData.taxCheckMatch match {
-      case Some(Expired(taxCheckMatchResult, dateTime)) => Ok(taxCheckExpiredPage(taxCheckMatchResult, dateTime))
-      case _                                            =>
+      case Some(HECTaxCheckMatchResult(taxCheckMatchResult, dateTime, Expired)) =>
+        Ok(taxCheckExpiredPage(taxCheckMatchResult, dateTime))
+      case _                                                                    =>
         logger.warn("Tax check match Result not found for 'Expired' page")
         InternalServerError
 
@@ -66,14 +69,14 @@ class TaxCheckResultController @Inject() (
   val taxCheckNotMatch: Action[AnyContent] = sessionDataAction { implicit request =>
     val back: Call = journeyService.previous(routes.TaxCheckResultController.taxCheckNotMatch())
     request.sessionData.taxCheckMatch match {
-      case Some(NoMatch(taxCheckMatchResult, _)) =>
+      case Some(HECTaxCheckMatchResult(taxCheckMatchResult, _, NoMatch)) =>
         Ok(
           taxCheckNoMatchPage(
             taxCheckMatchResult,
             back
           )
         )
-      case _                                     =>
+      case _                                                             =>
         logger.warn("Tax check match Result not found for 'No Match' page")
         InternalServerError
     }

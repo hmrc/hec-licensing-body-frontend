@@ -16,9 +16,11 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.models.licence
 
+import ai.x.play.json.Jsonx
 import cats.Eq
-import julienrf.json.derived
-import play.api.libs.json.OFormat
+import ai.x.play.json.SingletonEncoder.simpleName
+import ai.x.play.json.implicits.formatSingleton
+import play.api.libs.json.Format
 
 sealed trait LicenceType extends Product with Serializable
 
@@ -34,6 +36,7 @@ object LicenceType {
 
   implicit val eq: Eq[LicenceType] = Eq.fromUniversalEquals
 
-  implicit val format: OFormat[LicenceType] = derived.oformat()
+  @SuppressWarnings(Array("org.wartremover.warts.All"))
+  implicit val format: Format[LicenceType] = Jsonx.formatSealed[LicenceType]
 
 }

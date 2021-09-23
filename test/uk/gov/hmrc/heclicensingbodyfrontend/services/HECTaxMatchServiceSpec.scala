@@ -24,7 +24,7 @@ import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.Json
 import play.api.test.Helpers._
 import uk.gov.hmrc.heclicensingbodyfrontend.connectors.HECConnector
-import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckMatchResult._
+import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus._
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, Error, HECTaxCheckCode, HECTaxCheckMatchRequest, HECTaxCheckMatchResult}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
@@ -54,9 +54,11 @@ class HECTaxMatchServiceSpec extends AnyWordSpec with Matchers with MockFactory 
   val taxCheckMatchRequest =
     HECTaxCheckMatchRequest(hecTaxCheckCode, LicenceType.DriverOfTaxisAndPrivateHires, Right(dateOfBirth))
 
-  val taxCheckMatchResult: HECTaxCheckMatchResult   = Match(taxCheckMatchRequest, dateTimeChecked)
-  val taxCheckNoMatchResult: HECTaxCheckMatchResult = NoMatch(taxCheckMatchRequest, dateTimeChecked)
-  val taxCheckExpiredResult: HECTaxCheckMatchResult = Expired(taxCheckMatchRequest, dateTimeChecked)
+  val taxCheckMatchResult: HECTaxCheckMatchResult   = HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Match)
+  val taxCheckNoMatchResult: HECTaxCheckMatchResult =
+    HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, NoMatch)
+  val taxCheckExpiredResult: HECTaxCheckMatchResult =
+    HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Expired)
 
   val taxCheckMatchResultJson   = Json.toJson(taxCheckMatchResult)
   val taxCheckNoMatchResultJson = Json.toJson(taxCheckNoMatchResult)

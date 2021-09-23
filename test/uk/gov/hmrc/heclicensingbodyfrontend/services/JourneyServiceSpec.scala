@@ -25,7 +25,7 @@ import play.api.test.Helpers._
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.RequestWithSessionData
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.{SessionSupport, routes}
 import uk.gov.hmrc.heclicensingbodyfrontend.models.EntityType.{Company, Individual}
-import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckMatchResult._
+import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus._
 import uk.gov.hmrc.heclicensingbodyfrontend.models._
 import uk.gov.hmrc.heclicensingbodyfrontend.models.ids.CRN
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
@@ -280,7 +280,7 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
             nextPageTest(
               HECSession(
                 userAnswersWithAllAnswers,
-                Some(Match(taxCheckMatchRequest, dateTimeChecked))
+                Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Match))
               ),
               routes.TaxCheckResultController.taxCheckMatch()
             )
@@ -292,7 +292,7 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
             nextPageTest(
               HECSession(
                 userAnswersWithAllAnswers,
-                Some(Expired(taxCheckMatchRequest, dateTimeChecked))
+                Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Expired))
               ),
               routes.TaxCheckResultController.taxCheckExpired()
             )
@@ -304,7 +304,7 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
             nextPageTest(
               HECSession(
                 userAnswersWithAllAnswers,
-                Some(NoMatch(taxCheckMatchRequest, dateTimeChecked))
+                Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, NoMatch))
               ),
               routes.TaxCheckResultController.taxCheckNotMatch()
             )
@@ -349,7 +349,7 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
             nextPageTest(
               HECSession(
                 userAnswersForCompany,
-                Some(Match(taxCheckMatchCompanyRequest, dateTimeChecked))
+                Some(HECTaxCheckMatchResult(taxCheckMatchCompanyRequest, dateTimeChecked, Match))
               ),
               routes.TaxCheckResultController.taxCheckMatch()
             )
@@ -361,7 +361,7 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
             nextPageTest(
               HECSession(
                 userAnswersForCompany,
-                Some(Expired(taxCheckMatchCompanyRequest, dateTimeChecked))
+                Some(HECTaxCheckMatchResult(taxCheckMatchCompanyRequest, dateTimeChecked, Expired))
               ),
               routes.TaxCheckResultController.taxCheckExpired()
             )
@@ -373,7 +373,7 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
             nextPageTest(
               HECSession(
                 userAnswersForCompany,
-                Some(NoMatch(taxCheckMatchCompanyRequest, dateTimeChecked))
+                Some(HECTaxCheckMatchResult(taxCheckMatchCompanyRequest, dateTimeChecked, NoMatch))
               ),
               routes.TaxCheckResultController.taxCheckNotMatch()
             )
@@ -538,7 +538,7 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
         "Tax Check Code not match page via date of birth page " in {
           val session                                     = HECSession(
             userAnswersWithAllAnswers,
-            Some(NoMatch(taxCheckMatchRequest, dateTimeChecked))
+            Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, NoMatch))
           )
           implicit val request: RequestWithSessionData[_] =
             requestWithSessionData(session)
@@ -553,7 +553,7 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
         "Tax Check Code not match page via CRN page " in {
           val session                                     = HECSession(
             userAnswersForCompany,
-            Some(NoMatch(taxCheckMatchCompanyRequest, dateTimeChecked))
+            Some(HECTaxCheckMatchResult(taxCheckMatchCompanyRequest, dateTimeChecked, NoMatch))
           )
           implicit val request: RequestWithSessionData[_] =
             requestWithSessionData(session)
@@ -568,7 +568,7 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
         "Tax Check Code expired page via DOB page" in {
           val session                                     = HECSession(
             userAnswersWithAllAnswers,
-            Some(Expired(taxCheckMatchRequest, dateTimeChecked))
+            Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Expired))
           )
           implicit val request: RequestWithSessionData[_] =
             requestWithSessionData(session)
@@ -583,7 +583,7 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
         "Tax Check Code expired page via CRN page" in {
           val session                                     = HECSession(
             userAnswersForCompany,
-            Some(Expired(taxCheckMatchCompanyRequest, dateTimeChecked))
+            Some(HECTaxCheckMatchResult(taxCheckMatchCompanyRequest, dateTimeChecked, Expired))
           )
           implicit val request: RequestWithSessionData[_] =
             requestWithSessionData(session)
@@ -598,7 +598,7 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
         "Tax Check Code valid page via DOB page" in {
           val session                                     = HECSession(
             userAnswersWithAllAnswers,
-            Some(Match(taxCheckMatchRequest, dateTimeChecked))
+            Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Match))
           )
           implicit val request: RequestWithSessionData[_] =
             requestWithSessionData(session)
@@ -613,7 +613,7 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
         "Tax Check Code valid page via CRN page" in {
           val session                                     = HECSession(
             userAnswersForCompany,
-            Some(Match(taxCheckMatchCompanyRequest, dateTimeChecked))
+            Some(HECTaxCheckMatchResult(taxCheckMatchCompanyRequest, dateTimeChecked, Match))
           )
           implicit val request: RequestWithSessionData[_] =
             requestWithSessionData(session)
