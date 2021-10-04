@@ -17,13 +17,12 @@
 package uk.gov.hmrc.heclicensingbodyfrontend.repos
 
 import cats.data.EitherT
-import cats.instances.future._
 import com.google.inject.{ImplementedBy, Inject, Singleton}
 import play.api.Configuration
 import play.api.libs.json._
 import play.api.mvc.Request
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECSession}
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{HeaderCarrier, SessionKeys}
 import uk.gov.hmrc.mongo.cache.{DataKey, SessionCacheRepository}
 import uk.gov.hmrc.mongo.{CurrentTimestampSupport, MongoComponent}
 import uk.gov.hmrc.play.http.logging.Mdc.preservingMdc
@@ -57,7 +56,7 @@ class SessionStoreImpl @Inject() (
       collectionName = "sessions",
       ttl = configuration.get[FiniteDuration]("session-store.ttl"),
       timestampSupport = new CurrentTimestampSupport(),
-      sessionIdKey = "hec-session"
+      sessionIdKey = SessionKeys.sessionId
     )
     with SessionStore {
 
@@ -67,23 +66,12 @@ class SessionStoreImpl @Inject() (
     hc: HeaderCarrier,
     request: Request[_]
   ): EitherT[Future, Error, Option[HECSession]] =
-    hc.sessionId.map(_.value) match {
-      case Some(_) ⇒
-        EitherT(doGet[HECSession]())
-      case None =>
-        EitherT.leftT(Error("no session id found in headers - cannot query mongo"))
-    }
+    EitherT(doGet[HECSession]())
 
   def store(
     sessionData: HECSession
   )(implicit hc: HeaderCarrier, request: Request[_]): EitherT[Future, Error, Unit] =
-    hc.sessionId.map(_.value) match {
-      case Some(_) ⇒ EitherT(doStore(sessionData))
-      case None ⇒
-        EitherT.leftT(
-          Error("no session id found in headers - cannot store data in mongo")
-        )
-    }
+    EitherT(doStore(sessionData))
 
   private def doGet[A : Reads]()(implicit
     ec: ExecutionContext,
