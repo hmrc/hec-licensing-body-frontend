@@ -53,7 +53,7 @@ class SessionDataAction @Inject() (
       HeaderCarrierConverter.fromRequestAndSession(request, request.session)
 
     sessionStore
-      .get()
+      .get()(hc, request)
       .foldF[Result](
         { e =>
           logger.warn("Could not get session data", e)

@@ -19,6 +19,7 @@ package uk.gov.hmrc.heclicensingbodyfrontend.controllers
 import cats.instances.future._
 import com.google.inject.{Inject, Singleton}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.SessionDataAction
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{HECSession, UserAnswers}
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
 import uk.gov.hmrc.heclicensingbodyfrontend.services.JourneyService
@@ -32,14 +33,14 @@ import scala.concurrent.ExecutionContext
 class StartController @Inject() (
   sessionStore: SessionStore,
   journeyService: JourneyService,
+  sessionDataAction: SessionDataAction,
   mcc: MessagesControllerComponents
 )(implicit ec: ExecutionContext)
     extends FrontendController(mcc)
     with Logging {
 
-  val start: Action[AnyContent] = Action.async { implicit request =>
+  val start: Action[AnyContent] = sessionDataAction.async { implicit request =>
     val newSession = HECSession(UserAnswers.empty, None)
-
     sessionStore
       .store(newSession)
       .fold(
