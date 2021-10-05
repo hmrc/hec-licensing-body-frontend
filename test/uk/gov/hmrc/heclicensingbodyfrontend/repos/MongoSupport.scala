@@ -18,21 +18,17 @@ package uk.gov.hmrc.heclicensingbodyfrontend.repos
 
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Suite}
-import play.modules.reactivemongo.ReactiveMongoComponent
 import play.api.test.Helpers._
-import uk.gov.hmrc.mongo.{MongoConnector, MongoSpecSupport}
+import uk.gov.hmrc.mongo.{MongoComponent, MongoSpecSupport}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 trait MongoSupport extends MongoSpecSupport with BeforeAndAfterEach with BeforeAndAfterAll { this: Suite with Matchers ⇒
 
-  private def newReactiveMongoComponent(): ReactiveMongoComponent =
-    new ReactiveMongoComponent {
-      override def mongoConnector: MongoConnector = mongoConnectorForTest
-    }
+  private def newMongoComponent(): MongoComponent = MongoComponent(mongoUri)
 
-  val reactiveMongoComponent: ReactiveMongoComponent =
-    newReactiveMongoComponent()
+  val mongoComponent: MongoComponent =
+    newMongoComponent()
 
   abstract override def beforeEach(): Unit = {
     super.beforeEach()
@@ -41,7 +37,7 @@ trait MongoSupport extends MongoSpecSupport with BeforeAndAfterEach with BeforeA
 
   abstract override def afterAll(): Unit = {
     super.afterAll()
-    reactiveMongoComponent.mongoConnector.helper.driver.close()
+    mongoComponent.client.close()
   }
 
 }
