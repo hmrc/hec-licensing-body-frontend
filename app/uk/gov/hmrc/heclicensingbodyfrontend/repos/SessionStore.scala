@@ -22,7 +22,7 @@ import play.api.Configuration
 import play.api.libs.json._
 import play.api.mvc.Request
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECSession}
-import uk.gov.hmrc.http.{HeaderCarrier, SessionKeys}
+import uk.gov.hmrc.http.SessionKeys
 import uk.gov.hmrc.mongo.cache.{DataKey, SessionCacheRepository}
 import uk.gov.hmrc.mongo.{CurrentTimestampSupport, MongoComponent}
 import uk.gov.hmrc.play.http.logging.Mdc.preservingMdc
@@ -33,15 +33,9 @@ import scala.concurrent.{ExecutionContext, Future}
 @ImplementedBy(classOf[SessionStoreImpl])
 trait SessionStore {
 
-  def get()(implicit
-    hc: HeaderCarrier,
-    request: Request[_]
-  ): EitherT[Future, Error, Option[HECSession]]
+  def get()(implicit request: Request[_]): EitherT[Future, Error, Option[HECSession]]
 
-  def store(sessionData: HECSession)(implicit
-    hc: HeaderCarrier,
-    request: Request[_]
-  ): EitherT[Future, Error, Unit]
+  def store(sessionData: HECSession)(implicit request: Request[_]): EitherT[Future, Error, Unit]
 
 }
 
@@ -62,15 +56,12 @@ class SessionStoreImpl @Inject() (
 
   val sessionKey: String = "hec-session"
 
-  def get()(implicit
-    hc: HeaderCarrier,
-    request: Request[_]
-  ): EitherT[Future, Error, Option[HECSession]] =
+  def get()(implicit request: Request[_]): EitherT[Future, Error, Option[HECSession]] =
     EitherT(doGet[HECSession]())
 
   def store(
     sessionData: HECSession
-  )(implicit hc: HeaderCarrier, request: Request[_]): EitherT[Future, Error, Unit] =
+  )(implicit request: Request[_]): EitherT[Future, Error, Unit] =
     EitherT(doStore(sessionData))
 
   private def doGet[A : Reads]()(implicit

@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions
 
-import cats.instances.future._
 import com.google.inject.{Inject, Singleton}
 import play.api.mvc.Results.{InternalServerError, Redirect}
 import play.api.mvc.{ActionBuilder, ActionFunction, AnyContent, BodyParser, MessagesControllerComponents, Request, Result, WrappedRequest}
@@ -26,8 +25,6 @@ import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging.LoggerOps
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.toFuture
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -48,12 +45,9 @@ class SessionDataAction @Inject() (
   override def invokeBlock[A](
     request: Request[A],
     block: RequestWithSessionData[A] => Future[Result]
-  ): Future[Result] = {
-    implicit val hc: HeaderCarrier =
-      HeaderCarrierConverter.fromRequestAndSession(request, request.session)
-
+  ): Future[Result] =
     sessionStore
-      .get()(hc, request)
+      .get()(request)
       .foldF[Result](
         { e =>
           logger.warn("Could not get session data", e)
@@ -64,7 +58,6 @@ class SessionDataAction @Inject() (
           case Some(session) => block(RequestWithSessionData(request, session))
         }
       )
-  }
 
   override def parser: BodyParser[AnyContent] = mcc.parsers.default
 

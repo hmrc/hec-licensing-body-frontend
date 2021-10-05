@@ -22,7 +22,6 @@ import org.scalamock.scalatest.MockFactory
 import play.api.mvc.Request
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECSession}
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
-import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext
 
@@ -32,20 +31,20 @@ trait SessionSupport { this: MockFactory =>
 
   def mockGetSession(result: Either[Error, Option[HECSession]])(implicit ec: ExecutionContext) =
     (mockSessionStore
-      .get()(_: HeaderCarrier, _: Request[_]))
-      .expects(*, *)
+      .get()(_: Request[_]))
+      .expects(*)
       .returning(EitherT.fromEither(result))
 
   def mockGetSession(session: HECSession)(implicit ec: ExecutionContext) =
     (mockSessionStore
-      .get()(_: HeaderCarrier, _: Request[_]))
-      .expects(*, *)
+      .get()(_: Request[_]))
+      .expects(*)
       .returning(EitherT.pure(Some(session)))
 
   def mockStoreSession(session: HECSession)(result: Either[Error, Unit])(implicit ec: ExecutionContext) =
     (mockSessionStore
-      .store(_: HECSession)(_: HeaderCarrier, _: Request[_]))
-      .expects(session, *, *)
+      .store(_: HECSession)(_: Request[_]))
+      .expects(session, *)
       .returning(EitherT.fromEither(result))
 
 }
