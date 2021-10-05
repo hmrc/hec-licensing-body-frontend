@@ -37,18 +37,18 @@ class StartController @Inject() (
     extends FrontendController(mcc)
     with Logging {
 
-  val start: Action[AnyContent] = Action.async { implicit request =>
-    val newSession = HECSession(UserAnswers.empty, None)
-
-    sessionStore
-      .store(newSession)
-      .fold(
-        { e =>
-          logger.warn("Could not store session", e)
-          InternalServerError
-        },
-        _ => Redirect(journeyService.firstPage)
-      )
-  }
+  val start: Action[AnyContent] =
+    Action.async { implicit request =>
+      val newSession = HECSession(UserAnswers.empty, None)
+      sessionStore
+        .store(newSession)
+        .fold(
+          { e =>
+            logger.warn("Could not store session", e)
+            InternalServerError
+          },
+          _ => Redirect(journeyService.firstPage)
+        )
+    }
 
 }
