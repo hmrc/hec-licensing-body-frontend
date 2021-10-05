@@ -19,7 +19,6 @@ package uk.gov.hmrc.heclicensingbodyfrontend.repos
 import cats.data.EitherT
 import com.google.inject.{ImplementedBy, Inject, Singleton}
 import play.api.Configuration
-import play.api.libs.json._
 import play.api.mvc.Request
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECSession}
 import uk.gov.hmrc.http.SessionKeys
@@ -48,7 +47,7 @@ class SessionStoreImpl @Inject() (
 ) extends SessionCacheRepository(
       mongoComponent = mongo,
       collectionName = "sessions",
-      ttl = configuration.get[FiniteDuration]("session-store.ttl"),
+      ttl = configuration.get[FiniteDuration]("session-store.expiry-time"),
       timestampSupport = new CurrentTimestampSupport(),
       sessionIdKey = SessionKeys.sessionId
     )
@@ -57,29 +56,21 @@ class SessionStoreImpl @Inject() (
   val sessionKey: String = "hec-session"
 
   def get()(implicit request: Request[_]): EitherT[Future, Error, Option[HECSession]] =
-    EitherT(doGet[HECSession]())
+    EitherT(
+      preservingMdc {
+        getFromSession[HECSession](DataKey(sessionKey))
+          .map(Right(_))
+          .recover { case e ⇒ Left(Error(e)) }
+      }
+    )
 
   def store(
     sessionData: HECSession
   )(implicit request: Request[_]): EitherT[Future, Error, Unit] =
-    EitherT(doStore(sessionData))
-
-  private def doGet[A : Reads]()(implicit
-    ec: ExecutionContext,
-    request: Request[_]
-  ): Future[Either[Error, Option[A]]] = preservingMdc {
-    getFromSession[A](DataKey(sessionKey))
-      .map(Right(_))
-      .recover { case e ⇒ Left(Error(e)) }
-  }
-
-  private def doStore[A : Writes](a: A)(implicit
-    ec: ExecutionContext,
-    request: Request[_]
-  ): Future[Either[Error, Unit]] =
-    preservingMdc {
-      putSession[A](DataKey(sessionKey), a)
+    EitherT(preservingMdc {
+      putSession[HECSession](DataKey(sessionKey), sessionData)
         .map(_ => Right(()))
         .recover { case e => Left(Error(e)) }
-    }
+    })
+
 }

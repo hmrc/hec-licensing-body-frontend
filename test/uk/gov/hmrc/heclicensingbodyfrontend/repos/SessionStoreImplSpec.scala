@@ -36,7 +36,7 @@ class SessionStoreImplSpec extends AnyWordSpec with Matchers with MongoSupport w
   val config = Configuration(
     ConfigFactory.parseString(
       """
-        | session-store.ttl = 150 day
+        | session-store.expiry-time = 30 minutes
         |""".stripMargin
     )
   )
