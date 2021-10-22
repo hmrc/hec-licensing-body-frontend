@@ -17,15 +17,18 @@
 package uk.gov.hmrc.heclicensingbodyfrontend.controllers
 
 import cats.data.EitherT
+import cats.implicits.catsSyntaxEq
 import cats.instances.future._
 import com.google.inject.{Inject, Singleton}
 import play.api.data.Form
 import play.api.data.Forms.{mapping, of}
 import play.api.i18n.{I18nSupport, Messages}
 import play.api.mvc._
+import uk.gov.hmrc.heclicensingbodyfrontend.config.AppConfig
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.DateOfBirthController.dateOfBirthForm
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.{RequestWithSessionData, SessionDataAction}
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, Error, HECTaxCheckMatchRequest}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus.NoMatch
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, Error, HECTaxCheckCode, HECTaxCheckMatchRequest, HECTaxCheckMatchResult}
 import uk.gov.hmrc.heclicensingbodyfrontend.services.{HECTaxMatchService, JourneyService}
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging.LoggerOps
 import uk.gov.hmrc.heclicensingbodyfrontend.util.{Logging, TimeUtils}
@@ -42,7 +45,7 @@ class DateOfBirthController @Inject() (
   taxMatchService: HECTaxMatchService,
   dateOfBirthPage: html.DateOfBirth,
   mcc: MessagesControllerComponents
-)(implicit ec: ExecutionContext)
+)(implicit ec: ExecutionContext, appConfig: AppConfig)
     extends FrontendController(mcc)
     with I18nSupport
     with Logging {
@@ -58,7 +61,30 @@ class DateOfBirthController @Inject() (
   }
 
   val dateOfBirthSubmit: Action[AnyContent] = sessionDataAction.async { implicit request =>
-    dateOfBirthForm()
+    def goToNextPage: Future[Result] =
+      journeyService
+        .updateAndNext(
+          routes.DateOfBirthController.dateOfBirth(),
+          request.sessionData
+        )
+        .fold(
+          { e =>
+            logger.warn("Could not update session and proceed", e)
+            InternalServerError
+          },
+          Redirect
+        )
+
+    def getTaxCheckAttempts(hecTaxCheckCode: HECTaxCheckCode) =
+      request.sessionData.attempts.get(hecTaxCheckCode.value).getOrElse(0)
+
+    def maxAttemptReached(hecTaxCheckCode: HECTaxCheckCode) =
+      getTaxCheckAttempts(hecTaxCheckCode: HECTaxCheckCode) >= appConfig.maxVerificationAttempts
+
+    val taxCheckCodeOpt = request.sessionData.userAnswers.taxCheckCode
+    val attempts        = request.sessionData.attempts
+
+    def action: Future[Result] = dateOfBirthForm()
       .bindFromRequest()
       .fold(
         formWithErrors =>
@@ -67,6 +93,15 @@ class DateOfBirthController @Inject() (
           ),
         handleValidDateOfBirth
       )
+
+    (taxCheckCodeOpt, attempts) match {
+      case (Some(taxCheckCode), m)
+          if (m.isEmpty) || !m.keySet.contains(taxCheckCode.value) || !(maxAttemptReached(taxCheckCode)) =>
+        action
+      case (Some(taxCheckCode), m) if m.keySet.contains(taxCheckCode.value) && (maxAttemptReached(taxCheckCode)) =>
+        goToNextPage
+      case _                                                                                                     => InternalServerError
+    }
   }
 
   private def handleValidDateOfBirth(dob: DateOfBirth)(implicit
@@ -91,8 +126,7 @@ class DateOfBirthController @Inject() (
       case (Some(taxCheckCode), Some(lType)) =>
         for {
           taxMatch      <- taxMatchService.matchTaxCheck(HECTaxCheckMatchRequest(taxCheckCode, lType, Right(dateOfBirth)))
-          updatedAnswers = request.sessionData.userAnswers.copy(dateOfBirth = Some(dateOfBirth))
-          updatedSession = request.sessionData.copy(userAnswers = updatedAnswers, Some(taxMatch))
+          updatedSession = getUpdatedSession(taxMatch, taxCheckCode, dateOfBirth)
           next          <- journeyService
                              .updateAndNext(routes.DateOfBirthController.dateOfBirth(), updatedSession)
         } yield next
@@ -107,6 +141,29 @@ class DateOfBirthController @Inject() (
     }
   }
 
+  private def getUpdatedSession(
+    taxMatch: HECTaxCheckMatchResult,
+    taxCheckCode: HECTaxCheckCode,
+    dateOfBirth: DateOfBirth
+  )(implicit request: RequestWithSessionData[_]) = {
+    val updatedAnswers         = request.sessionData.userAnswers.copy(dateOfBirth = Some(dateOfBirth))
+    val currentAttemptMap      = request.sessionData.attempts
+    val currentTaxCheckAttempt = currentAttemptMap.get(taxCheckCode.value).getOrElse(0)
+    if (taxMatch.status === NoMatch) {
+      request.sessionData.copy(
+        userAnswers = updatedAnswers,
+        Some(taxMatch),
+        attempts = currentAttemptMap ++ Map(taxCheckCode.value -> (currentTaxCheckAttempt + 1))
+      )
+    } else {
+      request.sessionData.copy(
+        userAnswers = updatedAnswers,
+        Some(taxMatch),
+        attempts = currentAttemptMap ++ Map(taxCheckCode.value -> 0)
+      )
+    }
+
+  }
 }
 
 object DateOfBirthController {

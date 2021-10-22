@@ -19,7 +19,11 @@ package uk.gov.hmrc.heclicensingbodyfrontend.models
 import cats.Eq
 import play.api.libs.json.{Json, OFormat}
 
-final case class HECSession(userAnswers: UserAnswers, taxCheckMatch: Option[HECTaxCheckMatchResult])
+final case class HECSession(
+  userAnswers: UserAnswers,
+  taxCheckMatch: Option[HECTaxCheckMatchResult],
+  attempts: Map[String, Int] = Map.empty
+)
 
 object HECSession {
 

@@ -23,6 +23,7 @@ import cats.instances.string._
 import cats.syntax.eq._
 import com.google.inject.{ImplementedBy, Inject, Singleton}
 import play.api.mvc.Call
+import uk.gov.hmrc.heclicensingbodyfrontend.config.AppConfig
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.RequestWithSessionData
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.routes
 import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus._
@@ -49,7 +50,8 @@ trait JourneyService {
 }
 
 @Singleton
-class JourneyServiceImpl @Inject() (sessionStore: SessionStore)(implicit ex: ExecutionContext) extends JourneyService {
+class JourneyServiceImpl @Inject() (sessionStore: SessionStore)(implicit ex: ExecutionContext, appConfig: AppConfig)
+    extends JourneyService {
 
   implicit val callEq: Eq[Call] = Eq.instance(_.url === _.url)
 
@@ -134,7 +136,14 @@ class JourneyServiceImpl @Inject() (sessionStore: SessionStore)(implicit ex: Exe
         taxMatch match {
           case HECTaxCheckMatchResult(_, _, Match)   => routes.TaxCheckResultController.taxCheckMatch()
           case HECTaxCheckMatchResult(_, _, Expired) => routes.TaxCheckResultController.taxCheckExpired()
-          case HECTaxCheckMatchResult(_, _, NoMatch) => routes.TaxCheckResultController.taxCheckNotMatch()
+          case HECTaxCheckMatchResult(_, _, NoMatch) =>
+            val currentAttemptMap   = session.attempts
+            val taxCode             = session.userAnswers.taxCheckCode.getOrElse(sys.error("taxCheckCode is not in session"))
+            val currentAttemptCount = currentAttemptMap.get(taxCode.value).getOrElse(0)
+            val maxAttemptReached   = currentAttemptCount >= appConfig.maxVerificationAttempts
+            if (maxAttemptReached) routes.TaxCheckResultController.tooManyVerificationAttempts()
+            else routes.TaxCheckResultController.taxCheckNotMatch()
+
         }
 
       case None =>
