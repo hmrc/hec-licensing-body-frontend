@@ -75,14 +75,13 @@ class DateOfBirthController @Inject() (
           Redirect
         )
 
-    def getTaxCheckAttempts(hecTaxCheckCode: HECTaxCheckCode) =
-      request.sessionData.verificationAttempts.get(hecTaxCheckCode.value).getOrElse(0)
+    def maxVerificationAttemptReached(hecTaxCheckCode: HECTaxCheckCode) =
+      request.sessionData.verificationAttempts
+        .get(hecTaxCheckCode.value)
+        .getOrElse(0) >= appConfig.maxVerificationAttempts
 
-    def maxAttemptReached(hecTaxCheckCode: HECTaxCheckCode) =
-      getTaxCheckAttempts(hecTaxCheckCode: HECTaxCheckCode) >= appConfig.maxVerificationAttempts
-
-    val taxCheckCodeOpt = request.sessionData.userAnswers.taxCheckCode
-    val attempts        = request.sessionData.verificationAttempts
+    val taxCheckCodeOpt               = request.sessionData.userAnswers.taxCheckCode
+    val verificationAttemptsInSession = request.sessionData.verificationAttempts
 
     def formAction: Future[Result] = dateOfBirthForm()
       .bindFromRequest()
@@ -94,14 +93,16 @@ class DateOfBirthController @Inject() (
         handleValidDateOfBirth
       )
 
-    (taxCheckCodeOpt, attempts) match {
-      case (Some(taxCheckCode), m)
-          if (m.isEmpty) || !m.keySet.contains(taxCheckCode.value) || !(maxAttemptReached(taxCheckCode)) =>
-        formAction
-      case (Some(taxCheckCode), m) if m.keySet.contains(taxCheckCode.value) && (maxAttemptReached(taxCheckCode)) =>
-        goToNextPage
-      case _                                                                                                     => InternalServerError
+    taxCheckCodeOpt match {
+      case Some(taxCheckCode) =>
+        if (
+          verificationAttemptsInSession.keySet
+            .contains(taxCheckCode.value) && (maxVerificationAttemptReached(taxCheckCode))
+        ) goToNextPage
+        else formAction
+      case None               => InternalServerError
     }
+
   }
 
   private def handleValidDateOfBirth(dob: DateOfBirth)(implicit

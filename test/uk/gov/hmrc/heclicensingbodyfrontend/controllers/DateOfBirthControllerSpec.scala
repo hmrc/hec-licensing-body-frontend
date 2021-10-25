@@ -471,6 +471,30 @@ class DateOfBirthControllerSpec
               checkIsRedirect(performAction(formData(date): _*), mockNextCall)
             }
 
+            "tax check code in session has reached the max verification in attempt 3, got to next page with unaffected session even if it's a Match" in {
+
+              val answers = UserAnswers.empty.copy(
+                taxCheckCode = Some(hecTaxCheckCode),
+                licenceType = Some(LicenceType.DriverOfTaxisAndPrivateHires)
+              )
+              val session = HECSession(
+                answers,
+                None,
+                verificationAttempts = Map(hecTaxCheckCode.value -> 3)
+              )
+
+              val updatedSession = session
+
+              inSequence {
+                mockGetSession(session)
+                mockJourneyServiceUpdateAndNext(routes.DateOfBirthController.dateOfBirth(), session, updatedSession)(
+                  Right(mockNextCall)
+                )
+              }
+
+              checkIsRedirect(performAction(formData(date): _*), mockNextCall)
+            }
+
           }
 
         }
