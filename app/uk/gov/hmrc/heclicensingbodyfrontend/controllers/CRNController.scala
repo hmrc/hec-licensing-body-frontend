@@ -23,11 +23,12 @@ import play.api.data.Form
 import play.api.data.Forms.{mapping, nonEmptyText}
 import play.api.data.validation.{Constraint, Invalid, Valid}
 import play.api.i18n.I18nSupport
-import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents, Result}
+import play.api.mvc._
 import uk.gov.hmrc.heclicensingbodyfrontend.config.AppConfig
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.{RequestWithSessionData, SessionDataAction}
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECTaxCheckMatchRequest}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus.NoMatch
 import uk.gov.hmrc.heclicensingbodyfrontend.models.ids.CRN
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECTaxCheckCode, HECTaxCheckMatchRequest, HECTaxCheckMatchResult}
 import uk.gov.hmrc.heclicensingbodyfrontend.services.{HECTaxMatchService, JourneyService}
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging.LoggerOps
@@ -60,7 +61,28 @@ class CRNController @Inject() (
   }
 
   val companyRegistrationNumberSubmit: Action[AnyContent] = sessionDataAction.async { implicit request =>
-    crnForm
+    def goToNextPage: Future[Result] =
+      journeyService
+        .updateAndNext(
+          routes.CRNController.companyRegistrationNumber(),
+          request.sessionData
+        )
+        .fold(
+          { e =>
+            logger.warn("Could not update session and proceed", e)
+            InternalServerError
+          },
+          Redirect
+        )
+
+    def maxVerificationAttemptReached(hecTaxCheckCode: HECTaxCheckCode) =
+      request.sessionData.verificationAttempts
+        .get(hecTaxCheckCode)
+        .exists(_ >= appConfig.maxVerificationAttempts)
+
+    val taxCheckCodeOpt = request.sessionData.userAnswers.taxCheckCode
+
+    def formAction: Future[Result] = crnForm
       .bindFromRequest()
       .fold(
         formWithErrors =>
@@ -72,6 +94,13 @@ class CRNController @Inject() (
           ),
         handleValidCrn
       )
+
+    taxCheckCodeOpt match {
+      case Some(taxCheckCode) =>
+        if (maxVerificationAttemptReached(taxCheckCode)) goToNextPage
+        else formAction
+      case None               => InternalServerError
+    }
   }
 
   private def handleValidCrn(crn: CRN)(implicit request: RequestWithSessionData[_]): Future[Result] =
@@ -91,8 +120,7 @@ class CRNController @Inject() (
       case (Some(taxCheckCode), Some(lType)) =>
         for {
           taxMatch      <- taxMatchService.matchTaxCheck(HECTaxCheckMatchRequest(taxCheckCode, lType, Left(crn)))
-          updatedAnswers = request.sessionData.userAnswers.copy(crn = Some(crn))
-          updatedSession = request.sessionData.copy(userAnswers = updatedAnswers, Some(taxMatch))
+          updatedSession = getUpdatedSession(taxMatch, taxCheckCode, crn)
           next          <- journeyService
                              .updateAndNext(routes.CRNController.companyRegistrationNumber(), updatedSession)
         } yield next
@@ -105,6 +133,26 @@ class CRNController @Inject() (
           )
         )
     }
+  }
+
+  private def getUpdatedSession(
+    taxMatch: HECTaxCheckMatchResult,
+    taxCheckCode: HECTaxCheckCode,
+    crn: CRN
+  )(implicit request: RequestWithSessionData[_]) = {
+    val updatedAnswers                = request.sessionData.userAnswers.copy(crn = Some(crn))
+    val currentVerificationAttemptMap = request.sessionData.verificationAttempts
+    val currentVerificationAttempt    = currentVerificationAttemptMap.get(taxCheckCode).getOrElse(0)
+    val verificationAttempts          = if (taxMatch.status === NoMatch) {
+      currentVerificationAttemptMap + (taxCheckCode -> (currentVerificationAttempt + 1))
+    } else {
+      currentVerificationAttemptMap - taxCheckCode
+    }
+    request.sessionData.copy(
+      userAnswers = updatedAnswers,
+      Some(taxMatch),
+      verificationAttempts
+    )
   }
 
 }

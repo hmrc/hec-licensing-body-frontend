@@ -63,8 +63,8 @@ class JourneyServiceImpl @Inject() (sessionStore: SessionStore)(implicit ex: Exe
     routes.HECTaxCheckCodeController.hecTaxCheckCode() -> (_ => routes.LicenceTypeController.licenceType()),
     routes.LicenceTypeController.licenceType()         -> licenceTypeRoute,
     routes.EntityTypeController.entityType()           -> entityTypeRoute,
-    routes.DateOfBirthController.dateOfBirth()         -> dateOfBirthRoute,
-    routes.CRNController.companyRegistrationNumber()   -> crnRoute
+    routes.DateOfBirthController.dateOfBirth()         -> dateOfBirthOrCRNRoute,
+    routes.CRNController.companyRegistrationNumber()   -> dateOfBirthOrCRNRoute
   )
 
   lazy val firstPage: Call = routes.HECTaxCheckCodeController.hecTaxCheckCode()
@@ -130,7 +130,7 @@ class JourneyServiceImpl @Inject() (sessionStore: SessionStore)(implicit ex: Exe
 
     }
 
-  private def dateOfBirthRoute(session: HECSession): Call =
+  private def dateOfBirthOrCRNRoute(session: HECSession): Call =
     session.taxCheckMatch match {
       case Some(taxMatch) =>
         val currentAttemptMap   = session.verificationAttempts
@@ -148,20 +148,7 @@ class JourneyServiceImpl @Inject() (sessionStore: SessionStore)(implicit ex: Exe
         }
 
       case None =>
-        sys.error("Could not find tax match result for date of birth route")
-    }
-
-  private def crnRoute(session: HECSession): Call =
-    session.taxCheckMatch match {
-      case Some(taxMatch) =>
-        taxMatch match {
-          case HECTaxCheckMatchResult(_, _, Match)   => routes.TaxCheckResultController.taxCheckMatch()
-          case HECTaxCheckMatchResult(_, _, Expired) => routes.TaxCheckResultController.taxCheckExpired()
-          case HECTaxCheckMatchResult(_, _, NoMatch) => routes.TaxCheckResultController.taxCheckNotMatch()
-        }
-
-      case None =>
-        sys.error("Could not find tax match result for company registration route")
+        sys.error("Could not find tax match result for either date of birth or crn route")
     }
 
 }
