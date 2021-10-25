@@ -471,7 +471,7 @@ class DateOfBirthControllerSpec
               checkIsRedirect(performAction(formData(date): _*), mockNextCall)
             }
 
-            "tax check code in session has reached the max verification in attempt 3, got to next page with unaffected session even if it's a Match" in {
+            "tax check code in session has reached the max verification  attempt, got to next page with unaffected session even if it's a Match" in {
 
               val answers = UserAnswers.empty.copy(
                 taxCheckCode = Some(hecTaxCheckCode),
@@ -480,7 +480,7 @@ class DateOfBirthControllerSpec
               val session = HECSession(
                 answers,
                 None,
-                verificationAttempts = Map(hecTaxCheckCode.value -> 3)
+                verificationAttempts = Map(hecTaxCheckCode.value -> appConfig.maxVerificationAttempts)
               )
 
               val updatedSession = session
