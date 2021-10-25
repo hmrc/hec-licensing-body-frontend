@@ -146,13 +146,13 @@ class DateOfBirthController @Inject() (
     taxCheckCode: HECTaxCheckCode,
     dateOfBirth: DateOfBirth
   )(implicit request: RequestWithSessionData[_]) = {
-    val updatedAnswers         = request.sessionData.userAnswers.copy(dateOfBirth = Some(dateOfBirth))
-    val currentAttemptMap      = request.sessionData.verificationAttempts
-    val currentTaxCheckAttempt = currentAttemptMap.get(taxCheckCode.value).getOrElse(0)
-    val verificationAttempts   = if (taxMatch.status === NoMatch) {
-      currentAttemptMap ++ Map(taxCheckCode.value -> (currentTaxCheckAttempt + 1))
+    val updatedAnswers                = request.sessionData.userAnswers.copy(dateOfBirth = Some(dateOfBirth))
+    val currentVerificationAttemptMap = request.sessionData.verificationAttempts
+    val currentVerificationAttempt    = currentVerificationAttemptMap.get(taxCheckCode.value).getOrElse(0)
+    val verificationAttempts          = if (taxMatch.status === NoMatch) {
+      currentVerificationAttemptMap ++ Map(taxCheckCode.value -> (currentVerificationAttempt + 1))
     } else {
-      currentAttemptMap ++ Map(taxCheckCode.value -> 0)
+      currentVerificationAttemptMap ++ Map(taxCheckCode.value -> 0)
     }
     request.sessionData.copy(
       userAnswers = updatedAnswers,
