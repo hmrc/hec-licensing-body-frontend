@@ -16,16 +16,12 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.services
 
-import org.scalamock.scalatest.MockFactory
-import org.scalatest.matchers.should.Matchers
-import org.scalatest.wordspec.AnyWordSpec
-import play.api.inject.NewInstanceInjector.instanceOf
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.heclicensingbodyfrontend.config.AppConfig
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.RequestWithSessionData
-import uk.gov.hmrc.heclicensingbodyfrontend.controllers.{SessionSupport, routes}
+import uk.gov.hmrc.heclicensingbodyfrontend.controllers.{ControllerSpec, SessionSupport, routes}
 import uk.gov.hmrc.heclicensingbodyfrontend.models.EntityType.{Company, Individual}
 import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus._
 import uk.gov.hmrc.heclicensingbodyfrontend.models._
@@ -37,15 +33,13 @@ import uk.gov.hmrc.http.HeaderCarrier
 import java.time.{LocalDate, ZonedDateTime}
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with SessionSupport {
-
-  implicit val appConfig = instanceOf[AppConfig]
-
-  val journeyService = new JourneyServiceImpl(mockSessionStore)
+class JourneyServiceSpec extends ControllerSpec with SessionSupport {
 
   def requestWithSessionData(s: HECSession): RequestWithSessionData[_] = RequestWithSessionData(FakeRequest(), s)
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
+  implicit val appConfig         = instanceOf[AppConfig]
+  val journeyService             = new JourneyServiceImpl(mockSessionStore)
 
   val hecTaxCheckCode                = HECTaxCheckCode("ABC DEF 123")
   val dateOfBirth                    = DateOfBirth(LocalDate.of(1922, 12, 1))
@@ -303,15 +297,29 @@ class JourneyServiceSpec extends AnyWordSpec with Matchers with MockFactory with
 
           }
 
-          "the individual details are not a match" in {
+          "the individual details are not a match" when {
 
-            nextPageTest(
-              HECSession(
-                userAnswersWithAllAnswers,
-                Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, NoMatch))
-              ),
-              routes.TaxCheckResultController.taxCheckNotMatch()
-            )
+            "the verification attempts in session  lower than the max value" in {
+              nextPageTest(
+                HECSession(
+                  userAnswersWithAllAnswers,
+                  Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, NoMatch)),
+                  verificationAttempts = Map(hecTaxCheckCode.value -> 1)
+                ),
+                routes.TaxCheckResultController.taxCheckNotMatch()
+              )
+            }
+
+            "the verification attempts in session  equal to max value" in {
+              nextPageTest(
+                HECSession(
+                  userAnswersWithAllAnswers,
+                  Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, NoMatch)),
+                  verificationAttempts = Map(hecTaxCheckCode.value -> appConfig.maxVerificationAttempts)
+                ),
+                routes.TaxCheckResultController.tooManyVerificationAttempts()
+              )
+            }
 
           }
 
