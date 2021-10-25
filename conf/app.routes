@@ -22,4 +22,5 @@ POST       /enter-company-registration-number   uk.gov.hmrc.heclicensingbodyfron
 GET        /code-valid                          uk.gov.hmrc.heclicensingbodyfrontend.controllers.TaxCheckResultController.taxCheckMatch
 GET        /code-expired                        uk.gov.hmrc.heclicensingbodyfrontend.controllers.TaxCheckResultController.taxCheckExpired
 GET        /details-not-found                   uk.gov.hmrc.heclicensingbodyfrontend.controllers.TaxCheckResultController.taxCheckNotMatch
+GET        /too-many-attempts                   uk.gov.hmrc.heclicensingbodyfrontend.controllers.TaxCheckResultController.tooManyVerificationAttempts
 

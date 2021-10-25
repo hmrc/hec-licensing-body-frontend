@@ -19,6 +19,7 @@ package uk.gov.hmrc.heclicensingbodyfrontend.models
 import ai.x.play.json.Jsonx
 import ai.x.play.json.SingletonEncoder.simpleName
 import ai.x.play.json.implicits.formatSingleton
+import cats.Eq
 import play.api.libs.json.Format
 
 sealed trait HECTaxCheckStatus extends Product with Serializable
@@ -29,6 +30,8 @@ object HECTaxCheckStatus {
   case object NoMatch extends HECTaxCheckStatus
 
   case object Expired extends HECTaxCheckStatus
+
+  implicit val eq: Eq[HECTaxCheckStatus] = Eq.fromUniversalEquals
 
   @SuppressWarnings(Array("org.wartremover.warts.All"))
   implicit val format: Format[HECTaxCheckStatus] = Jsonx.formatSealed[HECTaxCheckStatus]

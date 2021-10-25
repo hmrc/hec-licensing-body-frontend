@@ -39,4 +39,6 @@ class AppConfig @Inject() (config: Configuration, contactFrontendConfig: Contact
 
   val companiesHouseSearchUrl: String = config.get[String]("external-url.companies-house-search")
 
+  val maxVerificationAttempts: Int = config.get[Int]("maximum-verification-attempts")
+
 }

@@ -82,4 +82,8 @@ class TaxCheckResultController @Inject() (
     }
   }
 
+  val tooManyVerificationAttempts: Action[AnyContent] = sessionDataAction { implicit request =>
+    Ok(s"session is ${request.sessionData}")
+  }
+
 }

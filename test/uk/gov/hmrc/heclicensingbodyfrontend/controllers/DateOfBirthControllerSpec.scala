@@ -23,6 +23,7 @@ import play.api.inject.guice.GuiceableModule
 import play.api.mvc.Result
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import uk.gov.hmrc.heclicensingbodyfrontend.config.AppConfig
 import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus._
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, Error, HECSession, HECTaxCheckCode, HECTaxCheckMatchRequest, HECTaxCheckMatchResult, UserAnswers}
@@ -52,14 +53,17 @@ class DateOfBirthControllerSpec
 
   val controller = instanceOf[DateOfBirthController]
 
-  val hecTaxCheckCode = HECTaxCheckCode("ABC DEF 123")
-  val dateOfBirth     = DateOfBirth(LocalDate.of(1922, 12, 1))
+  val hecTaxCheckCode  = HECTaxCheckCode("ABC DEF 123")
+  val hecTaxCheckCode2 = HECTaxCheckCode("ABC DEG 123")
+  val dateOfBirth      = DateOfBirth(LocalDate.of(1922, 12, 1))
 
   val date            = TimeUtils.today().minusYears(20)
   val dateTimeChecked = TimeUtils.now()
 
   val taxCheckMatchRequest =
     HECTaxCheckMatchRequest(hecTaxCheckCode, LicenceType.DriverOfTaxisAndPrivateHires, Right(DateOfBirth(date)))
+
+  implicit val appConfig = instanceOf[AppConfig]
 
   def mockMatchTaxCheck(taxCheckMatchRequest: HECTaxCheckMatchRequest)(result: Either[Error, HECTaxCheckMatchResult]) =
     (taxCheckService
@@ -148,7 +152,7 @@ class DateOfBirthControllerSpec
 
       "show a form error" when {
 
-        val session = HECSession(UserAnswers.empty, None)
+        val session = HECSession(UserAnswers.empty.copy(taxCheckCode = Some(HECTaxCheckCode("XNFFGBDD6"))), None)
 
         "nothing is submitted" in {
           inSequence {
@@ -273,32 +277,223 @@ class DateOfBirthControllerSpec
 
       "redirect to the next page" when {
 
-        "a valid date of birth is submitted" in {
+        "a valid date of birth is submitted and " when {
 
-          val answers = UserAnswers.empty.copy(
-            taxCheckCode = Some(hecTaxCheckCode),
-            licenceType = Some(LicenceType.DriverOfTaxisAndPrivateHires)
-          )
-          val session = HECSession(answers, None)
+          "the verification attempt is empty" when {
 
-          val updatedAnswers = answers.copy(dateOfBirth = Some(DateOfBirth(date)))
-          val updatedSession =
-            session.copy(
-              userAnswers = updatedAnswers,
-              taxCheckMatch = Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Match))
-            )
+            "There is a match found, verification attempt remains empty" in {
 
-          inSequence {
-            mockGetSession(session)
-            mockMatchTaxCheck(taxCheckMatchRequest)(
-              Right(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Match))
-            )
-            mockJourneyServiceUpdateAndNext(routes.DateOfBirthController.dateOfBirth(), session, updatedSession)(
-              Right(mockNextCall)
-            )
+              val answers = UserAnswers.empty.copy(
+                taxCheckCode = Some(hecTaxCheckCode),
+                licenceType = Some(LicenceType.DriverOfTaxisAndPrivateHires)
+              )
+              val session = HECSession(answers, None)
+
+              val updatedAnswers = answers.copy(dateOfBirth = Some(DateOfBirth(date)))
+              val updatedSession =
+                session.copy(
+                  userAnswers = updatedAnswers,
+                  taxCheckMatch = Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Match))
+                )
+
+              inSequence {
+                mockGetSession(session)
+                mockMatchTaxCheck(taxCheckMatchRequest)(
+                  Right(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Match))
+                )
+                mockJourneyServiceUpdateAndNext(routes.DateOfBirthController.dateOfBirth(), session, updatedSession)(
+                  Right(mockNextCall)
+                )
+              }
+
+              checkIsRedirect(performAction(formData(date): _*), mockNextCall)
+            }
+
+            "There is a match found but expired, verification attempt remains empty" in {
+
+              val answers = UserAnswers.empty.copy(
+                taxCheckCode = Some(hecTaxCheckCode),
+                licenceType = Some(LicenceType.DriverOfTaxisAndPrivateHires)
+              )
+              val session = HECSession(answers, None)
+
+              val updatedAnswers = answers.copy(dateOfBirth = Some(DateOfBirth(date)))
+              val updatedSession =
+                session.copy(
+                  userAnswers = updatedAnswers,
+                  taxCheckMatch = Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Expired))
+                )
+
+              inSequence {
+                mockGetSession(session)
+                mockMatchTaxCheck(taxCheckMatchRequest)(
+                  Right(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Expired))
+                )
+                mockJourneyServiceUpdateAndNext(routes.DateOfBirthController.dateOfBirth(), session, updatedSession)(
+                  Right(mockNextCall)
+                )
+              }
+
+              checkIsRedirect(performAction(formData(date): _*), mockNextCall)
+            }
+
+            "There is no match found , new session increment attempt by 1 for that tax check code" in {
+
+              val answers = UserAnswers.empty.copy(
+                taxCheckCode = Some(hecTaxCheckCode),
+                licenceType = Some(LicenceType.DriverOfTaxisAndPrivateHires)
+              )
+              val session = HECSession(answers, None, verificationAttempts = Map(hecTaxCheckCode -> 1))
+
+              val updatedAnswers = answers.copy(dateOfBirth = Some(DateOfBirth(date)))
+              val updatedSession =
+                session.copy(
+                  userAnswers = updatedAnswers,
+                  taxCheckMatch = Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, NoMatch)),
+                  verificationAttempts = Map(hecTaxCheckCode -> 2)
+                )
+
+              inSequence {
+                mockGetSession(session)
+                mockMatchTaxCheck(taxCheckMatchRequest)(
+                  Right(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, NoMatch))
+                )
+                mockJourneyServiceUpdateAndNext(routes.DateOfBirthController.dateOfBirth(), session, updatedSession)(
+                  Right(mockNextCall)
+                )
+              }
+
+              checkIsRedirect(performAction(formData(date): _*), mockNextCall)
+            }
           }
 
-          checkIsRedirect(performAction(formData(date): _*), mockNextCall)
+          "the verification attempt is not empty" when {
+
+            "two tax check codes in session, both with attempt 2, the one with no match is incremented to 3" in {
+
+              val answers = UserAnswers.empty.copy(
+                taxCheckCode = Some(hecTaxCheckCode),
+                licenceType = Some(LicenceType.DriverOfTaxisAndPrivateHires)
+              )
+              val session = HECSession(
+                answers,
+                None,
+                verificationAttempts = Map(hecTaxCheckCode -> 2, hecTaxCheckCode2 -> 2)
+              )
+
+              val updatedAnswers = answers.copy(dateOfBirth = Some(DateOfBirth(date)))
+              val updatedSession =
+                session.copy(
+                  userAnswers = updatedAnswers,
+                  taxCheckMatch = Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, NoMatch)),
+                  verificationAttempts = Map(hecTaxCheckCode -> 3, hecTaxCheckCode2 -> 2)
+                )
+
+              inSequence {
+                mockGetSession(session)
+                mockMatchTaxCheck(taxCheckMatchRequest)(
+                  Right(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, NoMatch))
+                )
+                mockJourneyServiceUpdateAndNext(routes.DateOfBirthController.dateOfBirth(), session, updatedSession)(
+                  Right(mockNextCall)
+                )
+              }
+
+              checkIsRedirect(performAction(formData(date): _*), mockNextCall)
+            }
+
+            "two tax check codes in session, both with attempt 2, the one with match is removed from the verification map" in {
+
+              val answers = UserAnswers.empty.copy(
+                taxCheckCode = Some(hecTaxCheckCode),
+                licenceType = Some(LicenceType.DriverOfTaxisAndPrivateHires)
+              )
+              val session = HECSession(
+                answers,
+                None,
+                verificationAttempts = Map(hecTaxCheckCode -> 2, hecTaxCheckCode2 -> 2)
+              )
+
+              val updatedAnswers = answers.copy(dateOfBirth = Some(DateOfBirth(date)))
+              val updatedSession =
+                session.copy(
+                  userAnswers = updatedAnswers,
+                  taxCheckMatch = Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Match)),
+                  verificationAttempts = Map(hecTaxCheckCode2 -> 2)
+                )
+
+              inSequence {
+                mockGetSession(session)
+                mockMatchTaxCheck(taxCheckMatchRequest)(
+                  Right(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Match))
+                )
+                mockJourneyServiceUpdateAndNext(routes.DateOfBirthController.dateOfBirth(), session, updatedSession)(
+                  Right(mockNextCall)
+                )
+              }
+
+              checkIsRedirect(performAction(formData(date): _*), mockNextCall)
+            }
+
+            "two tax check codes in session, both with attempt 2, the one with  Expired is removed from the verification map" in {
+
+              val answers = UserAnswers.empty.copy(
+                taxCheckCode = Some(hecTaxCheckCode),
+                licenceType = Some(LicenceType.DriverOfTaxisAndPrivateHires)
+              )
+              val session = HECSession(
+                answers,
+                None,
+                verificationAttempts = Map(hecTaxCheckCode -> 2, hecTaxCheckCode2 -> 2)
+              )
+
+              val updatedAnswers = answers.copy(dateOfBirth = Some(DateOfBirth(date)))
+              val updatedSession =
+                session.copy(
+                  userAnswers = updatedAnswers,
+                  taxCheckMatch = Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Expired)),
+                  verificationAttempts = Map(hecTaxCheckCode2 -> 2)
+                )
+
+              inSequence {
+                mockGetSession(session)
+                mockMatchTaxCheck(taxCheckMatchRequest)(
+                  Right(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Expired))
+                )
+                mockJourneyServiceUpdateAndNext(routes.DateOfBirthController.dateOfBirth(), session, updatedSession)(
+                  Right(mockNextCall)
+                )
+              }
+
+              checkIsRedirect(performAction(formData(date): _*), mockNextCall)
+            }
+
+            "tax check code in session has reached the max verification  attempt, got to next page with unaffected session even if it's a Match" in {
+
+              val answers = UserAnswers.empty.copy(
+                taxCheckCode = Some(hecTaxCheckCode),
+                licenceType = Some(LicenceType.DriverOfTaxisAndPrivateHires)
+              )
+              val session = HECSession(
+                answers,
+                None,
+                verificationAttempts = Map(hecTaxCheckCode -> appConfig.maxVerificationAttempts)
+              )
+
+              val updatedSession = session
+
+              inSequence {
+                mockGetSession(session)
+                mockJourneyServiceUpdateAndNext(routes.DateOfBirthController.dateOfBirth(), session, updatedSession)(
+                  Right(mockNextCall)
+                )
+              }
+
+              checkIsRedirect(performAction(formData(date): _*), mockNextCall)
+            }
+
+          }
+
         }
 
       }
