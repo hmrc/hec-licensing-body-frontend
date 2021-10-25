@@ -137,7 +137,7 @@ class JourneyServiceImpl @Inject() (sessionStore: SessionStore)(implicit ex: Exe
           case HECTaxCheckMatchResult(_, _, Match)   => routes.TaxCheckResultController.taxCheckMatch()
           case HECTaxCheckMatchResult(_, _, Expired) => routes.TaxCheckResultController.taxCheckExpired()
           case HECTaxCheckMatchResult(_, _, NoMatch) =>
-            val currentAttemptMap   = session.attempts
+            val currentAttemptMap   = session.verificationAttempts
             val taxCode             = session.userAnswers.taxCheckCode.getOrElse(sys.error("taxCheckCode is not in session"))
             val currentAttemptCount = currentAttemptMap.get(taxCode.value).getOrElse(0)
             val maxAttemptReached   = currentAttemptCount >= appConfig.maxVerificationAttempts

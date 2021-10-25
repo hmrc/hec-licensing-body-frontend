@@ -22,7 +22,7 @@ import play.api.libs.json.{Json, OFormat}
 final case class HECSession(
   userAnswers: UserAnswers,
   taxCheckMatch: Option[HECTaxCheckMatchResult],
-  attempts: Map[String, Int] = Map.empty
+  verificationAttempts: Map[String, Int] = Map.empty
 )
 
 object HECSession {

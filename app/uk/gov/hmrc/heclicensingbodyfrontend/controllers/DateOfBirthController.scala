@@ -76,15 +76,15 @@ class DateOfBirthController @Inject() (
         )
 
     def getTaxCheckAttempts(hecTaxCheckCode: HECTaxCheckCode) =
-      request.sessionData.attempts.get(hecTaxCheckCode.value).getOrElse(0)
+      request.sessionData.verificationAttempts.get(hecTaxCheckCode.value).getOrElse(0)
 
     def maxAttemptReached(hecTaxCheckCode: HECTaxCheckCode) =
       getTaxCheckAttempts(hecTaxCheckCode: HECTaxCheckCode) >= appConfig.maxVerificationAttempts
 
     val taxCheckCodeOpt = request.sessionData.userAnswers.taxCheckCode
-    val attempts        = request.sessionData.attempts
+    val attempts        = request.sessionData.verificationAttempts
 
-    def action: Future[Result] = dateOfBirthForm()
+    def formAction: Future[Result] = dateOfBirthForm()
       .bindFromRequest()
       .fold(
         formWithErrors =>
@@ -97,7 +97,7 @@ class DateOfBirthController @Inject() (
     (taxCheckCodeOpt, attempts) match {
       case (Some(taxCheckCode), m)
           if (m.isEmpty) || !m.keySet.contains(taxCheckCode.value) || !(maxAttemptReached(taxCheckCode)) =>
-        action
+        formAction
       case (Some(taxCheckCode), m) if m.keySet.contains(taxCheckCode.value) && (maxAttemptReached(taxCheckCode)) =>
         goToNextPage
       case _                                                                                                     => InternalServerError
@@ -147,22 +147,18 @@ class DateOfBirthController @Inject() (
     dateOfBirth: DateOfBirth
   )(implicit request: RequestWithSessionData[_]) = {
     val updatedAnswers         = request.sessionData.userAnswers.copy(dateOfBirth = Some(dateOfBirth))
-    val currentAttemptMap      = request.sessionData.attempts
+    val currentAttemptMap      = request.sessionData.verificationAttempts
     val currentTaxCheckAttempt = currentAttemptMap.get(taxCheckCode.value).getOrElse(0)
-    if (taxMatch.status === NoMatch) {
-      request.sessionData.copy(
-        userAnswers = updatedAnswers,
-        Some(taxMatch),
-        attempts = currentAttemptMap ++ Map(taxCheckCode.value -> (currentTaxCheckAttempt + 1))
-      )
+    val verificationAttempts   = if (taxMatch.status === NoMatch) {
+      currentAttemptMap ++ Map(taxCheckCode.value -> (currentTaxCheckAttempt + 1))
     } else {
-      request.sessionData.copy(
-        userAnswers = updatedAnswers,
-        Some(taxMatch),
-        attempts = currentAttemptMap ++ Map(taxCheckCode.value -> 0)
-      )
+      currentAttemptMap ++ Map(taxCheckCode.value -> 0)
     }
-
+    request.sessionData.copy(
+      userAnswers = updatedAnswers,
+      Some(taxMatch),
+      verificationAttempts
+    )
   }
 }
 
