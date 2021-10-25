@@ -387,6 +387,7 @@ class CRNControllerSpec
                 Right(HECTaxCheckMatchResult(newMatchRequest, dateTimeChecked, returnStatus))
               )
               mockVerificationAttempt(taxCheckMatchResult, hecTaxCheckCode, Left(crn))(updatedSession)
+
               mockJourneyServiceUpdateAndNext(
                 routes.CRNController.companyRegistrationNumber(),
                 session,
