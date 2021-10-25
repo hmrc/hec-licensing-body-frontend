@@ -274,26 +274,53 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
             }
           }
 
-          "the individual details are a match" in {
-            nextPageTest(
-              HECSession(
-                userAnswersWithAllAnswers,
-                Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Match))
-              ),
-              routes.TaxCheckResultController.taxCheckMatch()
-            )
+          "the individual details are a match" when {
+
+            "the verification attempts in session  lower than the max attempt value" in {
+              nextPageTest(
+                HECSession(
+                  userAnswersWithAllAnswers,
+                  Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Match))
+                ),
+                routes.TaxCheckResultController.taxCheckMatch()
+              )
+            }
+
+            "the verification attempts in session  equal to  the max attempt value" in {
+              nextPageTest(
+                HECSession(
+                  userAnswersWithAllAnswers,
+                  Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Match)),
+                  verificationAttempts = Map(hecTaxCheckCode -> appConfig.maxVerificationAttempts)
+                ),
+                routes.TaxCheckResultController.tooManyVerificationAttempts()
+              )
+            }
 
           }
 
-          "the individual details are a match but the tax check code has expired" in {
+          "the individual details are a match but the tax check code has expired" when {
 
-            nextPageTest(
-              HECSession(
-                userAnswersWithAllAnswers,
-                Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Expired))
-              ),
-              routes.TaxCheckResultController.taxCheckExpired()
-            )
+            "the verification attempts in session  lower than the max value" in {
+              nextPageTest(
+                HECSession(
+                  userAnswersWithAllAnswers,
+                  Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Expired))
+                ),
+                routes.TaxCheckResultController.taxCheckExpired()
+              )
+            }
+
+            "the verification attempts in session  equal to  the max attempt value" in {
+              nextPageTest(
+                HECSession(
+                  userAnswersWithAllAnswers,
+                  Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Expired)),
+                  verificationAttempts = Map(hecTaxCheckCode -> appConfig.maxVerificationAttempts)
+                ),
+                routes.TaxCheckResultController.tooManyVerificationAttempts()
+              )
+            }
 
           }
 
@@ -304,7 +331,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                 HECSession(
                   userAnswersWithAllAnswers,
                   Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, NoMatch)),
-                  verificationAttempts = Map(hecTaxCheckCode.value -> 1)
+                  verificationAttempts = Map(hecTaxCheckCode -> 1)
                 ),
                 routes.TaxCheckResultController.taxCheckNotMatch()
               )
@@ -315,7 +342,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                 HECSession(
                   userAnswersWithAllAnswers,
                   Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, NoMatch)),
-                  verificationAttempts = Map(hecTaxCheckCode.value -> appConfig.maxVerificationAttempts)
+                  verificationAttempts = Map(hecTaxCheckCode -> appConfig.maxVerificationAttempts)
                 ),
                 routes.TaxCheckResultController.tooManyVerificationAttempts()
               )

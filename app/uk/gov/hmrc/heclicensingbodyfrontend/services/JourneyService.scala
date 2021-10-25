@@ -133,17 +133,18 @@ class JourneyServiceImpl @Inject() (sessionStore: SessionStore)(implicit ex: Exe
   private def dateOfBirthRoute(session: HECSession): Call =
     session.taxCheckMatch match {
       case Some(taxMatch) =>
-        taxMatch match {
-          case HECTaxCheckMatchResult(_, _, Match)   => routes.TaxCheckResultController.taxCheckMatch()
-          case HECTaxCheckMatchResult(_, _, Expired) => routes.TaxCheckResultController.taxCheckExpired()
-          case HECTaxCheckMatchResult(_, _, NoMatch) =>
-            val currentAttemptMap   = session.verificationAttempts
-            val taxCode             = session.userAnswers.taxCheckCode.getOrElse(sys.error("taxCheckCode is not in session"))
-            val currentAttemptCount = currentAttemptMap.get(taxCode.value).getOrElse(0)
-            val maxAttemptReached   = currentAttemptCount >= appConfig.maxVerificationAttempts
-            if (maxAttemptReached) routes.TaxCheckResultController.tooManyVerificationAttempts()
-            else routes.TaxCheckResultController.taxCheckNotMatch()
-
+        val currentAttemptMap   = session.verificationAttempts
+        val taxCode             = session.userAnswers.taxCheckCode.getOrElse(sys.error("taxCheckCode is not in session"))
+        val currentAttemptCount = currentAttemptMap.get(taxCode).getOrElse(0)
+        val maxAttemptReached   = currentAttemptCount >= appConfig.maxVerificationAttempts
+        if (maxAttemptReached) {
+          routes.TaxCheckResultController.tooManyVerificationAttempts()
+        } else {
+          taxMatch match {
+            case HECTaxCheckMatchResult(_, _, Match)   => routes.TaxCheckResultController.taxCheckMatch()
+            case HECTaxCheckMatchResult(_, _, Expired) => routes.TaxCheckResultController.taxCheckExpired()
+            case HECTaxCheckMatchResult(_, _, NoMatch) => routes.TaxCheckResultController.taxCheckNotMatch()
+          }
         }
 
       case None =>

@@ -242,8 +242,7 @@ class DateOfBirthControllerSpec
           val updatedSession =
             session.copy(
               userAnswers = answers.copy(dateOfBirth = Some(DateOfBirth(date))),
-              taxCheckMatch = Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Match)),
-              verificationAttempts = Map(hecTaxCheckCode.value -> 0)
+              taxCheckMatch = Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Match))
             )
 
           inSequence {
@@ -282,7 +281,7 @@ class DateOfBirthControllerSpec
 
           "the verification attempt is empty" when {
 
-            "There is a match found, new session is updated with 0 attempt for that tax check code" in {
+            "There is a match found, verification attempt remains empty" in {
 
               val answers = UserAnswers.empty.copy(
                 taxCheckCode = Some(hecTaxCheckCode),
@@ -294,8 +293,7 @@ class DateOfBirthControllerSpec
               val updatedSession =
                 session.copy(
                   userAnswers = updatedAnswers,
-                  taxCheckMatch = Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Match)),
-                  verificationAttempts = Map(hecTaxCheckCode.value -> 0)
+                  taxCheckMatch = Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Match))
                 )
 
               inSequence {
@@ -311,7 +309,7 @@ class DateOfBirthControllerSpec
               checkIsRedirect(performAction(formData(date): _*), mockNextCall)
             }
 
-            "There is a match found but expired, new session is updated with 0 attempt for that tax check code" in {
+            "There is a match found but expired, verification attempt remains empty" in {
 
               val answers = UserAnswers.empty.copy(
                 taxCheckCode = Some(hecTaxCheckCode),
@@ -323,8 +321,7 @@ class DateOfBirthControllerSpec
               val updatedSession =
                 session.copy(
                   userAnswers = updatedAnswers,
-                  taxCheckMatch = Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Expired)),
-                  verificationAttempts = Map(hecTaxCheckCode.value -> 0)
+                  taxCheckMatch = Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Expired))
                 )
 
               inSequence {
@@ -346,14 +343,14 @@ class DateOfBirthControllerSpec
                 taxCheckCode = Some(hecTaxCheckCode),
                 licenceType = Some(LicenceType.DriverOfTaxisAndPrivateHires)
               )
-              val session = HECSession(answers, None, verificationAttempts = Map(hecTaxCheckCode.value -> 1))
+              val session = HECSession(answers, None, verificationAttempts = Map(hecTaxCheckCode -> 1))
 
               val updatedAnswers = answers.copy(dateOfBirth = Some(DateOfBirth(date)))
               val updatedSession =
                 session.copy(
                   userAnswers = updatedAnswers,
                   taxCheckMatch = Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, NoMatch)),
-                  verificationAttempts = Map(hecTaxCheckCode.value -> 2)
+                  verificationAttempts = Map(hecTaxCheckCode -> 2)
                 )
 
               inSequence {
@@ -381,7 +378,7 @@ class DateOfBirthControllerSpec
               val session = HECSession(
                 answers,
                 None,
-                verificationAttempts = Map(hecTaxCheckCode.value -> 2, hecTaxCheckCode2.value -> 2)
+                verificationAttempts = Map(hecTaxCheckCode -> 2, hecTaxCheckCode2 -> 2)
               )
 
               val updatedAnswers = answers.copy(dateOfBirth = Some(DateOfBirth(date)))
@@ -389,7 +386,7 @@ class DateOfBirthControllerSpec
                 session.copy(
                   userAnswers = updatedAnswers,
                   taxCheckMatch = Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, NoMatch)),
-                  verificationAttempts = Map(hecTaxCheckCode.value -> 3, hecTaxCheckCode2.value -> 2)
+                  verificationAttempts = Map(hecTaxCheckCode -> 3, hecTaxCheckCode2 -> 2)
                 )
 
               inSequence {
@@ -405,7 +402,7 @@ class DateOfBirthControllerSpec
               checkIsRedirect(performAction(formData(date): _*), mockNextCall)
             }
 
-            "two tax check codes in session, both with attempt 2, the one with  match is decremented to 0" in {
+            "two tax check codes in session, both with attempt 2, the one with match is removed from the verification map" in {
 
               val answers = UserAnswers.empty.copy(
                 taxCheckCode = Some(hecTaxCheckCode),
@@ -414,7 +411,7 @@ class DateOfBirthControllerSpec
               val session = HECSession(
                 answers,
                 None,
-                verificationAttempts = Map(hecTaxCheckCode.value -> 2, hecTaxCheckCode2.value -> 2)
+                verificationAttempts = Map(hecTaxCheckCode -> 2, hecTaxCheckCode2 -> 2)
               )
 
               val updatedAnswers = answers.copy(dateOfBirth = Some(DateOfBirth(date)))
@@ -422,7 +419,7 @@ class DateOfBirthControllerSpec
                 session.copy(
                   userAnswers = updatedAnswers,
                   taxCheckMatch = Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Match)),
-                  verificationAttempts = Map(hecTaxCheckCode.value -> 0, hecTaxCheckCode2.value -> 2)
+                  verificationAttempts = Map(hecTaxCheckCode2 -> 2)
                 )
 
               inSequence {
@@ -438,7 +435,7 @@ class DateOfBirthControllerSpec
               checkIsRedirect(performAction(formData(date): _*), mockNextCall)
             }
 
-            "two tax check codes in session, both with attempt 2, the one with  Expired is decremented to 0" in {
+            "two tax check codes in session, both with attempt 2, the one with  Expired is removed from the verification map" in {
 
               val answers = UserAnswers.empty.copy(
                 taxCheckCode = Some(hecTaxCheckCode),
@@ -447,7 +444,7 @@ class DateOfBirthControllerSpec
               val session = HECSession(
                 answers,
                 None,
-                verificationAttempts = Map(hecTaxCheckCode.value -> 2, hecTaxCheckCode2.value -> 2)
+                verificationAttempts = Map(hecTaxCheckCode -> 2, hecTaxCheckCode2 -> 2)
               )
 
               val updatedAnswers = answers.copy(dateOfBirth = Some(DateOfBirth(date)))
@@ -455,7 +452,7 @@ class DateOfBirthControllerSpec
                 session.copy(
                   userAnswers = updatedAnswers,
                   taxCheckMatch = Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Expired)),
-                  verificationAttempts = Map(hecTaxCheckCode.value -> 0, hecTaxCheckCode2.value -> 2)
+                  verificationAttempts = Map(hecTaxCheckCode2 -> 2)
                 )
 
               inSequence {
@@ -480,7 +477,7 @@ class DateOfBirthControllerSpec
               val session = HECSession(
                 answers,
                 None,
-                verificationAttempts = Map(hecTaxCheckCode.value -> appConfig.maxVerificationAttempts)
+                verificationAttempts = Map(hecTaxCheckCode -> appConfig.maxVerificationAttempts)
               )
 
               val updatedSession = session

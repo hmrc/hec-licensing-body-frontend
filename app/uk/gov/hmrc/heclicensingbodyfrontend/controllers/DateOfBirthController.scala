@@ -77,11 +77,10 @@ class DateOfBirthController @Inject() (
 
     def maxVerificationAttemptReached(hecTaxCheckCode: HECTaxCheckCode) =
       request.sessionData.verificationAttempts
-        .get(hecTaxCheckCode.value)
-        .getOrElse(0) >= appConfig.maxVerificationAttempts
+        .get(hecTaxCheckCode)
+        .exists(_ >= appConfig.maxVerificationAttempts)
 
-    val taxCheckCodeOpt               = request.sessionData.userAnswers.taxCheckCode
-    val verificationAttemptsInSession = request.sessionData.verificationAttempts
+    val taxCheckCodeOpt = request.sessionData.userAnswers.taxCheckCode
 
     def formAction: Future[Result] = dateOfBirthForm()
       .bindFromRequest()
@@ -95,10 +94,7 @@ class DateOfBirthController @Inject() (
 
     taxCheckCodeOpt match {
       case Some(taxCheckCode) =>
-        if (
-          verificationAttemptsInSession.keySet
-            .contains(taxCheckCode.value) && (maxVerificationAttemptReached(taxCheckCode))
-        ) goToNextPage
+        if (maxVerificationAttemptReached(taxCheckCode)) goToNextPage
         else formAction
       case None               => InternalServerError
     }
@@ -149,11 +145,11 @@ class DateOfBirthController @Inject() (
   )(implicit request: RequestWithSessionData[_]) = {
     val updatedAnswers                = request.sessionData.userAnswers.copy(dateOfBirth = Some(dateOfBirth))
     val currentVerificationAttemptMap = request.sessionData.verificationAttempts
-    val currentVerificationAttempt    = currentVerificationAttemptMap.get(taxCheckCode.value).getOrElse(0)
+    val currentVerificationAttempt    = currentVerificationAttemptMap.get(taxCheckCode).getOrElse(0)
     val verificationAttempts          = if (taxMatch.status === NoMatch) {
-      currentVerificationAttemptMap ++ Map(taxCheckCode.value -> (currentVerificationAttempt + 1))
+      currentVerificationAttemptMap + (taxCheckCode -> (currentVerificationAttempt + 1))
     } else {
-      currentVerificationAttemptMap ++ Map(taxCheckCode.value -> 0)
+      currentVerificationAttemptMap - taxCheckCode
     }
     request.sessionData.copy(
       userAnswers = updatedAnswers,
