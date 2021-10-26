@@ -16,30 +16,40 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.models
 
+//import ai.x.play.json.implicits.formatSingleton
 import cats.Eq
+//import play.api.libs.json.Format.GenericFormat
 import play.api.libs.json.MapWrites.mapWrites
 import play.api.libs.json.Reads.mapReads
 import play.api.libs.json._
 
+import java.time.ZonedDateTime
+
+final case class Attempts(count: Int, lockAttemptReleasedAt: Option[ZonedDateTime])
+
+object Attempts {
+  implicit val format: OFormat[Attempts] = Json.format
+}
 final case class HECSession(
   userAnswers: UserAnswers,
   taxCheckMatch: Option[HECTaxCheckMatchResult],
-  verificationAttempts: Map[HECTaxCheckCode, Int] = Map.empty
+  verificationAttempts: Map[HECTaxCheckCode, Attempts] = Map.empty
 )
 
 object HECSession {
 
   implicit val eq: Eq[HECSession] = Eq.fromUniversalEquals
 
-  implicit val reads: Reads[Map[HECTaxCheckCode, Int]] =
+  implicit val reads: Reads[Map[HECTaxCheckCode, Attempts]] =
     (jv: JsValue) =>
-      JsSuccess(jv.as[Map[String, Int]].map { case (k, v) =>
-        HECTaxCheckCode(k) -> v
+      JsSuccess(jv.as[Map[String, JsValue]].map { case (k, v) =>
+        val attempts = v.as[Attempts]
+        HECTaxCheckCode(k) -> attempts
       })
 
-  implicit val writes: Writes[Map[HECTaxCheckCode, Int]] =
-    mapWrites[Int].contramap(_.map { case (k, v) => k.value -> v })
+  implicit val writes: Writes[Map[HECTaxCheckCode, Attempts]] =
+    mapWrites[Attempts].contramap(_.map { case (k, v) => k.value -> v })
 
-  implicit val format: OFormat[HECSession]               = Json.format
+  implicit val format: OFormat[HECSession]                    = Json.format
 
 }

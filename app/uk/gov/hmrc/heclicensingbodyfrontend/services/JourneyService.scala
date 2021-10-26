@@ -28,7 +28,7 @@ import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.RequestWithSessi
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.routes
 import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus._
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{EntityType, Error, HECSession, HECTaxCheckMatchResult}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{Attempts, EntityType, Error, HECSession, HECTaxCheckMatchResult}
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -50,8 +50,10 @@ trait JourneyService {
 }
 
 @Singleton
-class JourneyServiceImpl @Inject() (sessionStore: SessionStore)(implicit ex: ExecutionContext, appConfig: AppConfig)
-    extends JourneyService {
+class JourneyServiceImpl @Inject() (sessionStore: SessionStore)(implicit
+  ex: ExecutionContext,
+  appConfig: AppConfig
+) extends JourneyService {
 
   implicit val callEq: Eq[Call] = Eq.instance(_.url === _.url)
 
@@ -135,8 +137,8 @@ class JourneyServiceImpl @Inject() (sessionStore: SessionStore)(implicit ex: Exe
       case Some(taxMatch) =>
         val currentAttemptMap   = session.verificationAttempts
         val taxCode             = session.userAnswers.taxCheckCode.getOrElse(sys.error("taxCheckCode is not in session"))
-        val currentAttemptCount = currentAttemptMap.getOrElse(taxCode, 0)
-        val maxAttemptReached   = currentAttemptCount >= appConfig.maxVerificationAttempts
+        val currentAttemptCount = currentAttemptMap.getOrElse(taxCode, Attempts(0, None))
+        val maxAttemptReached   = currentAttemptCount.count >= appConfig.maxVerificationAttempts
         if (maxAttemptReached) {
           routes.TaxCheckResultController.tooManyVerificationAttempts()
         } else {
