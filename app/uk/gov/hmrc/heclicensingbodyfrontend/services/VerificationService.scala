@@ -16,25 +16,23 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.services
 
-import cats.instances.future._
+import cats.implicits.catsSyntaxEq
 import com.google.inject.{ImplementedBy, Inject}
-import play.api.mvc.Results.{InternalServerError, Redirect}
-import play.api.mvc.{Call, Result}
 import uk.gov.hmrc.heclicensingbodyfrontend.config.AppConfig
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.RequestWithSessionData
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{HECTaxCheckCode}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus.NoMatch
+import uk.gov.hmrc.heclicensingbodyfrontend.models.ids.CRN
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, HECSession, HECTaxCheckCode, HECTaxCheckMatchResult}
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging
-import uk.gov.hmrc.http.HeaderCarrier
-
-import scala.concurrent.{ExecutionContext, Future}
 
 @ImplementedBy(classOf[VerificationServiceImpl])
 trait VerificationService {
 
-  def goToNextPage(call: Call)(implicit
-    requestWithSessionData: RequestWithSessionData[_],
-    headerCarrier: HeaderCarrier
-  ): Future[Result]
+  def updateVerificationAttemptCount(
+    matchResult: HECTaxCheckMatchResult,
+    taxCheckCode: HECTaxCheckCode,
+    verifier: Either[CRN, DateOfBirth]
+  )(implicit requestWithSessionData: RequestWithSessionData[_]): HECSession
 
   def maxVerificationAttemptReached(hecTaxCheckCode: HECTaxCheckCode)(implicit
     requestWithSessionData: RequestWithSessionData[_]
@@ -42,34 +40,37 @@ trait VerificationService {
 
 }
 
-class VerificationServiceImpl @Inject() (journeyService: JourneyService)(implicit
-  ec: ExecutionContext,
-  appConfig: AppConfig
-) extends VerificationService
-    with Logging {
+class VerificationServiceImpl @Inject() ()(implicit appConfig: AppConfig) extends VerificationService with Logging {
 
-  override def goToNextPage(call: Call)(implicit
-    requestWithSessionData: RequestWithSessionData[_],
-    headerCarrier: HeaderCarrier
-  ): Future[Result] =
-    journeyService
-      .updateAndNext(
-        call,
-        requestWithSessionData.sessionData
-      )
-      .fold(
-        { e =>
-          logger.logger.warn("Could not update session and proceed", e)
-          InternalServerError
-        },
-        Redirect
-      )
-
-  override def maxVerificationAttemptReached(
+  def maxVerificationAttemptReached(
     hecTaxCheckCode: HECTaxCheckCode
   )(implicit requestWithSessionData: RequestWithSessionData[_]): Boolean =
     requestWithSessionData.sessionData.verificationAttempts
       .get(hecTaxCheckCode)
       .exists(_ >= appConfig.maxVerificationAttempts)
+
+  override def updateVerificationAttemptCount(
+    taxMatch: HECTaxCheckMatchResult,
+    taxCheckCode: HECTaxCheckCode,
+    verifier: Either[CRN, DateOfBirth]
+  )(implicit request: RequestWithSessionData[_]): HECSession = {
+    val updatedAnswers = verifier match {
+      case Left(crn)  => request.sessionData.userAnswers.copy(crn = Some(crn))
+      case Right(dob) => request.sessionData.userAnswers.copy(dateOfBirth = Some(dob))
+    }
+
+    val currentVerificationAttemptMap = request.sessionData.verificationAttempts
+    val currentVerificationAttempt    = currentVerificationAttemptMap.getOrElse(taxCheckCode, 0)
+    val verificationAttempts          = if (taxMatch.status === NoMatch) {
+      currentVerificationAttemptMap + (taxCheckCode -> (currentVerificationAttempt + 1))
+    } else {
+      currentVerificationAttemptMap - taxCheckCode
+    }
+    request.sessionData.copy(
+      userAnswers = updatedAnswers,
+      Some(taxMatch),
+      verificationAttempts
+    )
+  }
 
 }
