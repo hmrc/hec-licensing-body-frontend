@@ -29,7 +29,7 @@ import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.{RequestWithSess
 import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus.NoMatch
 import uk.gov.hmrc.heclicensingbodyfrontend.models.ids.CRN
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECTaxCheckCode, HECTaxCheckMatchRequest, HECTaxCheckMatchResult}
-import uk.gov.hmrc.heclicensingbodyfrontend.services.{HECTaxMatchService, JourneyService}
+import uk.gov.hmrc.heclicensingbodyfrontend.services.{HECTaxMatchService, JourneyService, VerificationService}
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging.LoggerOps
 import uk.gov.hmrc.heclicensingbodyfrontend.util.StringUtils.StringOps
@@ -44,6 +44,7 @@ class CRNController @Inject() (
   sessionDataAction: SessionDataAction,
   journeyService: JourneyService,
   taxMatchService: HECTaxMatchService,
+  verificationService: VerificationService,
   crnPage: html.CompanyRegistrationNumber,
   mcc: MessagesControllerComponents
 )(implicit ec: ExecutionContext, appConfig: AppConfig)
@@ -61,27 +62,6 @@ class CRNController @Inject() (
   }
 
   val companyRegistrationNumberSubmit: Action[AnyContent] = sessionDataAction.async { implicit request =>
-    def goToNextPage: Future[Result] =
-      journeyService
-        .updateAndNext(
-          routes.CRNController.companyRegistrationNumber(),
-          request.sessionData
-        )
-        .fold(
-          { e =>
-            logger.warn("Could not update session and proceed", e)
-            InternalServerError
-          },
-          Redirect
-        )
-
-    def maxVerificationAttemptReached(hecTaxCheckCode: HECTaxCheckCode) =
-      request.sessionData.verificationAttempts
-        .get(hecTaxCheckCode)
-        .exists(_ >= appConfig.maxVerificationAttempts)
-
-    val taxCheckCodeOpt = request.sessionData.userAnswers.taxCheckCode
-
     def formAction: Future[Result] = crnForm
       .bindFromRequest()
       .fold(
@@ -95,9 +75,10 @@ class CRNController @Inject() (
         handleValidCrn
       )
 
-    taxCheckCodeOpt match {
+    request.sessionData.userAnswers.taxCheckCode match {
       case Some(taxCheckCode) =>
-        if (maxVerificationAttemptReached(taxCheckCode)) goToNextPage
+        if (verificationService.maxVerificationAttemptReached(taxCheckCode))
+          verificationService.goToNextPage(routes.CRNController.companyRegistrationNumber())
         else formAction
       case None               => InternalServerError
     }

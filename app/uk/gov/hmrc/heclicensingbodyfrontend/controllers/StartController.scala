@@ -39,9 +39,15 @@ class StartController @Inject() (
 
   val start: Action[AnyContent] =
     Action.async { implicit request =>
-      val newSession = HECSession(UserAnswers.empty, None)
-      sessionStore
-        .store(newSession)
+      val newSessionStore = for {
+        hecSession <- sessionStore.get()
+        newSession  = hecSession match {
+                        case Some(session) => session.copy(UserAnswers.empty, None, session.verificationAttempts)
+                        case None          => HECSession(UserAnswers.empty, None)
+                      }
+        _          <- sessionStore.store(newSession)
+      } yield ()
+      newSessionStore
         .fold(
           { e =>
             logger.warn("Could not store session", e)
@@ -49,6 +55,7 @@ class StartController @Inject() (
           },
           _ => Redirect(journeyService.firstPage)
         )
+
     }
 
 }

@@ -21,7 +21,7 @@ import play.api.inject.guice.GuiceableModule
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECSession, UserAnswers}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECSession, HECTaxCheckCode, UserAnswers}
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
 import uk.gov.hmrc.heclicensingbodyfrontend.services.JourneyService
 
@@ -29,13 +29,13 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 class StartControllerSpec extends ControllerSpec with SessionSupport with JourneyServiceSupport {
 
-  override val overrideBindings =
+  override val overrideBindings: List[GuiceableModule] =
     List[GuiceableModule](
       bind[SessionStore].toInstance(mockSessionStore),
       bind[JourneyService].toInstance(mockJourneyService)
     )
 
-  val controller = instanceOf[StartController]
+  val controller: StartController = instanceOf[StartController]
 
   "StartController" when {
 
@@ -43,11 +43,24 @@ class StartControllerSpec extends ControllerSpec with SessionSupport with Journe
 
       def performAction() = controller.start(FakeRequest())
 
-      val newSession = HECSession(UserAnswers.empty, None)
+      val hecTaxCheckCode = HECTaxCheckCode("XNFFGBDD6")
+
+      val currentSession =
+        HECSession(UserAnswers.empty.copy(taxCheckCode = Some(hecTaxCheckCode)), None, Map(hecTaxCheckCode -> 2))
+
+      val newSession     = HECSession(UserAnswers.empty, None)
 
       "show an error page" when {
 
+        "there is an error getting an existing  session" in {
+
+          mockGetSession(Left(Error("")))
+          status(performAction()) shouldBe INTERNAL_SERVER_ERROR
+        }
+
         "there is an error storing a new session" in {
+
+          mockGetSession(Right(None))
           mockStoreSession(newSession)(Left(Error("")))
 
           status(performAction()) shouldBe INTERNAL_SERVER_ERROR
@@ -57,11 +70,26 @@ class StartControllerSpec extends ControllerSpec with SessionSupport with Journe
 
       "redirect to the first page of the journey" when {
 
-        "a new session has been created and stored for the session" in {
+        "a new session has been created with empty verification attempts, if no previous session found" in {
           val firstPage = Call("", "/first")
 
           inSequence {
+
+            mockGetSession(Right(None))
             mockStoreSession(newSession)(Right(()))
+            mockFirstPge(firstPage)
+          }
+
+          checkIsRedirect(performAction(), firstPage)
+        }
+
+        "a new session has been created with verification attempts of previous session " in {
+          val firstPage = Call("", "/first")
+
+          inSequence {
+
+            mockGetSession(currentSession)
+            mockStoreSession(newSession.copy(verificationAttempts = currentSession.verificationAttempts))(Right(()))
             mockFirstPge(firstPage)
           }
 
