@@ -26,9 +26,8 @@ import play.api.i18n.I18nSupport
 import play.api.mvc._
 import uk.gov.hmrc.heclicensingbodyfrontend.config.AppConfig
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.{RequestWithSessionData, SessionDataAction}
-import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus.NoMatch
 import uk.gov.hmrc.heclicensingbodyfrontend.models.ids.CRN
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECTaxCheckCode, HECTaxCheckMatchRequest, HECTaxCheckMatchResult}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECTaxCheckMatchRequest}
 import uk.gov.hmrc.heclicensingbodyfrontend.services.{HECTaxMatchService, JourneyService, VerificationService}
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging.LoggerOps
@@ -62,6 +61,20 @@ class CRNController @Inject() (
   }
 
   val companyRegistrationNumberSubmit: Action[AnyContent] = sessionDataAction.async { implicit request =>
+    def goToNextPage: Future[Result] =
+      journeyService
+        .updateAndNext(
+          routes.CRNController.companyRegistrationNumber(),
+          request.sessionData
+        )
+        .fold(
+          { e =>
+            logger.warn("Could not update session and proceed", e)
+            InternalServerError
+          },
+          Redirect
+        )
+
     def formAction: Future[Result] = crnForm
       .bindFromRequest()
       .fold(
@@ -114,26 +127,6 @@ class CRNController @Inject() (
           )
         )
     }
-  }
-
-  private def getUpdatedSession(
-    taxMatch: HECTaxCheckMatchResult,
-    taxCheckCode: HECTaxCheckCode,
-    crn: CRN
-  )(implicit request: RequestWithSessionData[_]) = {
-    val updatedAnswers                = request.sessionData.userAnswers.copy(crn = Some(crn))
-    val currentVerificationAttemptMap = request.sessionData.verificationAttempts
-    val currentVerificationAttempt    = currentVerificationAttemptMap.get(taxCheckCode).getOrElse(0)
-    val verificationAttempts          = if (taxMatch.status === NoMatch) {
-      currentVerificationAttemptMap + (taxCheckCode -> (currentVerificationAttempt + 1))
-    } else {
-      currentVerificationAttemptMap - taxCheckCode
-    }
-    request.sessionData.copy(
-      userAnswers = updatedAnswers,
-      Some(taxMatch),
-      verificationAttempts
-    )
   }
 
 }
