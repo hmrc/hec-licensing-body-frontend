@@ -355,9 +355,11 @@ class DateOfBirthControllerSpec
 
             "session remains same irrespective of status" in {
 
-              val answers = UserAnswers.empty.copy(
-                taxCheckCode = Some(hecTaxCheckCode),
-                licenceType = Some(LicenceType.DriverOfTaxisAndPrivateHires)
+              testVerificationAttempt(
+                Expired,
+                Map(hecTaxCheckCode  -> 2, hecTaxCheckCode2 -> 2),
+                Map(hecTaxCheckCode2 -> 2),
+                DateOfBirth(date)
               )
               val session = HECSession(
                 answers,
