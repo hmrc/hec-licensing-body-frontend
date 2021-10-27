@@ -384,38 +384,77 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
             }
           }
 
-          "the company details are a match" in {
-            nextPageTest(
-              HECSession(
-                userAnswersForCompany,
-                Some(HECTaxCheckMatchResult(taxCheckMatchCompanyRequest, dateTimeChecked, Match))
-              ),
-              routes.TaxCheckResultController.taxCheckMatch()
-            )
+          "the company details are a match" when {
+
+            "the verification attempts in session  lower than the max attempt value" in {
+              nextPageTest(
+                HECSession(
+                  userAnswersForCompany,
+                  Some(HECTaxCheckMatchResult(taxCheckMatchCompanyRequest, dateTimeChecked, Match))
+                ),
+                routes.TaxCheckResultController.taxCheckMatch()
+              )
+            }
+
+            "the verification attempts in session  equal to the max attempt value" in {
+              nextPageTest(
+                HECSession(
+                  userAnswersForCompany,
+                  Some(HECTaxCheckMatchResult(taxCheckMatchCompanyRequest, dateTimeChecked, Match)),
+                  Map(hecTaxCheckCode -> appConfig.maxVerificationAttempts)
+                ),
+                routes.TaxCheckResultController.tooManyVerificationAttempts()
+              )
+            }
 
           }
 
-          "the company details are a match but the tax check code has expired" in {
+          "the company details are a match but the tax check code has expired" when {
 
-            nextPageTest(
-              HECSession(
-                userAnswersForCompany,
-                Some(HECTaxCheckMatchResult(taxCheckMatchCompanyRequest, dateTimeChecked, Expired))
-              ),
-              routes.TaxCheckResultController.taxCheckExpired()
-            )
+            "the verification attempts in session  lower than the max attempt value" in {
+              nextPageTest(
+                HECSession(
+                  userAnswersForCompany,
+                  Some(HECTaxCheckMatchResult(taxCheckMatchCompanyRequest, dateTimeChecked, Expired))
+                ),
+                routes.TaxCheckResultController.taxCheckExpired()
+              )
+            }
+
+            "the verification attempts in session  equal to the max attempt value" in {
+              nextPageTest(
+                HECSession(
+                  userAnswersForCompany,
+                  Some(HECTaxCheckMatchResult(taxCheckMatchCompanyRequest, dateTimeChecked, Expired)),
+                  Map(hecTaxCheckCode -> appConfig.maxVerificationAttempts)
+                ),
+                routes.TaxCheckResultController.tooManyVerificationAttempts()
+              )
+            }
 
           }
 
-          "the company details are not a match" in {
+          "the company details are not a match" when {
 
-            nextPageTest(
-              HECSession(
-                userAnswersForCompany,
-                Some(HECTaxCheckMatchResult(taxCheckMatchCompanyRequest, dateTimeChecked, NoMatch))
-              ),
-              routes.TaxCheckResultController.taxCheckNotMatch()
-            )
+            "the verification attempts in session  lower than the max attempt value" in {
+              nextPageTest(
+                HECSession(
+                  userAnswersForCompany,
+                  Some(HECTaxCheckMatchResult(taxCheckMatchCompanyRequest, dateTimeChecked, NoMatch))
+                ),
+                routes.TaxCheckResultController.taxCheckNotMatch()
+              )
+            }
+            "the verification attempts in session  equal to the max attempt value" in {
+              nextPageTest(
+                HECSession(
+                  userAnswersForCompany,
+                  Some(HECTaxCheckMatchResult(taxCheckMatchCompanyRequest, dateTimeChecked, NoMatch)),
+                  Map(hecTaxCheckCode -> appConfig.maxVerificationAttempts)
+                ),
+                routes.TaxCheckResultController.tooManyVerificationAttempts()
+              )
+            }
 
           }
 

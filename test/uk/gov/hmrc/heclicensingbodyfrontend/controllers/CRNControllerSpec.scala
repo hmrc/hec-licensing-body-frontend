@@ -24,14 +24,16 @@ import play.api.inject.guice.GuiceableModule
 import play.api.mvc.Result
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status, _}
+import uk.gov.hmrc.heclicensingbodyfrontend.config.AppConfig
+import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.RequestWithSessionData
 import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus._
 import uk.gov.hmrc.heclicensingbodyfrontend.models.ids.CRN
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType.OperatorOfPrivateHireVehicles
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECSession, HECTaxCheckCode, HECTaxCheckMatchRequest, HECTaxCheckMatchResult, UserAnswers}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, Error, HECSession, HECTaxCheckCode, HECTaxCheckMatchRequest, HECTaxCheckMatchResult, HECTaxCheckStatus, UserAnswers}
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
+import uk.gov.hmrc.heclicensingbodyfrontend.services.{HECTaxMatchService, JourneyService, VerificationService}
 import uk.gov.hmrc.heclicensingbodyfrontend.util.StringUtils.StringOps
-import uk.gov.hmrc.heclicensingbodyfrontend.services.{HECTaxMatchService, JourneyService}
 import uk.gov.hmrc.heclicensingbodyfrontend.util.TimeUtils
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -45,17 +47,20 @@ class CRNControllerSpec
     with SessionDataActionBehaviour
     with JourneyServiceSupport {
 
-  val taxCheckService = mock[HECTaxMatchService]
+  val taxCheckService     = mock[HECTaxMatchService]
+  val verificationService = mock[VerificationService]
 
   override val overrideBindings =
     List[GuiceableModule](
       bind[SessionStore].toInstance(mockSessionStore),
       bind[JourneyService].toInstance(mockJourneyService),
-      bind[HECTaxMatchService].toInstance(taxCheckService)
+      bind[HECTaxMatchService].toInstance(taxCheckService),
+      bind[VerificationService].toInstance(verificationService)
     )
 
   val controller           = instanceOf[CRNController]
   val hecTaxCheckCode      = HECTaxCheckCode("ABC DEF 123")
+  val hecTaxCheckCode2     = HECTaxCheckCode("ABC DEG 123")
   val validCRN             =
     List(CRN("SS12345"), CRN("SS1 23 45"), CRN("SS123456"), CRN("ss123456"), CRN("11123456"), CRN("1112345"))
   val nonAlphaNumCRN       = List(CRN("$£%^&"), CRN("AA1244&"))
@@ -65,11 +70,33 @@ class CRNControllerSpec
   val taxCheckMatchRequest =
     HECTaxCheckMatchRequest(hecTaxCheckCode, LicenceType.OperatorOfPrivateHireVehicles, Left(validCRN(0)))
 
+  implicit val appConfig = instanceOf[AppConfig]
+
   def mockMatchTaxCheck(taxCheckMatchRequest: HECTaxCheckMatchRequest)(result: Either[Error, HECTaxCheckMatchResult]) =
     (taxCheckService
       .matchTaxCheck(_: HECTaxCheckMatchRequest)(_: HeaderCarrier))
       .expects(taxCheckMatchRequest, *)
       .returning(EitherT.fromEither(result))
+
+  def mockIsMaxVerificationAttemptReached(hectaxCheckCode: HECTaxCheckCode)(result: Boolean) =
+    (verificationService
+      .maxVerificationAttemptReached(_: HECTaxCheckCode)(_: RequestWithSessionData[_]))
+      .expects(hectaxCheckCode, *)
+      .returning(result)
+
+  def mockVerificationAttempt(
+    matchResult: HECTaxCheckMatchResult,
+    taxCheckCode: HECTaxCheckCode,
+    verifier: Either[CRN, DateOfBirth]
+  )(result: HECSession): Unit =
+    (verificationService
+      .updateVerificationAttemptCount(
+        _: HECTaxCheckMatchResult,
+        _: HECTaxCheckCode,
+        _: Either[CRN, DateOfBirth]
+      )(_: RequestWithSessionData[_]))
+      .expects(matchResult, taxCheckCode, verifier, *)
+      .returning(result)
 
   "CRNControllerSpec" when {
 
@@ -162,13 +189,14 @@ class CRNControllerSpec
 
       behave like sessionDataActionBehaviour(() => performAction())
 
-      val currentSession = HECSession(UserAnswers.empty, None)
+      val currentSession = HECSession(UserAnswers.empty.copy(taxCheckCode = Some(hecTaxCheckCode)), None)
 
       "show a form error" when {
 
         "nothing has been submitted" in {
           inSequence {
             mockGetSession(currentSession)
+            mockIsMaxVerificationAttemptReached(hecTaxCheckCode)(false)
             mockJourneyServiceGetPrevious(routes.CRNController.companyRegistrationNumber(), currentSession)(
               mockPreviousCall
             )
@@ -184,6 +212,7 @@ class CRNControllerSpec
         "the submitted value is too long" in {
           inSequence {
             mockGetSession(currentSession)
+            mockIsMaxVerificationAttemptReached(hecTaxCheckCode)(false)
             mockJourneyServiceGetPrevious(routes.CRNController.companyRegistrationNumber(), currentSession)(
               mockPreviousCall
             )
@@ -199,6 +228,7 @@ class CRNControllerSpec
         "the submitted value is too short" in {
           inSequence {
             mockGetSession(currentSession)
+            mockIsMaxVerificationAttemptReached(hecTaxCheckCode)(false)
             mockJourneyServiceGetPrevious(routes.CRNController.companyRegistrationNumber(), currentSession)(
               mockPreviousCall
             )
@@ -217,6 +247,7 @@ class CRNControllerSpec
             withClue(s"For CRN $crn: ") {
               inSequence {
                 mockGetSession(currentSession)
+                mockIsMaxVerificationAttemptReached(hecTaxCheckCode)(false)
                 mockJourneyServiceGetPrevious(routes.CRNController.companyRegistrationNumber(), currentSession)(
                   mockPreviousCall
                 )
@@ -247,6 +278,7 @@ class CRNControllerSpec
               )
               inSequence {
                 mockGetSession(session)
+                mockIsMaxVerificationAttemptReached(hecTaxCheckCode)(false)
                 mockJourneyServiceGetPrevious(routes.CRNController.companyRegistrationNumber(), session)(
                   mockPreviousCall
                 )
@@ -281,10 +313,20 @@ class CRNControllerSpec
 
           inSequence {
             mockGetSession(session)
+            mockIsMaxVerificationAttemptReached(hecTaxCheckCode)(false)
             mockMatchTaxCheck(taxCheckMatchRequest)(
               Right(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Match))
             )
-            mockJourneyServiceUpdateAndNext(routes.CRNController.companyRegistrationNumber(), session, updatedSession)(
+            mockVerificationAttempt(
+              HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Match),
+              hecTaxCheckCode,
+              Left(validCRN(0))
+            )(updatedSession)
+            mockJourneyServiceUpdateAndNext(
+              routes.CRNController.companyRegistrationNumber(),
+              session,
+              updatedSession
+            )(
               Left(Error(""))
             )
           }
@@ -311,49 +353,94 @@ class CRNControllerSpec
 
       "redirect to the next page" when {
 
-        "a valid CRN is submitted" in {
+        "a valid CRN is submitted and " when {
 
-          validCRN.foreach { crn =>
-            withClue(s" For CRN : $crn") {
+          def testVerificationAttempt(
+            returnStatus: HECTaxCheckStatus,
+            initialAttemptMap: Map[HECTaxCheckCode, Int],
+            newAttemptMap: Map[HECTaxCheckCode, Int],
+            crn: CRN
+          ) = {
+            val formattedCrn        = CRN(crn.value.removeWhitespace.toUpperCase(Locale.UK))
+            val newMatchRequest     = taxCheckMatchRequest.copy(verifier = Left(formattedCrn))
+            val taxCheckMatchResult = HECTaxCheckMatchResult(newMatchRequest, dateTimeChecked, returnStatus)
 
-              val formattedCrn    = CRN(crn.value.removeWhitespace.toUpperCase(Locale.UK))
-              val newMatchRequest = taxCheckMatchRequest.copy(verifier = Left(formattedCrn))
+            val answers = UserAnswers.empty.copy(
+              taxCheckCode = Some(hecTaxCheckCode),
+              licenceType = Some(LicenceType.OperatorOfPrivateHireVehicles)
+            )
+            val session = HECSession(answers, None, verificationAttempts = initialAttemptMap)
 
-              val answers = UserAnswers.empty.copy(
-                taxCheckCode = Some(hecTaxCheckCode),
-                licenceType = Some(LicenceType.OperatorOfPrivateHireVehicles)
+            val updatedAnswers = answers.copy(crn = Some(formattedCrn))
+            val updatedSession =
+              session.copy(
+                userAnswers = updatedAnswers,
+                taxCheckMatch = Some(
+                  taxCheckMatchResult
+                ),
+                newAttemptMap
               )
-              val session = HECSession(answers, None)
-
-              val updatedAnswers = answers.copy(crn = Some(formattedCrn))
-              val updatedSession =
-                session.copy(
-                  userAnswers = updatedAnswers,
-                  taxCheckMatch = Some(
-                    HECTaxCheckMatchResult(
-                      newMatchRequest,
-                      dateTimeChecked,
-                      Match
-                    )
-                  )
-                )
-              inSequence {
-                mockGetSession(session)
-                mockMatchTaxCheck(newMatchRequest)(
-                  Right(HECTaxCheckMatchResult(newMatchRequest, dateTimeChecked, Match))
-                )
-                mockJourneyServiceUpdateAndNext(
-                  routes.CRNController.companyRegistrationNumber(),
-                  session,
-                  updatedSession
-                )(
-                  Right(mockNextCall)
-                )
-              }
-
-              checkIsRedirect(performAction("crn" -> crn.value), mockNextCall)
-
+            inSequence {
+              mockGetSession(session)
+              mockIsMaxVerificationAttemptReached(hecTaxCheckCode)(false)
+              mockMatchTaxCheck(newMatchRequest)(
+                Right(HECTaxCheckMatchResult(newMatchRequest, dateTimeChecked, returnStatus))
+              )
+              mockVerificationAttempt(taxCheckMatchResult, hecTaxCheckCode, Left(crn))(updatedSession)
+              mockJourneyServiceUpdateAndNext(
+                routes.CRNController.companyRegistrationNumber(),
+                session,
+                updatedSession
+              )(
+                Right(mockNextCall)
+              )
             }
+
+            checkIsRedirect(performAction("crn" -> crn.value), mockNextCall)
+          }
+
+          def testWhenVerificationAttemptIsMax(
+            initialAttemptMap: Map[HECTaxCheckCode, Int],
+            crn: CRN
+          ) = {
+            val answers = UserAnswers.empty.copy(
+              taxCheckCode = Some(hecTaxCheckCode),
+              licenceType = Some(LicenceType.OperatorOfPrivateHireVehicles)
+            )
+            val session = HECSession(answers, None, verificationAttempts = initialAttemptMap)
+
+            inSequence {
+              mockGetSession(session)
+              mockIsMaxVerificationAttemptReached(hecTaxCheckCode)(true)
+              mockJourneyServiceUpdateAndNext(
+                routes.CRNController.companyRegistrationNumber(),
+                session,
+                session
+              )(
+                Right(mockNextCall)
+              )
+            }
+            checkIsRedirect(performAction("crn" -> crn.value), mockNextCall)
+          }
+
+          "the verification attempt has reached maximum attempt" when {
+
+            "session remains same irrespective of status" in {
+              testWhenVerificationAttemptIsMax(
+                Map(hecTaxCheckCode -> appConfig.maxVerificationAttempts, hecTaxCheckCode2 -> 2),
+                CRN("1123456")
+              )
+            }
+          }
+
+          "the verification attempt is less than max attempt" in {
+
+            testVerificationAttempt(
+              NoMatch,
+              Map(hecTaxCheckCode -> 2, hecTaxCheckCode2 -> 2),
+              Map(hecTaxCheckCode -> 3, hecTaxCheckCode2 -> 2),
+              CRN("1123456")
+            )
 
           }
 
