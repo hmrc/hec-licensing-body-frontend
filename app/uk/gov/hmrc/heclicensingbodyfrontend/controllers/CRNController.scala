@@ -27,7 +27,7 @@ import play.api.mvc._
 import uk.gov.hmrc.heclicensingbodyfrontend.config.AppConfig
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.{RequestWithSessionData, SessionDataAction}
 import uk.gov.hmrc.heclicensingbodyfrontend.models.ids.CRN
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECTaxCheckMatchRequest}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECTaxCheckCode, HECTaxCheckMatchRequest}
 import uk.gov.hmrc.heclicensingbodyfrontend.services.{HECTaxMatchService, JourneyService, VerificationService}
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging.LoggerOps
@@ -61,21 +61,20 @@ class CRNController @Inject() (
   }
 
   val companyRegistrationNumberSubmit: Action[AnyContent] = sessionDataAction.async { implicit request =>
-    def goToNextPage: Future[Result] =
-      journeyService
-        .updateAndNext(
-          routes.CRNController.companyRegistrationNumber(),
-          request.sessionData
-        )
-        .fold(
-          { e =>
-            logger.warn("Could not update session and proceed", e)
-            InternalServerError
-          },
-          Redirect
-        )
+    def goToNextPage(crn: CRN): Future[Result] = journeyService
+      .updateAndNext(
+        routes.CRNController.companyRegistrationNumber(),
+        request.sessionData.copy(userAnswers = request.sessionData.userAnswers.copy(crn = Some(crn)))
+      )
+      .fold(
+        { e =>
+          logger.warn("Could not update session and proceed", e)
+          InternalServerError
+        },
+        Redirect
+      )
 
-    def formAction: Future[Result] = crnForm
+    def formAction(taxCheckCode: HECTaxCheckCode): Future[Result] = crnForm
       .bindFromRequest()
       .fold(
         formWithErrors =>
@@ -85,14 +84,11 @@ class CRNController @Inject() (
               journeyService.previous(routes.CRNController.companyRegistrationNumber())
             )
           ),
-        handleValidCrn
+        if (verificationService.maxVerificationAttemptReached(taxCheckCode)) goToNextPage else handleValidCrn
       )
 
     request.sessionData.userAnswers.taxCheckCode match {
-      case Some(taxCheckCode) =>
-        if (verificationService.maxVerificationAttemptReached(taxCheckCode))
-          goToNextPage
-        else formAction
+      case Some(taxCheckCode) => formAction(taxCheckCode)
       case None               => InternalServerError
     }
   }

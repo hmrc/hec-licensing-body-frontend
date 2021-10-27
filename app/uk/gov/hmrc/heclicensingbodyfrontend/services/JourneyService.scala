@@ -133,33 +133,35 @@ class JourneyServiceImpl @Inject() (sessionStore: SessionStore, timeProvider: Ti
 
     }
 
-  private def dateOfBirthOrCRNRoute(session: HECSession): Call =
-    session.taxCheckMatch match {
-      case Some(taxMatch) =>
-        val currentAttemptMap = session.verificationAttempts
-        val taxCode           = session.userAnswers.taxCheckCode.getOrElse(sys.error("taxCheckCode is not in session"))
-        val currentAttempt    = currentAttemptMap.getOrElse(taxCode, Attempts(0, None))
-        val maxAttemptReached =
-          currentAttempt.count >= appConfig.maxVerificationAttempts && currentAttempt.lockAttemptReleasedAt.exists(
-            _.isAfter(timeProvider.now)
-          )
-        if (maxAttemptReached) {
-          routes.TaxCheckResultController.tooManyVerificationAttempts()
-        } else {
+  private def dateOfBirthOrCRNRoute(session: HECSession): Call = {
+    val currentAttemptMap = session.verificationAttempts
+    val taxCode           = session.userAnswers.taxCheckCode.getOrElse(sys.error("taxCheckCode is not in session"))
+    val currentAttempt    = currentAttemptMap.getOrElse(taxCode, Attempts(0, None))
+    val maxAttemptReached =
+      currentAttempt.count >= appConfig.maxVerificationAttempts && currentAttempt.lockAttemptReleasedAt.exists(
+        _.isAfter(timeProvider.now)
+      )
+    if (maxAttemptReached) {
+      routes.TaxCheckResultController.tooManyVerificationAttempts()
+    } else {
+      session.taxCheckMatch match {
+        case Some(taxMatch) =>
           taxMatch match {
             case HECTaxCheckMatchResult(_, _, Match)   => routes.TaxCheckResultController.taxCheckMatch()
             case HECTaxCheckMatchResult(_, _, Expired) => routes.TaxCheckResultController.taxCheckExpired()
             case HECTaxCheckMatchResult(_, _, NoMatch) => routes.TaxCheckResultController.taxCheckNotMatch()
           }
-        }
 
-      case None =>
-        session.taxCheckMatch.map(_.matchRequest.verifier) match {
-          case Some(Left(_))  => sys.error("Could not find tax match result for crn route")
-          case Some(Right(_)) => sys.error("Could not find tax match result for date of birth route")
-          case None           => sys.error("Neither date of birth nor crn in session")
-        }
+        case None =>
+          session.taxCheckMatch.map(_.matchRequest.verifier) match {
+            case Some(Left(_))  => sys.error("Could not find tax match result for crn route")
+            case Some(Right(_)) => sys.error("Could not find tax match result for date of birth route")
+            case None           => sys.error("Neither date of birth nor crn in session")
+          }
 
+      }
     }
+
+  }
 
 }

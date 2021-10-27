@@ -36,6 +36,7 @@ class TaxCheckResultController @Inject() (
   taxCheckValidPage: html.TaxCheckValid,
   taxCheckExpiredPage: html.TaxCheckExpired,
   taxCheckNoMatchPage: html.TaxCheckNoMatch,
+  tooManyAttemptsPage: html.TooManyAttempts,
   mcc: MessagesControllerComponents
 ) extends FrontendController(mcc)
     with I18nSupport
@@ -83,7 +84,17 @@ class TaxCheckResultController @Inject() (
   }
 
   val tooManyVerificationAttempts: Action[AnyContent] = sessionDataAction { implicit request =>
-    Ok(s"session is ${request.sessionData}")
+    val userAnswers = request.sessionData.userAnswers
+    userAnswers.taxCheckCode match {
+      case Some(taxCheckCode) =>
+        val lockAttemptExpiresAt = request.sessionData.verificationAttempts
+          .get(taxCheckCode)
+          .flatMap(_.lockAttemptReleasedAt)
+        Ok(tooManyAttemptsPage(userAnswers, lockAttemptExpiresAt))
+      case None               =>
+        logger.warn("Tax check code  is not found in session ")
+        InternalServerError
+    }
   }
 
 }
