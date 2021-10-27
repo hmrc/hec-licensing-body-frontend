@@ -27,9 +27,8 @@ import uk.gov.hmrc.heclicensingbodyfrontend.config.AppConfig
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.RequestWithSessionData
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.routes
 import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus._
-import uk.gov.hmrc.heclicensingbodyfrontend.models.ids.CRN
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, EntityType, Error, HECSession, HECTaxCheckMatchResult}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{EntityType, Error, HECSession, HECTaxCheckMatchResult}
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
 import uk.gov.hmrc.http.HeaderCarrier
 
