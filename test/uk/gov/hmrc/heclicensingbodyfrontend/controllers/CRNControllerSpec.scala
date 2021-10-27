@@ -433,34 +433,15 @@ class CRNControllerSpec
             }
           }
 
-          "the verification attempt is less than max attempt" when {
+          "the verification attempt is less than max attempt" in {
 
-            "two tax check codes in session, both with attempt 2, the one with match is removed from the verification map" in {
-              testVerificationAttempt(
-                Match,
-                Map(hecTaxCheckCode  -> 2, hecTaxCheckCode2 -> 2),
-                Map(hecTaxCheckCode2 -> 2),
-                CRN("1123456")
-              )
-            }
+            testVerificationAttempt(
+              NoMatch,
+              Map(hecTaxCheckCode -> 2, hecTaxCheckCode2 -> 2),
+              Map(hecTaxCheckCode -> 3, hecTaxCheckCode2 -> 2),
+              CRN("1123456")
+            )
 
-            "two tax check codes in session, both with attempt 2, the one with expired is removed from the verification map" in {
-              testVerificationAttempt(
-                Expired,
-                Map(hecTaxCheckCode  -> 2, hecTaxCheckCode2 -> 2),
-                Map(hecTaxCheckCode2 -> 2),
-                CRN("1123456")
-              )
-            }
-
-            "two tax check codes in session, both with attempt 2, the one with No Match is incremented by 1" in {
-              testVerificationAttempt(
-                NoMatch,
-                Map(hecTaxCheckCode -> 2, hecTaxCheckCode2 -> 2),
-                Map(hecTaxCheckCode -> 3, hecTaxCheckCode2 -> 2),
-                CRN("1123456")
-              )
-            }
           }
 
         }
