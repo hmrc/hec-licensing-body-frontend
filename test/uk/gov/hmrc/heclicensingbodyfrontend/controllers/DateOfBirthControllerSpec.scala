@@ -380,16 +380,14 @@ class DateOfBirthControllerSpec
 
           }
 
-          "the verification attempt is less than max attempt"  in {
+          "the verification attempt is less than max attempt" in {
 
-              testVerificationAttempt(
-                Match,
-                Map(hecTaxCheckCode  -> 2, hecTaxCheckCode2 -> 2),
-                Map(hecTaxCheckCode2 -> 2),
-                DateOfBirth(date)
-              )
-
-            }
+            testVerificationAttempt(
+              Match,
+              Map(hecTaxCheckCode  -> 2, hecTaxCheckCode2 -> 2),
+              Map(hecTaxCheckCode2 -> 2),
+              DateOfBirth(date)
+            )
 
           }
 
@@ -398,6 +396,7 @@ class DateOfBirthControllerSpec
       }
 
     }
+
   }
 
 }
