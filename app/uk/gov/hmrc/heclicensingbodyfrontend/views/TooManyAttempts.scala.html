@@ -22,7 +22,7 @@
 @import java.time.ZonedDateTime
 @import uk.gov.hmrc.heclicensingbodyfrontend.util.TimeUtils
 
-@this(layout: Layout, detailsEntered: DetailsEntered)
+@this(layout: Layout, detailsEntered: LockedOutDetailsEntered)
 
 @(userAnswers:UserAnswers, lockAttemptExpiresAt: Option[ZonedDateTime])(implicit request: Request[_], messages: Messages)
 @key = @{"tooManyAttempts"}
@@ -32,6 +32,7 @@
 
     <h1 class="govuk-heading-xl">@title</h1>
 
+    @detailsEntered(userAnswers)
 
     <p class="govuk-body">@messages(s"$key.whatNext.p1", lockAttemptExpiresAt.map(TimeUtils.govDateTimeDisplayFormat).getOrElse(sys.error("time not present")))</p>
 
