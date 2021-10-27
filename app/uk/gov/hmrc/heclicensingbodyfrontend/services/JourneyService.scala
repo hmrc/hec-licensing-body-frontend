@@ -27,8 +27,9 @@ import uk.gov.hmrc.heclicensingbodyfrontend.config.AppConfig
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.RequestWithSessionData
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.routes
 import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus._
+import uk.gov.hmrc.heclicensingbodyfrontend.models.ids.CRN
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{EntityType, Error, HECSession, HECTaxCheckMatchResult}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, EntityType, Error, HECSession, HECTaxCheckMatchResult}
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -135,7 +136,7 @@ class JourneyServiceImpl @Inject() (sessionStore: SessionStore)(implicit ex: Exe
       case Some(taxMatch) =>
         val currentAttemptMap   = session.verificationAttempts
         val taxCode             = session.userAnswers.taxCheckCode.getOrElse(sys.error("taxCheckCode is not in session"))
-        val currentAttemptCount = currentAttemptMap.get(taxCode).getOrElse(0)
+        val currentAttemptCount = currentAttemptMap.getOrElse(taxCode, 0)
         val maxAttemptReached   = currentAttemptCount >= appConfig.maxVerificationAttempts
         if (maxAttemptReached) {
           routes.TaxCheckResultController.tooManyVerificationAttempts()
@@ -148,7 +149,12 @@ class JourneyServiceImpl @Inject() (sessionStore: SessionStore)(implicit ex: Exe
         }
 
       case None =>
-        sys.error("Could not find tax match result for either date of birth or crn route")
+        session.taxCheckMatch.map(_.matchRequest.verifier) match {
+          case Some(Left(_))  => sys.error("Could not find tax match result for crn route")
+          case Some(Right(_)) => sys.error("Could not find tax match result for date of birth route")
+          case None           => sys.error("Neither date of birth nor crn in session")
+        }
+
     }
 
 }
