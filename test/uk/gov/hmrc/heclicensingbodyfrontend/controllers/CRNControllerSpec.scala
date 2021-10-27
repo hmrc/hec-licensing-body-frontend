@@ -30,13 +30,14 @@ import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus._
 import uk.gov.hmrc.heclicensingbodyfrontend.models.ids.CRN
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType.OperatorOfPrivateHireVehicles
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, Error, HECSession, HECTaxCheckCode, HECTaxCheckMatchRequest, HECTaxCheckMatchResult, HECTaxCheckStatus, UserAnswers}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{Attempts, DateOfBirth, Error, HECSession, HECTaxCheckCode, HECTaxCheckMatchRequest, HECTaxCheckMatchResult, HECTaxCheckStatus, UserAnswers}
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
 import uk.gov.hmrc.heclicensingbodyfrontend.services.{HECTaxMatchService, JourneyService, VerificationService}
 import uk.gov.hmrc.heclicensingbodyfrontend.util.StringUtils.StringOps
 import uk.gov.hmrc.heclicensingbodyfrontend.util.TimeUtils
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.ZonedDateTime
 import java.util.Locale
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -58,19 +59,21 @@ class CRNControllerSpec
       bind[VerificationService].toInstance(verificationService)
     )
 
-  val controller           = instanceOf[CRNController]
-  val hecTaxCheckCode      = HECTaxCheckCode("ABC DEF 123")
-  val hecTaxCheckCode2     = HECTaxCheckCode("ABC DEG 123")
-  val validCRN             =
+  val controller       = instanceOf[CRNController]
+  val hecTaxCheckCode  = HECTaxCheckCode("ABC DEF 123")
+  val hecTaxCheckCode2 = HECTaxCheckCode("ABC DEG 123")
+  val validCRN         =
     List(CRN("SS12345"), CRN("SS1 23 45"), CRN("SS123456"), CRN("ss123456"), CRN("11123456"), CRN("1112345"))
-  val nonAlphaNumCRN       = List(CRN("$£%^&"), CRN("AA1244&"))
-  val inValidCRN           =
+  val nonAlphaNumCRN   = List(CRN("$£%^&"), CRN("AA1244&"))
+  val inValidCRN       =
     List(CRN("AAB3456"), CRN("12345AAA"))
-  val dateTimeChecked      = TimeUtils.now()
+  val dateTimeChecked  = TimeUtils.now()
+
   val taxCheckMatchRequest =
     HECTaxCheckMatchRequest(hecTaxCheckCode, LicenceType.OperatorOfPrivateHireVehicles, Left(validCRN(0)))
 
   implicit val appConfig = instanceOf[AppConfig]
+  val lockExpiresAt      = ZonedDateTime.now().plusHours(appConfig.lockHours)
 
   def mockMatchTaxCheck(taxCheckMatchRequest: HECTaxCheckMatchRequest)(result: Either[Error, HECTaxCheckMatchResult]) =
     (taxCheckService
@@ -357,8 +360,8 @@ class CRNControllerSpec
 
           def testVerificationAttempt(
             returnStatus: HECTaxCheckStatus,
-            initialAttemptMap: Map[HECTaxCheckCode, Int],
-            newAttemptMap: Map[HECTaxCheckCode, Int],
+            initialAttemptMap: Map[HECTaxCheckCode, Attempts],
+            newAttemptMap: Map[HECTaxCheckCode, Attempts],
             crn: CRN
           ) = {
             val formattedCrn        = CRN(crn.value.removeWhitespace.toUpperCase(Locale.UK))
@@ -401,12 +404,13 @@ class CRNControllerSpec
           }
 
           def testWhenVerificationAttemptIsMax(
-            initialAttemptMap: Map[HECTaxCheckCode, Int],
+            initialAttemptMap: Map[HECTaxCheckCode, Attempts],
             crn: CRN
           ) = {
             val answers = UserAnswers.empty.copy(
               taxCheckCode = Some(hecTaxCheckCode),
-              licenceType = Some(LicenceType.OperatorOfPrivateHireVehicles)
+              licenceType = Some(LicenceType.OperatorOfPrivateHireVehicles),
+              crn = Some(crn)
             )
             val session = HECSession(answers, None, verificationAttempts = initialAttemptMap)
 
@@ -428,7 +432,10 @@ class CRNControllerSpec
 
             "session remains same irrespective of status" in {
               testWhenVerificationAttemptIsMax(
-                Map(hecTaxCheckCode -> appConfig.maxVerificationAttempts, hecTaxCheckCode2 -> 2),
+                Map(
+                  hecTaxCheckCode  -> Attempts(appConfig.maxVerificationAttempts, Some(lockExpiresAt)),
+                  hecTaxCheckCode2 -> Attempts(2, None)
+                ),
                 CRN("1123456")
               )
             }
@@ -438,8 +445,8 @@ class CRNControllerSpec
 
             testVerificationAttempt(
               NoMatch,
-              Map(hecTaxCheckCode -> 2, hecTaxCheckCode2 -> 2),
-              Map(hecTaxCheckCode -> 3, hecTaxCheckCode2 -> 2),
+              Map(hecTaxCheckCode -> Attempts(2, None), hecTaxCheckCode2                -> Attempts(2, None)),
+              Map(hecTaxCheckCode -> Attempts(3, Some(lockExpiresAt)), hecTaxCheckCode2 -> Attempts(2, None)),
               CRN("1123456")
             )
 

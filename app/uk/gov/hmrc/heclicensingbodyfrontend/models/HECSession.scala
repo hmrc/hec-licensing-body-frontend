@@ -25,7 +25,7 @@ import play.api.libs.json._
 
 import java.time.ZonedDateTime
 
-final case class Attempts(count: Int, lockAttemptReleasedAt: Option[ZonedDateTime])
+final case class Attempts(count: Int, lockExpiresAt: Option[ZonedDateTime])
 
 object Attempts {
   implicit val format: OFormat[Attempts] = Json.format

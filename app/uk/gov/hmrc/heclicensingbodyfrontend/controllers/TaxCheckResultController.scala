@@ -89,7 +89,7 @@ class TaxCheckResultController @Inject() (
       case Some(taxCheckCode) =>
         val lockAttemptExpiresAt = request.sessionData.verificationAttempts
           .get(taxCheckCode)
-          .flatMap(_.lockAttemptReleasedAt)
+          .flatMap(_.lockExpiresAt)
         Ok(tooManyAttemptsPage(userAnswers, lockAttemptExpiresAt))
       case None               =>
         logger.warn("Tax check code  is not found in session ")

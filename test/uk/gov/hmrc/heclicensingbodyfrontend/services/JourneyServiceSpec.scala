@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.services
 
+import play.api.inject.bind
+import play.api.inject.guice.GuiceableModule
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -27,7 +29,7 @@ import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus._
 import uk.gov.hmrc.heclicensingbodyfrontend.models._
 import uk.gov.hmrc.heclicensingbodyfrontend.models.ids.CRN
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
-import uk.gov.hmrc.heclicensingbodyfrontend.util.TimeUtils
+import uk.gov.hmrc.heclicensingbodyfrontend.util.{TimeProvider, TimeUtils}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.{LocalDate, ZonedDateTime}
@@ -39,11 +41,20 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
   implicit val appConfig         = instanceOf[AppConfig]
-  val journeyService             = new JourneyServiceImpl(mockSessionStore)
+
+  val timeProvider = mock[TimeProvider]
+
+  override val overrideBindings =
+    List[GuiceableModule](
+      bind[TimeProvider].toInstance(timeProvider)
+    )
+
+  val journeyService = new JourneyServiceImpl(mockSessionStore, timeProvider)
 
   val hecTaxCheckCode                = HECTaxCheckCode("ABC DEF 123")
   val dateOfBirth                    = DateOfBirth(LocalDate.of(1922, 12, 1))
   val dateTimeChecked: ZonedDateTime = TimeUtils.now()
+  val lockExpiresAt                  = ZonedDateTime.now().plusHours(appConfig.lockHours)
   val taxCheckMatchRequest           =
     HECTaxCheckMatchRequest(hecTaxCheckCode, LicenceType.DriverOfTaxisAndPrivateHires, Right(dateOfBirth))
   val userAnswersWithAllAnswers      = UserAnswers(
@@ -291,7 +302,8 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                 HECSession(
                   userAnswersWithAllAnswers,
                   Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Match)),
-                  verificationAttempts = Map(hecTaxCheckCode -> appConfig.maxVerificationAttempts)
+                  verificationAttempts =
+                    Map(hecTaxCheckCode -> Attempts(appConfig.maxVerificationAttempts, Some(lockExpiresAt)))
                 ),
                 routes.TaxCheckResultController.tooManyVerificationAttempts()
               )
@@ -316,7 +328,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                 HECSession(
                   userAnswersWithAllAnswers,
                   Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Expired)),
-                  verificationAttempts = Map(hecTaxCheckCode -> appConfig.maxVerificationAttempts)
+                  Map(hecTaxCheckCode -> Attempts(appConfig.maxVerificationAttempts, Some(lockExpiresAt)))
                 ),
                 routes.TaxCheckResultController.tooManyVerificationAttempts()
               )
@@ -331,7 +343,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                 HECSession(
                   userAnswersWithAllAnswers,
                   Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, NoMatch)),
-                  verificationAttempts = Map(hecTaxCheckCode -> 1)
+                  verificationAttempts = Map(hecTaxCheckCode -> Attempts(1, None))
                 ),
                 routes.TaxCheckResultController.taxCheckNotMatch()
               )
@@ -342,7 +354,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                 HECSession(
                   userAnswersWithAllAnswers,
                   Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, NoMatch)),
-                  verificationAttempts = Map(hecTaxCheckCode -> appConfig.maxVerificationAttempts)
+                  Map(hecTaxCheckCode -> Attempts(appConfig.maxVerificationAttempts, Some(lockExpiresAt)))
                 ),
                 routes.TaxCheckResultController.tooManyVerificationAttempts()
               )
@@ -401,7 +413,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                 HECSession(
                   userAnswersForCompany,
                   Some(HECTaxCheckMatchResult(taxCheckMatchCompanyRequest, dateTimeChecked, Match)),
-                  Map(hecTaxCheckCode -> appConfig.maxVerificationAttempts)
+                  Map(hecTaxCheckCode -> Attempts(appConfig.maxVerificationAttempts, Some(lockExpiresAt)))
                 ),
                 routes.TaxCheckResultController.tooManyVerificationAttempts()
               )
@@ -426,7 +438,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                 HECSession(
                   userAnswersForCompany,
                   Some(HECTaxCheckMatchResult(taxCheckMatchCompanyRequest, dateTimeChecked, Expired)),
-                  Map(hecTaxCheckCode -> appConfig.maxVerificationAttempts)
+                  Map(hecTaxCheckCode -> Attempts(appConfig.maxVerificationAttempts, Some(lockExpiresAt)))
                 ),
                 routes.TaxCheckResultController.tooManyVerificationAttempts()
               )
@@ -450,7 +462,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                 HECSession(
                   userAnswersForCompany,
                   Some(HECTaxCheckMatchResult(taxCheckMatchCompanyRequest, dateTimeChecked, NoMatch)),
-                  Map(hecTaxCheckCode -> appConfig.maxVerificationAttempts)
+                  Map(hecTaxCheckCode -> Attempts(appConfig.maxVerificationAttempts, Some(lockExpiresAt)))
                 ),
                 routes.TaxCheckResultController.tooManyVerificationAttempts()
               )

@@ -61,7 +61,7 @@ class VerificationServiceImpl @Inject() (timeProvider: TimeProvider)(implicit ap
     requestWithSessionData.sessionData.verificationAttempts
       .get(hecTaxCheckCode)
       .exists(verificationAttempt =>
-        verificationAttempt.count >= appConfig.maxVerificationAttempts && verificationAttempt.lockAttemptReleasedAt
+        verificationAttempt.count >= appConfig.maxVerificationAttempts && verificationAttempt.lockExpiresAt
           .exists(_.isAfter(timeProvider.now))
       )
 

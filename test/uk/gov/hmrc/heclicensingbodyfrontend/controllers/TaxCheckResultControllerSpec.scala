@@ -521,6 +521,28 @@ class TaxCheckResultControllerSpec
 
     }
 
+    "handling request to too may attempts page" must {
+
+      def performAction(): Future[Result] = controller.tooManyVerificationAttempts(FakeRequest())
+
+      "return an InternalServerError" when {
+
+        "tax check code cannot be found in session " in {
+
+          val session = HECSession(UserAnswers.empty, None)
+
+          inSequence {
+            mockGetSession(session)
+          }
+
+          status(performAction()) shouldBe INTERNAL_SERVER_ERROR
+
+        }
+
+      }
+
+    }
+
   }
 }
 

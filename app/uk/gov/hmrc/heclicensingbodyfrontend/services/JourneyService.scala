@@ -138,7 +138,7 @@ class JourneyServiceImpl @Inject() (sessionStore: SessionStore, timeProvider: Ti
     val taxCode           = session.userAnswers.taxCheckCode.getOrElse(sys.error("taxCheckCode is not in session"))
     val currentAttempt    = currentAttemptMap.getOrElse(taxCode, Attempts(0, None))
     val maxAttemptReached =
-      currentAttempt.count >= appConfig.maxVerificationAttempts && currentAttempt.lockAttemptReleasedAt.exists(
+      currentAttempt.count >= appConfig.maxVerificationAttempts && currentAttempt.lockExpiresAt.exists(
         _.isAfter(timeProvider.now)
       )
     if (maxAttemptReached) {

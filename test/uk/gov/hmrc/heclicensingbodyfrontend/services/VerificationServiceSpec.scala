@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.services
 
+import play.api.inject.bind
+import play.api.inject.guice.GuiceableModule
 import play.api.test.FakeRequest
 import uk.gov.hmrc.heclicensingbodyfrontend.config.AppConfig
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.ControllerSpec
@@ -24,9 +26,9 @@ import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus.{Expired, M
 import uk.gov.hmrc.heclicensingbodyfrontend.models.ids.CRN
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
 import uk.gov.hmrc.heclicensingbodyfrontend.models._
-import uk.gov.hmrc.heclicensingbodyfrontend.util.TimeUtils
+import uk.gov.hmrc.heclicensingbodyfrontend.util.{TimeProvider, TimeUtils}
 
-import java.time.LocalDate
+import java.time.{LocalDate, ZonedDateTime}
 
 class VerificationServiceSpec extends ControllerSpec {
 
@@ -41,7 +43,16 @@ class VerificationServiceSpec extends ControllerSpec {
   val dobVerifier = Right(DateOfBirth(date))
   val crnVerifier = Left(CRN("112345"))
 
-  val verificationService = new VerificationServiceImpl()
+  val timeProvider = mock[TimeProvider]
+
+  override val overrideBindings =
+    List[GuiceableModule](
+      bind[TimeProvider].toInstance(timeProvider)
+    )
+
+  val verificationService = new VerificationServiceImpl(timeProvider)
+
+  val lockExpiresAt = ZonedDateTime.now.plusHours(appConfig.lockHours)
 
   def requestWithSessionData(s: HECSession): RequestWithSessionData[_] = RequestWithSessionData(FakeRequest(), s)
 
@@ -49,7 +60,7 @@ class VerificationServiceSpec extends ControllerSpec {
 
     "max verification reached " when {
 
-      def createSession(sessionTaxCheckCode: HECTaxCheckCode, verificationAttempts: Map[HECTaxCheckCode, Int]) =
+      def createSession(sessionTaxCheckCode: HECTaxCheckCode, verificationAttempts: Map[HECTaxCheckCode, Attempts]) =
         HECSession(
           UserAnswers.empty.copy(
             taxCheckCode = Some(sessionTaxCheckCode),
@@ -64,7 +75,13 @@ class VerificationServiceSpec extends ControllerSpec {
         "tax check code in session is equal to max attempts" in {
 
           implicit val request: RequestWithSessionData[_] = requestWithSessionData(
-            createSession(hecTaxCode1, Map(hecTaxCode1 -> appConfig.maxVerificationAttempts, hecTaxCode2 -> 2))
+            createSession(
+              hecTaxCode1,
+              Map(
+                hecTaxCode1 -> Attempts(appConfig.maxVerificationAttempts, Some(lockExpiresAt)),
+                hecTaxCode2 -> Attempts(2, None)
+              )
+            )
           )
           val result                                      = verificationService.maxVerificationAttemptReached(hecTaxCode1)
           result shouldBe true
@@ -73,7 +90,13 @@ class VerificationServiceSpec extends ControllerSpec {
         "tax check code in session is more than max attempts" in {
 
           implicit val request: RequestWithSessionData[_] = requestWithSessionData(
-            createSession(hecTaxCode1, Map(hecTaxCode1 -> (appConfig.maxVerificationAttempts + 1), hecTaxCode2 -> 2))
+            createSession(
+              hecTaxCode1,
+              Map(
+                hecTaxCode1 -> Attempts(appConfig.maxVerificationAttempts + 1, Some(lockExpiresAt)),
+                hecTaxCode2 -> Attempts(2, None)
+              )
+            )
           )
           val result                                      = verificationService.maxVerificationAttemptReached(hecTaxCode1)
           result shouldBe true
@@ -86,7 +109,13 @@ class VerificationServiceSpec extends ControllerSpec {
         "tax check code is not in verification attempt map" in {
 
           implicit val request: RequestWithSessionData[_] = requestWithSessionData(
-            createSession(hecTaxCode3, Map(hecTaxCode1 -> appConfig.maxVerificationAttempts, hecTaxCode2 -> 2))
+            createSession(
+              hecTaxCode3,
+              Map(
+                hecTaxCode1 -> Attempts(appConfig.maxVerificationAttempts, Some(lockExpiresAt)),
+                hecTaxCode2 -> Attempts(2, None)
+              )
+            )
           )
           val result                                      = verificationService.maxVerificationAttemptReached(hecTaxCode3)
           result shouldBe false
@@ -95,7 +124,13 @@ class VerificationServiceSpec extends ControllerSpec {
         "tax check code in session is less than max attempts" in {
 
           implicit val request: RequestWithSessionData[_] = requestWithSessionData(
-            createSession(hecTaxCode1, Map(hecTaxCode1 -> (appConfig.maxVerificationAttempts - 1), hecTaxCode2 -> 2))
+            createSession(
+              hecTaxCode1,
+              Map(
+                hecTaxCode1 -> Attempts(appConfig.maxVerificationAttempts - 1, None),
+                hecTaxCode2 -> Attempts(2, None)
+              )
+            )
           )
           val result                                      = verificationService.maxVerificationAttemptReached(hecTaxCode1)
           result shouldBe false
@@ -108,7 +143,7 @@ class VerificationServiceSpec extends ControllerSpec {
 
       def createSession(
         taxCheckCode: HECTaxCheckCode,
-        verificationAttempts: Map[HECTaxCheckCode, Int],
+        verificationAttempts: Map[HECTaxCheckCode, Attempts],
         taxCheckMatch: Option[HECTaxCheckMatchResult]
       )                                                                                   = HECSession(
         UserAnswers.empty.copy(
@@ -127,8 +162,8 @@ class VerificationServiceSpec extends ControllerSpec {
       def testVerificationAttempt(
         verifier: Either[CRN, DateOfBirth],
         status: HECTaxCheckStatus,
-        oldVerificationAttempt: Map[HECTaxCheckCode, Int],
-        newVerificationAttempt: Map[HECTaxCheckCode, Int]
+        oldVerificationAttempt: Map[HECTaxCheckCode, Attempts],
+        newVerificationAttempt: Map[HECTaxCheckCode, Attempts]
       ) = {
         val taxCheckMatch                               = getTaxCheckMatch(verifier, status)
         val session                                     = createSession(hecTaxCode1, oldVerificationAttempt, Some(taxCheckMatch))
@@ -150,7 +185,7 @@ class VerificationServiceSpec extends ControllerSpec {
         "session has date Of birth" when {
 
           "Tax Check No Match found, add new map in the session with value 1" in {
-            testVerificationAttempt(dobVerifier, NoMatch, Map.empty, Map(hecTaxCode1 -> 1))
+            testVerificationAttempt(dobVerifier, NoMatch, Map.empty, Map(hecTaxCode1 -> Attempts(1, None)))
           }
 
           "Tax Check Match found, no change in attempt verification map" in {
@@ -165,7 +200,7 @@ class VerificationServiceSpec extends ControllerSpec {
         "session has crn " when {
 
           "Tax Check No Match found, new map in the session with value 1" in {
-            testVerificationAttempt(crnVerifier, NoMatch, Map.empty, Map(hecTaxCode1 -> 1))
+            testVerificationAttempt(crnVerifier, NoMatch, Map.empty, Map(hecTaxCode1 -> Attempts(1, None)))
           }
 
           "Tax Check Match found, no change in attempt verification map" in {
@@ -187,21 +222,26 @@ class VerificationServiceSpec extends ControllerSpec {
             testVerificationAttempt(
               dobVerifier,
               NoMatch,
-              Map(hecTaxCode1 -> 1, hecTaxCode2 -> 2),
-              Map(hecTaxCode1 -> 2, hecTaxCode2 -> 2)
+              Map(hecTaxCode1 -> Attempts(1, None), hecTaxCode2 -> Attempts(2, None)),
+              Map(hecTaxCode1 -> Attempts(2, None), hecTaxCode2 -> Attempts(2, None))
             )
           }
 
           "Tax Check Match found, remove that tax check code from map" in {
-            testVerificationAttempt(dobVerifier, Match, Map(hecTaxCode1 -> 1, hecTaxCode2 -> 2), Map(hecTaxCode2 -> 2))
+            testVerificationAttempt(
+              dobVerifier,
+              Match,
+              Map(hecTaxCode1 -> Attempts(1, None), hecTaxCode2 -> Attempts(2, None)),
+              Map(hecTaxCode2 -> Attempts(2, None))
+            )
           }
 
           "Tax Check Match found but expired, remove that tax check code from map" in {
             testVerificationAttempt(
               dobVerifier,
               Expired,
-              Map(hecTaxCode1 -> 1, hecTaxCode2 -> 2),
-              Map(hecTaxCode2 -> 2)
+              Map(hecTaxCode1 -> Attempts(1, None), hecTaxCode2 -> Attempts(2, None)),
+              Map(hecTaxCode2 -> Attempts(2, None))
             )
           }
         }
@@ -212,8 +252,8 @@ class VerificationServiceSpec extends ControllerSpec {
             testVerificationAttempt(
               crnVerifier,
               NoMatch,
-              Map(hecTaxCode1 -> 1, hecTaxCode2 -> 2),
-              Map(hecTaxCode1 -> 2, hecTaxCode2 -> 2)
+              Map(hecTaxCode1 -> Attempts(1, None), hecTaxCode2 -> Attempts(2, None)),
+              Map(hecTaxCode1 -> Attempts(2, None), hecTaxCode2 -> Attempts(2, None))
             )
           }
 
@@ -221,8 +261,8 @@ class VerificationServiceSpec extends ControllerSpec {
             testVerificationAttempt(
               crnVerifier,
               Match,
-              Map(hecTaxCode1 -> 1, hecTaxCode2 -> 2),
-              Map(hecTaxCode2 -> 2)
+              Map(hecTaxCode1 -> Attempts(1, None), hecTaxCode2 -> Attempts(2, None)),
+              Map(hecTaxCode2 -> Attempts(2, None))
             )
           }
 
@@ -230,8 +270,8 @@ class VerificationServiceSpec extends ControllerSpec {
             testVerificationAttempt(
               crnVerifier,
               Expired,
-              Map(hecTaxCode1 -> 1, hecTaxCode2 -> 2),
-              Map(hecTaxCode2 -> 2)
+              Map(hecTaxCode1 -> Attempts(1, None), hecTaxCode2 -> Attempts(2, None)),
+              Map(hecTaxCode2 -> Attempts(2, None))
             )
           }
 
