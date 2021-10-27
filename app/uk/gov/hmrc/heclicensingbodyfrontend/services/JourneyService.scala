@@ -30,6 +30,7 @@ import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus._
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{Attempts, EntityType, Error, HECSession, HECTaxCheckMatchResult}
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
+import uk.gov.hmrc.heclicensingbodyfrontend.util.TimeProvider
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.annotation.tailrec
@@ -50,7 +51,7 @@ trait JourneyService {
 }
 
 @Singleton
-class JourneyServiceImpl @Inject() (sessionStore: SessionStore)(implicit
+class JourneyServiceImpl @Inject() (sessionStore: SessionStore, timeProvider: TimeProvider)(implicit
   ex: ExecutionContext,
   appConfig: AppConfig
 ) extends JourneyService {
@@ -135,10 +136,13 @@ class JourneyServiceImpl @Inject() (sessionStore: SessionStore)(implicit
   private def dateOfBirthOrCRNRoute(session: HECSession): Call =
     session.taxCheckMatch match {
       case Some(taxMatch) =>
-        val currentAttemptMap   = session.verificationAttempts
-        val taxCode             = session.userAnswers.taxCheckCode.getOrElse(sys.error("taxCheckCode is not in session"))
-        val currentAttemptCount = currentAttemptMap.getOrElse(taxCode, Attempts(0, None))
-        val maxAttemptReached   = currentAttemptCount.count >= appConfig.maxVerificationAttempts
+        val currentAttemptMap = session.verificationAttempts
+        val taxCode           = session.userAnswers.taxCheckCode.getOrElse(sys.error("taxCheckCode is not in session"))
+        val currentAttempt    = currentAttemptMap.getOrElse(taxCode, Attempts(0, None))
+        val maxAttemptReached =
+          currentAttempt.count >= appConfig.maxVerificationAttempts && currentAttempt.lockAttemptReleasedAt.exists(
+            _.isAfter(timeProvider.now)
+          )
         if (maxAttemptReached) {
           routes.TaxCheckResultController.tooManyVerificationAttempts()
         } else {

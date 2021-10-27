@@ -23,7 +23,7 @@ import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.RequestWithSessi
 import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus.NoMatch
 import uk.gov.hmrc.heclicensingbodyfrontend.models.ids.CRN
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{Attempts, DateOfBirth, HECSession, HECTaxCheckCode, HECTaxCheckMatchResult}
-import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging
+import uk.gov.hmrc.heclicensingbodyfrontend.util.{Logging, TimeProvider}
 
 import java.time.ZonedDateTime
 
@@ -46,7 +46,9 @@ trait VerificationService {
 
 }
 
-class VerificationServiceImpl @Inject() ()(implicit appConfig: AppConfig) extends VerificationService with Logging {
+class VerificationServiceImpl @Inject() (timeProvider: TimeProvider)(implicit appConfig: AppConfig)
+    extends VerificationService
+    with Logging {
 
   def getCurrentAttemptsByTaxCheckCode(taxCheckCode: HECTaxCheckCode)(implicit
     request: RequestWithSessionData[_]
@@ -58,7 +60,10 @@ class VerificationServiceImpl @Inject() ()(implicit appConfig: AppConfig) extend
   )(implicit requestWithSessionData: RequestWithSessionData[_]): Boolean =
     requestWithSessionData.sessionData.verificationAttempts
       .get(hecTaxCheckCode)
-      .exists(_.count >= appConfig.maxVerificationAttempts)
+      .exists(verificationAttempt =>
+        verificationAttempt.count >= appConfig.maxVerificationAttempts && verificationAttempt.lockAttemptReleasedAt
+          .exists(_.isAfter(timeProvider.now))
+      )
 
   override def updateVerificationAttemptCount(
     taxMatch: HECTaxCheckMatchResult,
@@ -74,11 +79,15 @@ class VerificationServiceImpl @Inject() ()(implicit appConfig: AppConfig) extend
     val verificationAttempts          = if (taxMatch.status === NoMatch) {
       val currentAttempt = getCurrentAttemptsByTaxCheckCode(taxCheckCode)
       if (currentAttempt.count === (appConfig.maxVerificationAttempts - 1))
-        currentVerificationAttemptMap + (taxCheckCode    -> Attempts(
+        currentVerificationAttemptMap + (taxCheckCode -> Attempts(
           currentAttempt.count + 1,
           Some(ZonedDateTime.now().plusHours(appConfig.lockHours))
         ))
-      else currentVerificationAttemptMap + (taxCheckCode -> Attempts(currentAttempt.count + 1, None))
+      else
+        currentVerificationAttemptMap + (taxCheckCode -> Attempts(
+          currentAttempt.count + 1,
+          None
+        ))
     } else {
       currentVerificationAttemptMap - taxCheckCode
     }
