@@ -610,7 +610,7 @@ class TaxCheckResultControllerSpec
               HECSession(
                 answers,
                 Some(HECTaxCheckMatchResult(matchRequest, dateTimeChecked, NoMatch)),
-                Map(hecTaxCheckCode -> Attempts(3, Some(zonedDateTimeNow)))
+                Map(hecTaxCheckCode -> TaxCheckVerificationAttempts(3, Some(zonedDateTimeNow)))
               ),
               "10 September 2021, 10:02am"
             )
@@ -622,7 +622,7 @@ class TaxCheckResultControllerSpec
               HECSession(
                 answers,
                 None,
-                Map(hecTaxCheckCode -> Attempts(3, Some(zonedDateTimeNow)))
+                Map(hecTaxCheckCode -> TaxCheckVerificationAttempts(3, Some(zonedDateTimeNow)))
               ),
               "10 September 2021, 10:02am"
             )
@@ -633,7 +633,7 @@ class TaxCheckResultControllerSpec
               HECSession(
                 companyAnswers,
                 Some(HECTaxCheckMatchResult(companyMatchRequest, dateTimeChecked, NoMatch)),
-                Map(hecTaxCheckCode -> Attempts(3, Some(zonedDateTimeNow)))
+                Map(hecTaxCheckCode -> TaxCheckVerificationAttempts(3, Some(zonedDateTimeNow)))
               ),
               "10 September 2021, 10:02am"
             )
@@ -644,7 +644,7 @@ class TaxCheckResultControllerSpec
               HECSession(
                 companyAnswers,
                 None,
-                Map(hecTaxCheckCode -> Attempts(3, Some(zonedDateTimeNow)))
+                Map(hecTaxCheckCode -> TaxCheckVerificationAttempts(3, Some(zonedDateTimeNow)))
               ),
               "10 September 2021, 10:02am"
             )

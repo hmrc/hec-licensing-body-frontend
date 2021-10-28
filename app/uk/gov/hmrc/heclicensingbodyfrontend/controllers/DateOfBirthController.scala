@@ -80,7 +80,8 @@ class DateOfBirthController @Inject() (
           Ok(
             dateOfBirthPage(formWithErrors, journeyService.previous(routes.DateOfBirthController.dateOfBirth()))
           ),
-        if (verificationService.maxVerificationAttemptReached(taxCheckCode)) goToNextPage else handleValidDateOfBirth
+        if (verificationService.maxVerificationAttemptReached(taxCheckCode)(request.sessionData)) goToNextPage
+        else handleValidDateOfBirth
       )
 
     request.sessionData.userAnswers.taxCheckCode match {
@@ -113,7 +114,9 @@ class DateOfBirthController @Inject() (
         for {
           taxMatch      <- taxMatchService.matchTaxCheck(HECTaxCheckMatchRequest(taxCheckCode, lType, Right(dateOfBirth)))
           updatedSession =
-            verificationService.updateVerificationAttemptCount(taxMatch, taxCheckCode, Right(dateOfBirth))
+            verificationService.updateVerificationAttemptCount(taxMatch, taxCheckCode, Right(dateOfBirth))(
+              request.sessionData
+            )
           next          <- journeyService
                              .updateAndNext(routes.DateOfBirthController.dateOfBirth(), updatedSession)
         } yield next

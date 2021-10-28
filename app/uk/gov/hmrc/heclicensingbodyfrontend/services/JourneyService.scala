@@ -23,14 +23,12 @@ import cats.instances.string._
 import cats.syntax.eq._
 import com.google.inject.{ImplementedBy, Inject, Singleton}
 import play.api.mvc.Call
-import uk.gov.hmrc.heclicensingbodyfrontend.config.AppConfig
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.RequestWithSessionData
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.routes
 import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus._
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{Attempts, EntityType, Error, HECSession, HECTaxCheckMatchResult}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{EntityType, Error, HECSession, HECTaxCheckMatchResult}
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
-import uk.gov.hmrc.heclicensingbodyfrontend.util.TimeProvider
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.annotation.tailrec
@@ -51,9 +49,11 @@ trait JourneyService {
 }
 
 @Singleton
-class JourneyServiceImpl @Inject() (sessionStore: SessionStore, timeProvider: TimeProvider)(implicit
-  ex: ExecutionContext,
-  appConfig: AppConfig
+class JourneyServiceImpl @Inject() (
+  sessionStore: SessionStore,
+  verificationService: VerificationService
+)(implicit
+  ex: ExecutionContext
 ) extends JourneyService {
 
   implicit val callEq: Eq[Call] = Eq.instance(_.url === _.url)
@@ -134,13 +134,8 @@ class JourneyServiceImpl @Inject() (sessionStore: SessionStore, timeProvider: Ti
     }
 
   private def dateOfBirthOrCRNRoute(session: HECSession): Call = {
-    val currentAttemptMap = session.verificationAttempts
     val taxCode           = session.userAnswers.taxCheckCode.getOrElse(sys.error("taxCheckCode is not in session"))
-    val currentAttempt    = currentAttemptMap.getOrElse(taxCode, Attempts(0, None))
-    val maxAttemptReached =
-      currentAttempt.count >= appConfig.maxVerificationAttempts && currentAttempt.lockExpiresAt.exists(
-        _.isAfter(timeProvider.now)
-      )
+    val maxAttemptReached = verificationService.maxVerificationAttemptReached(taxCode)(session)
     if (maxAttemptReached) {
       routes.TaxCheckResultController.tooManyVerificationAttempts()
     } else {

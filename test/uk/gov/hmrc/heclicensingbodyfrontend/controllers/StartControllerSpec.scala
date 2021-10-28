@@ -21,7 +21,7 @@ import play.api.inject.guice.GuiceableModule
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{Attempts, Error, HECSession, HECTaxCheckCode, UserAnswers}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECSession, HECTaxCheckCode, TaxCheckVerificationAttempts, UserAnswers}
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
 import uk.gov.hmrc.heclicensingbodyfrontend.services.JourneyService
 
@@ -49,7 +49,7 @@ class StartControllerSpec extends ControllerSpec with SessionSupport with Journe
         HECSession(
           UserAnswers.empty.copy(taxCheckCode = Some(hecTaxCheckCode)),
           None,
-          Map(hecTaxCheckCode -> Attempts(2, None))
+          Map(hecTaxCheckCode -> TaxCheckVerificationAttempts(2, None))
         )
 
       val newSession = HECSession(UserAnswers.empty, None)

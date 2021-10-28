@@ -84,7 +84,8 @@ class CRNController @Inject() (
               journeyService.previous(routes.CRNController.companyRegistrationNumber())
             )
           ),
-        if (verificationService.maxVerificationAttemptReached(taxCheckCode)) goToNextPage else handleValidCrn
+        if (verificationService.maxVerificationAttemptReached(taxCheckCode)(request.sessionData)) goToNextPage
+        else handleValidCrn
       )
 
     request.sessionData.userAnswers.taxCheckCode match {
@@ -110,7 +111,8 @@ class CRNController @Inject() (
       case (Some(taxCheckCode), Some(lType)) =>
         for {
           taxMatch      <- taxMatchService.matchTaxCheck(HECTaxCheckMatchRequest(taxCheckCode, lType, Left(crn)))
-          updatedSession = verificationService.updateVerificationAttemptCount(taxMatch, taxCheckCode, Left(crn))
+          updatedSession =
+            verificationService.updateVerificationAttemptCount(taxMatch, taxCheckCode, Left(crn))(request.sessionData)
           next          <- journeyService
                              .updateAndNext(routes.CRNController.companyRegistrationNumber(), updatedSession)
         } yield next

@@ -16,8 +16,6 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.services
 
-import play.api.inject.bind
-import play.api.inject.guice.GuiceableModule
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -29,7 +27,7 @@ import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus._
 import uk.gov.hmrc.heclicensingbodyfrontend.models._
 import uk.gov.hmrc.heclicensingbodyfrontend.models.ids.CRN
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
-import uk.gov.hmrc.heclicensingbodyfrontend.util.{TimeProvider, TimeUtils}
+import uk.gov.hmrc.heclicensingbodyfrontend.util.TimeUtils
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.{LocalDate, ZoneId, ZonedDateTime}
@@ -39,25 +37,22 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
 
   def requestWithSessionData(s: HECSession): RequestWithSessionData[_] = RequestWithSessionData(FakeRequest(), s)
 
-  implicit val hc: HeaderCarrier = HeaderCarrier()
+  implicit val hc: HeaderCarrier                                                                          = HeaderCarrier()
+  val mockVerificationService                                                                             = mock[VerificationService]
+  def mockVerificationAttemptReached(taxCheckCode: HECTaxCheckCode, session: HECSession)(result: Boolean) =
+    (mockVerificationService
+      .maxVerificationAttemptReached(_: HECTaxCheckCode)(_: HECSession))
+      .expects(taxCheckCode, session)
+      .returning(result)
 
-  val mockTimeProvider: TimeProvider = mock[TimeProvider]
-
-  override val overrideBindings: List[GuiceableModule] =
-    List[GuiceableModule](
-      bind[TimeProvider].toInstance(mockTimeProvider)
-    )
-  implicit val appConfig: AppConfig                    = instanceOf[AppConfig]
-  val journeyService: JourneyService                   = new JourneyServiceImpl(mockSessionStore, mockTimeProvider)
-
-  def mockTimeProviderNow(now: ZonedDateTime) =
-    (mockTimeProvider.now _).expects().returning(now)
+  implicit val appConfig: AppConfig  = instanceOf[AppConfig]
+  val journeyService: JourneyService = new JourneyServiceImpl(mockSessionStore, mockVerificationService)
 
   val hecTaxCheckCode                = HECTaxCheckCode("ABC DEF 123")
   val dateOfBirth                    = DateOfBirth(LocalDate.of(1922, 12, 1))
   val dateTimeChecked: ZonedDateTime = TimeUtils.now()
   val zonedDateTimeNow               = ZonedDateTime.of(2021, 10, 9, 12, 30, 0, 0, ZoneId.of("Europe/London"))
-  val lockExpiresAt                  = zonedDateTimeNow.plusHours(appConfig.lockHours)
+  val lockExpiresAt                  = zonedDateTimeNow.plusHours(appConfig.verificationAttemptsLockTimeHours)
   val taxCheckMatchRequest           =
     HECTaxCheckMatchRequest(hecTaxCheckCode, LicenceType.DriverOfTaxisAndPrivateHires, Right(dateOfBirth))
   val userAnswersWithAllAnswers      = UserAnswers(
@@ -258,29 +253,13 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
 
         "date of birth page " when {
 
-          def nextPageTest(updatedHecSession: HECSession, nextCall: Call) = {
+          def nextPageTest(updatedHecSession: HECSession, nextCall: Call, maxVerificationhasReached: Boolean) = {
             val currentSession                              = HECSession(UserAnswers.empty, None)
             val updatedSession                              = updatedHecSession
             implicit val request: RequestWithSessionData[_] =
               requestWithSessionData(currentSession)
             inSequence {
-              mockTimeProviderNow(zonedDateTimeNow)
-              mockStoreSession(updatedSession)(Right(()))
-            }
-
-            val result = journeyService.updateAndNext(
-              routes.DateOfBirthController.dateOfBirth(),
-              updatedSession
-            )
-            await(result.value) shouldBe Right(nextCall)
-          }
-
-          def nextPageTestLowerMaxAttempt(updatedHecSession: HECSession, nextCall: Call) = {
-            val currentSession                              = HECSession(UserAnswers.empty, None)
-            val updatedSession                              = updatedHecSession
-            implicit val request: RequestWithSessionData[_] =
-              requestWithSessionData(currentSession)
-            inSequence {
+              mockVerificationAttemptReached(hecTaxCheckCode, updatedHecSession)(maxVerificationhasReached)
               mockStoreSession(updatedSession)(Right(()))
             }
 
@@ -309,12 +288,13 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
           "the individual details are a match" when {
 
             "the verification attempts in session  lower than the max attempt value" in {
-              nextPageTestLowerMaxAttempt(
+              nextPageTest(
                 HECSession(
                   userAnswersWithAllAnswers,
                   Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Match))
                 ),
-                routes.TaxCheckResultController.taxCheckMatch()
+                routes.TaxCheckResultController.taxCheckMatch(),
+                false
               )
             }
 
@@ -323,10 +303,15 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                 HECSession(
                   userAnswersWithAllAnswers,
                   Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Match)),
-                  verificationAttempts =
-                    Map(hecTaxCheckCode -> Attempts(appConfig.maxVerificationAttempts, Some(lockExpiresAt)))
+                  verificationAttempts = Map(
+                    hecTaxCheckCode -> TaxCheckVerificationAttempts(
+                      appConfig.maxVerificationAttempts,
+                      Some(lockExpiresAt)
+                    )
+                  )
                 ),
-                routes.TaxCheckResultController.tooManyVerificationAttempts()
+                routes.TaxCheckResultController.tooManyVerificationAttempts(),
+                true
               )
             }
 
@@ -336,10 +321,14 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                   userAnswersWithAllAnswers,
                   Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Match)),
                   verificationAttempts = Map(
-                    hecTaxCheckCode -> Attempts(appConfig.maxVerificationAttempts, Some(zonedDateTimeNow.minusHours(1)))
+                    hecTaxCheckCode -> TaxCheckVerificationAttempts(
+                      appConfig.maxVerificationAttempts,
+                      Some(zonedDateTimeNow.minusHours(1))
+                    )
                   )
                 ),
-                routes.TaxCheckResultController.taxCheckMatch()
+                routes.TaxCheckResultController.taxCheckMatch(),
+                false
               )
             }
 
@@ -348,12 +337,13 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
           "the individual details are a match but the tax check code has expired" when {
 
             "the verification attempts for a tax check code in session is lower than the max value" in {
-              nextPageTestLowerMaxAttempt(
+              nextPageTest(
                 HECSession(
                   userAnswersWithAllAnswers,
                   Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Expired))
                 ),
-                routes.TaxCheckResultController.taxCheckExpired()
+                routes.TaxCheckResultController.taxCheckExpired(),
+                false
               )
             }
 
@@ -362,9 +352,15 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                 HECSession(
                   userAnswersWithAllAnswers,
                   Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Expired)),
-                  Map(hecTaxCheckCode -> Attempts(appConfig.maxVerificationAttempts, Some(lockExpiresAt)))
+                  Map(
+                    hecTaxCheckCode -> TaxCheckVerificationAttempts(
+                      appConfig.maxVerificationAttempts,
+                      Some(lockExpiresAt)
+                    )
+                  )
                 ),
-                routes.TaxCheckResultController.tooManyVerificationAttempts()
+                routes.TaxCheckResultController.tooManyVerificationAttempts(),
+                true
               )
             }
 
@@ -374,10 +370,14 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                   userAnswersWithAllAnswers,
                   Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Expired)),
                   Map(
-                    hecTaxCheckCode -> Attempts(appConfig.maxVerificationAttempts, Some(zonedDateTimeNow.minusHours(1)))
+                    hecTaxCheckCode -> TaxCheckVerificationAttempts(
+                      appConfig.maxVerificationAttempts,
+                      Some(zonedDateTimeNow.minusHours(1))
+                    )
                   )
                 ),
-                routes.TaxCheckResultController.taxCheckExpired()
+                routes.TaxCheckResultController.taxCheckExpired(),
+                false
               )
             }
 
@@ -386,13 +386,14 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
           "the individual details are not a match" when {
 
             "the verification attempts for a tax check code in session is lower than the max value" in {
-              nextPageTestLowerMaxAttempt(
+              nextPageTest(
                 HECSession(
                   userAnswersWithAllAnswers,
                   Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, NoMatch)),
-                  verificationAttempts = Map(hecTaxCheckCode -> Attempts(1, None))
+                  verificationAttempts = Map(hecTaxCheckCode -> TaxCheckVerificationAttempts(1, None))
                 ),
-                routes.TaxCheckResultController.taxCheckNotMatch()
+                routes.TaxCheckResultController.taxCheckNotMatch(),
+                false
               )
             }
 
@@ -401,9 +402,15 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                 HECSession(
                   userAnswersWithAllAnswers,
                   Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, NoMatch)),
-                  Map(hecTaxCheckCode -> Attempts(appConfig.maxVerificationAttempts, Some(lockExpiresAt)))
+                  Map(
+                    hecTaxCheckCode -> TaxCheckVerificationAttempts(
+                      appConfig.maxVerificationAttempts,
+                      Some(lockExpiresAt)
+                    )
+                  )
                 ),
-                routes.TaxCheckResultController.tooManyVerificationAttempts()
+                routes.TaxCheckResultController.tooManyVerificationAttempts(),
+                true
               )
             }
 
@@ -413,10 +420,14 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                   userAnswersWithAllAnswers,
                   Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, NoMatch)),
                   Map(
-                    hecTaxCheckCode -> Attempts(appConfig.maxVerificationAttempts, Some(zonedDateTimeNow.minusHours(1)))
+                    hecTaxCheckCode -> TaxCheckVerificationAttempts(
+                      appConfig.maxVerificationAttempts,
+                      Some(zonedDateTimeNow.minusHours(1))
+                    )
                   )
                 ),
-                routes.TaxCheckResultController.taxCheckNotMatch()
+                routes.TaxCheckResultController.taxCheckNotMatch(),
+                false
               )
             }
 
@@ -426,31 +437,16 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
 
         "company registration number page " when {
 
-          def nextPageTest(updatedHecSession: HECSession, nextCall: Call) = {
+          def nextPageTest(updatedHecSession: HECSession, nextCall: Call, maxAttemptHasReached: Boolean) = {
             val currentSession                              = HECSession(UserAnswers.empty, None)
             val updatedSession                              = updatedHecSession
             implicit val request: RequestWithSessionData[_] =
               requestWithSessionData(currentSession)
 
             inSequence {
-              mockTimeProviderNow(zonedDateTimeNow)
+              mockVerificationAttemptReached(hecTaxCheckCode, updatedSession)(maxAttemptHasReached)
               mockStoreSession(updatedSession)(Right(()))
             }
-
-            val result = journeyService.updateAndNext(
-              routes.CRNController.companyRegistrationNumber(),
-              updatedSession
-            )
-            await(result.value) shouldBe Right(nextCall)
-          }
-
-          def nextPageTestLowerMaxAttempt(updatedHecSession: HECSession, nextCall: Call) = {
-            val currentSession                              = HECSession(UserAnswers.empty, None)
-            val updatedSession                              = updatedHecSession
-            implicit val request: RequestWithSessionData[_] =
-              requestWithSessionData(currentSession)
-
-            mockStoreSession(updatedSession)(Right(()))
 
             val result = journeyService.updateAndNext(
               routes.CRNController.companyRegistrationNumber(),
@@ -477,12 +473,13 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
           "the company details are a match" when {
 
             "the verification attempts in session  lower than the max attempt value" in {
-              nextPageTestLowerMaxAttempt(
+              nextPageTest(
                 HECSession(
                   userAnswersForCompany,
                   Some(HECTaxCheckMatchResult(taxCheckMatchCompanyRequest, dateTimeChecked, Match))
                 ),
-                routes.TaxCheckResultController.taxCheckMatch()
+                routes.TaxCheckResultController.taxCheckMatch(),
+                false
               )
             }
 
@@ -491,9 +488,15 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                 HECSession(
                   userAnswersForCompany,
                   Some(HECTaxCheckMatchResult(taxCheckMatchCompanyRequest, dateTimeChecked, Match)),
-                  Map(hecTaxCheckCode -> Attempts(appConfig.maxVerificationAttempts, Some(lockExpiresAt)))
+                  Map(
+                    hecTaxCheckCode -> TaxCheckVerificationAttempts(
+                      appConfig.maxVerificationAttempts,
+                      Some(lockExpiresAt)
+                    )
+                  )
                 ),
-                routes.TaxCheckResultController.tooManyVerificationAttempts()
+                routes.TaxCheckResultController.tooManyVerificationAttempts(),
+                true
               )
             }
 
@@ -503,10 +506,14 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                   userAnswersForCompany,
                   Some(HECTaxCheckMatchResult(taxCheckMatchCompanyRequest, dateTimeChecked, Match)),
                   Map(
-                    hecTaxCheckCode -> Attempts(appConfig.maxVerificationAttempts, Some(zonedDateTimeNow.minusHours(1)))
+                    hecTaxCheckCode -> TaxCheckVerificationAttempts(
+                      appConfig.maxVerificationAttempts,
+                      Some(zonedDateTimeNow.minusHours(1))
+                    )
                   )
                 ),
-                routes.TaxCheckResultController.taxCheckMatch()
+                routes.TaxCheckResultController.taxCheckMatch(),
+                false
               )
             }
 
@@ -515,12 +522,13 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
           "the company details are a match but the tax check code has expired" when {
 
             "the verification attempts in session  lower than the max attempt value" in {
-              nextPageTestLowerMaxAttempt(
+              nextPageTest(
                 HECSession(
                   userAnswersForCompany,
                   Some(HECTaxCheckMatchResult(taxCheckMatchCompanyRequest, dateTimeChecked, Expired))
                 ),
-                routes.TaxCheckResultController.taxCheckExpired()
+                routes.TaxCheckResultController.taxCheckExpired(),
+                false
               )
             }
 
@@ -529,9 +537,15 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                 HECSession(
                   userAnswersForCompany,
                   Some(HECTaxCheckMatchResult(taxCheckMatchCompanyRequest, dateTimeChecked, Expired)),
-                  Map(hecTaxCheckCode -> Attempts(appConfig.maxVerificationAttempts, Some(lockExpiresAt)))
+                  Map(
+                    hecTaxCheckCode -> TaxCheckVerificationAttempts(
+                      appConfig.maxVerificationAttempts,
+                      Some(lockExpiresAt)
+                    )
+                  )
                 ),
-                routes.TaxCheckResultController.tooManyVerificationAttempts()
+                routes.TaxCheckResultController.tooManyVerificationAttempts(),
+                true
               )
             }
 
@@ -541,10 +555,14 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                   userAnswersForCompany,
                   Some(HECTaxCheckMatchResult(taxCheckMatchCompanyRequest, dateTimeChecked, Expired)),
                   Map(
-                    hecTaxCheckCode -> Attempts(appConfig.maxVerificationAttempts, Some(zonedDateTimeNow.minusHours(1)))
+                    hecTaxCheckCode -> TaxCheckVerificationAttempts(
+                      appConfig.maxVerificationAttempts,
+                      Some(zonedDateTimeNow.minusHours(1))
+                    )
                   )
                 ),
-                routes.TaxCheckResultController.taxCheckExpired()
+                routes.TaxCheckResultController.taxCheckExpired(),
+                false
               )
             }
 
@@ -553,12 +571,13 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
           "the company details are not a match" when {
 
             "the verification attempts in session  lower than the max attempt value" in {
-              nextPageTestLowerMaxAttempt(
+              nextPageTest(
                 HECSession(
                   userAnswersForCompany,
                   Some(HECTaxCheckMatchResult(taxCheckMatchCompanyRequest, dateTimeChecked, NoMatch))
                 ),
-                routes.TaxCheckResultController.taxCheckNotMatch()
+                routes.TaxCheckResultController.taxCheckNotMatch(),
+                false
               )
             }
 
@@ -567,9 +586,15 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                 HECSession(
                   userAnswersForCompany,
                   Some(HECTaxCheckMatchResult(taxCheckMatchCompanyRequest, dateTimeChecked, NoMatch)),
-                  Map(hecTaxCheckCode -> Attempts(appConfig.maxVerificationAttempts, Some(lockExpiresAt)))
+                  Map(
+                    hecTaxCheckCode -> TaxCheckVerificationAttempts(
+                      appConfig.maxVerificationAttempts,
+                      Some(lockExpiresAt)
+                    )
+                  )
                 ),
-                routes.TaxCheckResultController.tooManyVerificationAttempts()
+                routes.TaxCheckResultController.tooManyVerificationAttempts(),
+                true
               )
             }
 
@@ -579,10 +604,14 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                   userAnswersForCompany,
                   Some(HECTaxCheckMatchResult(taxCheckMatchCompanyRequest, dateTimeChecked, NoMatch)),
                   Map(
-                    hecTaxCheckCode -> Attempts(appConfig.maxVerificationAttempts, Some(zonedDateTimeNow.minusHours(1)))
+                    hecTaxCheckCode -> TaxCheckVerificationAttempts(
+                      appConfig.maxVerificationAttempts,
+                      Some(zonedDateTimeNow.minusHours(1))
+                    )
                   )
                 ),
-                routes.TaxCheckResultController.taxCheckNotMatch()
+                routes.TaxCheckResultController.taxCheckNotMatch(),
+                false
               )
             }
 
@@ -751,6 +780,10 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
           implicit val request: RequestWithSessionData[_] =
             requestWithSessionData(session)
 
+          inSequence {
+            mockVerificationAttemptReached(hecTaxCheckCode, session)(false)
+          }
+
           val result = journeyService.previous(
             routes.TaxCheckResultController.taxCheckNotMatch()
           )
@@ -765,6 +798,9 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
           )
           implicit val request: RequestWithSessionData[_] =
             requestWithSessionData(session)
+          inSequence {
+            mockVerificationAttemptReached(hecTaxCheckCode, session)(false)
+          }
 
           val result = journeyService.previous(
             routes.TaxCheckResultController.taxCheckNotMatch()
@@ -780,8 +816,10 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
           )
           implicit val request: RequestWithSessionData[_] =
             requestWithSessionData(session)
-
-          val result = journeyService.previous(
+          inSequence {
+            mockVerificationAttemptReached(hecTaxCheckCode, session)(false)
+          }
+          val result                                      = journeyService.previous(
             routes.TaxCheckResultController.taxCheckExpired()
           )
 
@@ -795,8 +833,10 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
           )
           implicit val request: RequestWithSessionData[_] =
             requestWithSessionData(session)
-
-          val result = journeyService.previous(
+          inSequence {
+            mockVerificationAttemptReached(hecTaxCheckCode, session)(false)
+          }
+          val result                                      = journeyService.previous(
             routes.TaxCheckResultController.taxCheckExpired()
           )
 
@@ -810,8 +850,10 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
           )
           implicit val request: RequestWithSessionData[_] =
             requestWithSessionData(session)
-
-          val result = journeyService.previous(
+          inSequence {
+            mockVerificationAttemptReached(hecTaxCheckCode, session)(false)
+          }
+          val result                                      = journeyService.previous(
             routes.TaxCheckResultController.taxCheckMatch()
           )
 
@@ -825,8 +867,10 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
           )
           implicit val request: RequestWithSessionData[_] =
             requestWithSessionData(session)
-
-          val result = journeyService.previous(
+          inSequence {
+            mockVerificationAttemptReached(hecTaxCheckCode, session)(false)
+          }
+          val result                                      = journeyService.previous(
             routes.TaxCheckResultController.taxCheckMatch()
           )
 

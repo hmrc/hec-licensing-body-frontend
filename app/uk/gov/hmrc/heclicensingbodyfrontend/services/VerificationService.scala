@@ -19,30 +19,21 @@ package uk.gov.hmrc.heclicensingbodyfrontend.services
 import cats.implicits.catsSyntaxEq
 import com.google.inject.{ImplementedBy, Inject}
 import uk.gov.hmrc.heclicensingbodyfrontend.config.AppConfig
-import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.RequestWithSessionData
 import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus.NoMatch
+import uk.gov.hmrc.heclicensingbodyfrontend.models._
 import uk.gov.hmrc.heclicensingbodyfrontend.models.ids.CRN
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{Attempts, DateOfBirth, HECSession, HECTaxCheckCode, HECTaxCheckMatchResult}
 import uk.gov.hmrc.heclicensingbodyfrontend.util.{Logging, TimeProvider}
-
-import java.time.ZonedDateTime
 
 @ImplementedBy(classOf[VerificationServiceImpl])
 trait VerificationService {
-
-  def getCurrentAttemptsByTaxCheckCode(taxCheckCode: HECTaxCheckCode)(implicit
-    requestWithSessionData: RequestWithSessionData[_]
-  ): Attempts
 
   def updateVerificationAttemptCount(
     matchResult: HECTaxCheckMatchResult,
     taxCheckCode: HECTaxCheckCode,
     verifier: Either[CRN, DateOfBirth]
-  )(implicit requestWithSessionData: RequestWithSessionData[_]): HECSession
+  )(session: HECSession): HECSession
 
-  def maxVerificationAttemptReached(hecTaxCheckCode: HECTaxCheckCode)(implicit
-    requestWithSessionData: RequestWithSessionData[_]
-  ): Boolean
+  def maxVerificationAttemptReached(hecTaxCheckCode: HECTaxCheckCode)(session: HECSession): Boolean
 
 }
 
@@ -50,15 +41,15 @@ class VerificationServiceImpl @Inject() (timeProvider: TimeProvider)(implicit ap
     extends VerificationService
     with Logging {
 
-  def getCurrentAttemptsByTaxCheckCode(taxCheckCode: HECTaxCheckCode)(implicit
-    request: RequestWithSessionData[_]
-  ): Attempts =
-    request.sessionData.verificationAttempts.getOrElse(taxCheckCode, Attempts(0, None))
+  private def getCurrentAttemptsByTaxCheckCode(taxCheckCode: HECTaxCheckCode)(
+    session: HECSession
+  ): TaxCheckVerificationAttempts =
+    session.verificationAttempts.getOrElse(taxCheckCode, TaxCheckVerificationAttempts(0, None))
 
   def maxVerificationAttemptReached(
     hecTaxCheckCode: HECTaxCheckCode
-  )(implicit requestWithSessionData: RequestWithSessionData[_]): Boolean =
-    requestWithSessionData.sessionData.verificationAttempts
+  )(session: HECSession): Boolean =
+    session.verificationAttempts
       .get(hecTaxCheckCode)
       .exists(verificationAttempt =>
         verificationAttempt.count >= appConfig.maxVerificationAttempts && verificationAttempt.lockExpiresAt
@@ -69,33 +60,44 @@ class VerificationServiceImpl @Inject() (timeProvider: TimeProvider)(implicit ap
     taxMatch: HECTaxCheckMatchResult,
     taxCheckCode: HECTaxCheckCode,
     verifier: Either[CRN, DateOfBirth]
-  )(implicit request: RequestWithSessionData[_]): HECSession = {
+  )(session: HECSession): HECSession = {
     val updatedAnswers = verifier match {
-      case Left(crn)  => request.sessionData.userAnswers.copy(crn = Some(crn))
-      case Right(dob) => request.sessionData.userAnswers.copy(dateOfBirth = Some(dob))
+      case Left(crn)  => session.userAnswers.copy(crn = Some(crn))
+      case Right(dob) => session.userAnswers.copy(dateOfBirth = Some(dob))
     }
 
-    val currentVerificationAttemptMap = request.sessionData.verificationAttempts
-    val verificationAttempts          = if (taxMatch.status === NoMatch) {
-      val currentAttempt = getCurrentAttemptsByTaxCheckCode(taxCheckCode)
-      if (currentAttempt.count === (appConfig.maxVerificationAttempts - 1))
-        currentVerificationAttemptMap + (taxCheckCode -> Attempts(
-          currentAttempt.count + 1,
-          Some(ZonedDateTime.now().plusHours(appConfig.lockHours))
-        ))
-      //case when attempt is max but expired earlier,
-      // then the counter should restart from 1 and not increment
-      else if (currentAttempt.count === appConfig.maxVerificationAttempts) {
-        currentVerificationAttemptMap + (taxCheckCode -> Attempts(1, None))
-      } else
-        currentVerificationAttemptMap + (taxCheckCode -> Attempts(
-          currentAttempt.count + 1,
-          None
-        ))
+    val currentVerificationAttemptMap = session.verificationAttempts
+    val currentAttempt                = getCurrentAttemptsByTaxCheckCode(taxCheckCode)(session)
+    val penultimateAttempt            = currentAttempt.count === (appConfig.maxVerificationAttempts - 1)
+    val maxAttempt                    = currentAttempt.count === appConfig.maxVerificationAttempts
+
+    val updateAttemptCountAndLockExpiresTime =
+      currentVerificationAttemptMap + (taxCheckCode -> TaxCheckVerificationAttempts(
+        currentAttempt.count + 1,
+        Some(timeProvider.now.plusHours(appConfig.verificationAttemptsLockTimeHours))
+      ))
+
+    val resetAttemptCount = currentVerificationAttemptMap + (taxCheckCode -> TaxCheckVerificationAttempts(1, None))
+
+    val incrementAttemptCountOnly = currentVerificationAttemptMap + (taxCheckCode -> TaxCheckVerificationAttempts(
+      currentAttempt.count + 1,
+      None
+    ))
+    val removeAttemptFromSession  = currentVerificationAttemptMap - taxCheckCode
+
+    val verificationAttempts = if (taxMatch.status === NoMatch) {
+      //case when user verification attempt == max attempt
+      //lock expire time should get added
+      if (penultimateAttempt) updateAttemptCountAndLockExpiresTime
+      //case when user is already blocked but lock has expired,
+      // then user verification attempt count should be reset to 1 and lock time should get cleared
+      else if (maxAttempt)
+        resetAttemptCount
+      else incrementAttemptCountOnly
     } else {
-      currentVerificationAttemptMap - taxCheckCode
+      removeAttemptFromSession
     }
-    request.sessionData.copy(
+    session.copy(
       userAnswers = updatedAnswers,
       Some(taxMatch),
       verificationAttempts
