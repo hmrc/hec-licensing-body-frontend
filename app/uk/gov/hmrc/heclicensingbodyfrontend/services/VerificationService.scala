@@ -83,7 +83,9 @@ class VerificationServiceImpl @Inject() (timeProvider: TimeProvider)(implicit ap
           currentAttempt.count + 1,
           Some(ZonedDateTime.now().plusHours(appConfig.lockHours))
         ))
-      else
+      else if (currentAttempt.count === appConfig.maxVerificationAttempts) {
+        currentVerificationAttemptMap + (taxCheckCode -> Attempts(1, None))
+      } else
         currentVerificationAttemptMap + (taxCheckCode -> Attempts(
           currentAttempt.count + 1,
           None

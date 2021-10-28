@@ -605,7 +605,7 @@ class TaxCheckResultControllerSpec
 
         "too many failed attempt against a tax check code" when {
 
-          "applicant is an individual and session is not cleared " in {
+          "applicant is an individual and max verification attempt reached in same session " in {
             testTooManyAttemptPage(
               HECSession(
                 answers,
@@ -628,7 +628,7 @@ class TaxCheckResultControllerSpec
             )
           }
 
-          "applicant is a company and session is not cleared" in {
+          "applicant is a company and and max verification attempt reached in same session" in {
             testTooManyAttemptPage(
               HECSession(
                 companyAnswers,
