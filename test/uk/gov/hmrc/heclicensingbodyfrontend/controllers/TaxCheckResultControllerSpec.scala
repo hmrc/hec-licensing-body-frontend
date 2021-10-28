@@ -599,6 +599,20 @@ class TaxCheckResultControllerSpec
 
         }
 
+        "verification attempt is at max but the lock expire date is not in session" in {
+          val session = HECSession(
+            answers,
+            Some(HECTaxCheckMatchResult(matchRequest, dateTimeChecked, NoMatch)),
+            Map(hecTaxCheckCode -> TaxCheckVerificationAttempts(3, None))
+          )
+
+          inSequence {
+            mockGetSession(session)
+          }
+
+          status(performAction()) shouldBe INTERNAL_SERVER_ERROR
+        }
+
       }
 
       "display the page " when {

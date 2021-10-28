@@ -87,14 +87,15 @@ class TaxCheckResultController @Inject() (
     val userAnswers = request.sessionData.userAnswers
     userAnswers.taxCheckCode match {
       case Some(taxCheckCode) =>
-        val lockAttemptExpiresAt = request.sessionData.verificationAttempts
+        val lockAttemptExpiresAtOpt = request.sessionData.verificationAttempts
           .get(taxCheckCode)
           .flatMap(_.lockExpiresAt)
-        if (lockAttemptExpiresAt.isDefined) {
-          Ok(tooManyAttemptsPage(userAnswers, lockAttemptExpiresAt))
-        } else {
-          logger.warn("Verification attempt lock expire time is not found in session ")
-          InternalServerError
+
+        lockAttemptExpiresAtOpt match {
+          case Some(lockAttemptExpiresAt) => Ok(tooManyAttemptsPage(userAnswers, lockAttemptExpiresAt))
+          case None                       =>
+            logger.warn("Verification attempt lock expire time is not found in session ")
+            InternalServerError
         }
 
       case None =>
