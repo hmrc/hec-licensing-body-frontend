@@ -25,7 +25,7 @@ import play.api.i18n.{I18nSupport, Messages}
 import play.api.mvc._
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.DateOfBirthController.dateOfBirthForm
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.{RequestWithSessionData, SessionDataAction}
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, Error, HECTaxCheckMatchRequest}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, Error, HECTaxCheckCode, HECTaxCheckMatchRequest}
 import uk.gov.hmrc.heclicensingbodyfrontend.services.{HECTaxMatchService, JourneyService, VerificationService}
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging.LoggerOps
 import uk.gov.hmrc.heclicensingbodyfrontend.util.{Logging, TimeUtils}
@@ -59,11 +59,11 @@ class DateOfBirthController @Inject() (
   }
 
   val dateOfBirthSubmit: Action[AnyContent] = sessionDataAction.async { implicit request =>
-    def goToNextPage: Future[Result] =
+    def goToNextPage(dob: DateOfBirth): Future[Result] =
       journeyService
         .updateAndNext(
           routes.DateOfBirthController.dateOfBirth(),
-          request.sessionData
+          request.sessionData.copy(userAnswers = request.sessionData.userAnswers.copy(dateOfBirth = Some(dob)))
         )
         .fold(
           { e =>
@@ -73,21 +73,19 @@ class DateOfBirthController @Inject() (
           Redirect
         )
 
-    def formAction: Future[Result] = dateOfBirthForm()
+    def formAction(taxCheckCode: HECTaxCheckCode): Future[Result] = dateOfBirthForm()
       .bindFromRequest()
       .fold(
         formWithErrors =>
           Ok(
             dateOfBirthPage(formWithErrors, journeyService.previous(routes.DateOfBirthController.dateOfBirth()))
           ),
-        handleValidDateOfBirth
+        if (verificationService.maxVerificationAttemptReached(taxCheckCode)(request.sessionData)) goToNextPage
+        else handleValidDateOfBirth
       )
 
     request.sessionData.userAnswers.taxCheckCode match {
-      case Some(taxCheckCode) =>
-        if (verificationService.maxVerificationAttemptReached(taxCheckCode))
-          goToNextPage
-        else formAction
+      case Some(taxCheckCode) => formAction(taxCheckCode)
       case None               => InternalServerError
     }
 
@@ -116,7 +114,9 @@ class DateOfBirthController @Inject() (
         for {
           taxMatch      <- taxMatchService.matchTaxCheck(HECTaxCheckMatchRequest(taxCheckCode, lType, Right(dateOfBirth)))
           updatedSession =
-            verificationService.updateVerificationAttemptCount(taxMatch, taxCheckCode, Right(dateOfBirth))
+            verificationService.updateVerificationAttemptCount(taxMatch, taxCheckCode, Right(dateOfBirth))(
+              request.sessionData
+            )
           next          <- journeyService
                              .updateAndNext(routes.DateOfBirthController.dateOfBirth(), updatedSession)
         } yield next

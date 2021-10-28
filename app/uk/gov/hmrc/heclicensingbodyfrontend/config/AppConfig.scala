@@ -41,4 +41,6 @@ class AppConfig @Inject() (config: Configuration, contactFrontendConfig: Contact
 
   val maxVerificationAttempts: Int = config.get[Int]("maximum-verification-attempts")
 
+  val verificationAttemptsLockTimeHours: Long = config.get[Long]("tax-check-verification-attempts-lock-hours")
+
 }

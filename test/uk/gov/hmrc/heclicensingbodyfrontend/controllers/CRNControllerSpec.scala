@@ -25,18 +25,18 @@ import play.api.mvc.Result
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status, _}
 import uk.gov.hmrc.heclicensingbodyfrontend.config.AppConfig
-import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.RequestWithSessionData
 import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus._
 import uk.gov.hmrc.heclicensingbodyfrontend.models.ids.CRN
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType.OperatorOfPrivateHireVehicles
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, Error, HECSession, HECTaxCheckCode, HECTaxCheckMatchRequest, HECTaxCheckMatchResult, HECTaxCheckStatus, UserAnswers}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, Error, HECSession, HECTaxCheckCode, HECTaxCheckMatchRequest, HECTaxCheckMatchResult, HECTaxCheckStatus, TaxCheckVerificationAttempts, UserAnswers}
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
 import uk.gov.hmrc.heclicensingbodyfrontend.services.{HECTaxMatchService, JourneyService, VerificationService}
 import uk.gov.hmrc.heclicensingbodyfrontend.util.StringUtils.StringOps
 import uk.gov.hmrc.heclicensingbodyfrontend.util.TimeUtils
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.ZonedDateTime
 import java.util.Locale
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -58,19 +58,21 @@ class CRNControllerSpec
       bind[VerificationService].toInstance(verificationService)
     )
 
-  val controller           = instanceOf[CRNController]
-  val hecTaxCheckCode      = HECTaxCheckCode("ABC DEF 123")
-  val hecTaxCheckCode2     = HECTaxCheckCode("ABC DEG 123")
-  val validCRN             =
+  val controller       = instanceOf[CRNController]
+  val hecTaxCheckCode  = HECTaxCheckCode("ABC DEF 123")
+  val hecTaxCheckCode2 = HECTaxCheckCode("ABC DEG 123")
+  val validCRN         =
     List(CRN("SS12345"), CRN("SS1 23 45"), CRN("SS123456"), CRN("ss123456"), CRN("11123456"), CRN("1112345"))
-  val nonAlphaNumCRN       = List(CRN("$£%^&"), CRN("AA1244&"))
-  val inValidCRN           =
+  val nonAlphaNumCRN   = List(CRN("$£%^&"), CRN("AA1244&"))
+  val inValidCRN       =
     List(CRN("AAB3456"), CRN("12345AAA"))
-  val dateTimeChecked      = TimeUtils.now()
+  val dateTimeChecked  = TimeUtils.now()
+
   val taxCheckMatchRequest =
     HECTaxCheckMatchRequest(hecTaxCheckCode, LicenceType.OperatorOfPrivateHireVehicles, Left(validCRN(0)))
 
   implicit val appConfig = instanceOf[AppConfig]
+  val lockExpiresAt      = ZonedDateTime.now().plusHours(appConfig.verificationAttemptsLockTimeHours)
 
   def mockMatchTaxCheck(taxCheckMatchRequest: HECTaxCheckMatchRequest)(result: Either[Error, HECTaxCheckMatchResult]) =
     (taxCheckService
@@ -80,7 +82,7 @@ class CRNControllerSpec
 
   def mockIsMaxVerificationAttemptReached(hectaxCheckCode: HECTaxCheckCode)(result: Boolean) =
     (verificationService
-      .maxVerificationAttemptReached(_: HECTaxCheckCode)(_: RequestWithSessionData[_]))
+      .maxVerificationAttemptReached(_: HECTaxCheckCode)(_: HECSession))
       .expects(hectaxCheckCode, *)
       .returning(result)
 
@@ -94,7 +96,7 @@ class CRNControllerSpec
         _: HECTaxCheckMatchResult,
         _: HECTaxCheckCode,
         _: Either[CRN, DateOfBirth]
-      )(_: RequestWithSessionData[_]))
+      )(_: HECSession))
       .expects(matchResult, taxCheckCode, verifier, *)
       .returning(result)
 
@@ -357,8 +359,8 @@ class CRNControllerSpec
 
           def testVerificationAttempt(
             returnStatus: HECTaxCheckStatus,
-            initialAttemptMap: Map[HECTaxCheckCode, Int],
-            newAttemptMap: Map[HECTaxCheckCode, Int],
+            initialAttemptMap: Map[HECTaxCheckCode, TaxCheckVerificationAttempts],
+            newAttemptMap: Map[HECTaxCheckCode, TaxCheckVerificationAttempts],
             crn: CRN
           ) = {
             val formattedCrn        = CRN(crn.value.removeWhitespace.toUpperCase(Locale.UK))
@@ -387,6 +389,7 @@ class CRNControllerSpec
                 Right(HECTaxCheckMatchResult(newMatchRequest, dateTimeChecked, returnStatus))
               )
               mockVerificationAttempt(taxCheckMatchResult, hecTaxCheckCode, Left(crn))(updatedSession)
+
               mockJourneyServiceUpdateAndNext(
                 routes.CRNController.companyRegistrationNumber(),
                 session,
@@ -400,12 +403,13 @@ class CRNControllerSpec
           }
 
           def testWhenVerificationAttemptIsMax(
-            initialAttemptMap: Map[HECTaxCheckCode, Int],
+            initialAttemptMap: Map[HECTaxCheckCode, TaxCheckVerificationAttempts],
             crn: CRN
           ) = {
             val answers = UserAnswers.empty.copy(
               taxCheckCode = Some(hecTaxCheckCode),
-              licenceType = Some(LicenceType.OperatorOfPrivateHireVehicles)
+              licenceType = Some(LicenceType.OperatorOfPrivateHireVehicles),
+              crn = Some(crn)
             )
             val session = HECSession(answers, None, verificationAttempts = initialAttemptMap)
 
@@ -423,11 +427,35 @@ class CRNControllerSpec
             checkIsRedirect(performAction("crn" -> crn.value), mockNextCall)
           }
 
-          "the verification attempt has reached maximum attempt" when {
+          "the verification attempt has reached maximum attempt and lock is not expired" when {
 
             "session remains same irrespective of status" in {
               testWhenVerificationAttemptIsMax(
-                Map(hecTaxCheckCode -> appConfig.maxVerificationAttempts, hecTaxCheckCode2 -> 2),
+                Map(
+                  hecTaxCheckCode  -> TaxCheckVerificationAttempts(
+                    appConfig.maxVerificationAttempts,
+                    Some(lockExpiresAt)
+                  ),
+                  hecTaxCheckCode2 -> TaxCheckVerificationAttempts(2, None)
+                ),
+                CRN("1123456")
+              )
+            }
+          }
+
+          "the verification attempt has reached maximum attempt and lock has expired" when {
+
+            "verification attempt counter restarts from 1 in case of no match" in {
+              testVerificationAttempt(
+                NoMatch,
+                Map(
+                  hecTaxCheckCode  -> TaxCheckVerificationAttempts(3, Some(lockExpiresAt.minusHours(1))),
+                  hecTaxCheckCode2 -> TaxCheckVerificationAttempts(2, None)
+                ),
+                Map(
+                  hecTaxCheckCode  -> TaxCheckVerificationAttempts(1, None),
+                  hecTaxCheckCode2 -> TaxCheckVerificationAttempts(2, None)
+                ),
                 CRN("1123456")
               )
             }
@@ -437,8 +465,14 @@ class CRNControllerSpec
 
             testVerificationAttempt(
               NoMatch,
-              Map(hecTaxCheckCode -> 2, hecTaxCheckCode2 -> 2),
-              Map(hecTaxCheckCode -> 3, hecTaxCheckCode2 -> 2),
+              Map(
+                hecTaxCheckCode  -> TaxCheckVerificationAttempts(2, None),
+                hecTaxCheckCode2 -> TaxCheckVerificationAttempts(2, None)
+              ),
+              Map(
+                hecTaxCheckCode  -> TaxCheckVerificationAttempts(3, Some(lockExpiresAt)),
+                hecTaxCheckCode2 -> TaxCheckVerificationAttempts(2, None)
+              ),
               CRN("1123456")
             )
 

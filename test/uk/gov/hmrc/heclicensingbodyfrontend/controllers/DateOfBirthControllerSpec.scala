@@ -24,17 +24,16 @@ import play.api.mvc.Result
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.heclicensingbodyfrontend.config.AppConfig
-import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.RequestWithSessionData
 import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus._
 import uk.gov.hmrc.heclicensingbodyfrontend.models.ids.CRN
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, Error, HECSession, HECTaxCheckCode, HECTaxCheckMatchRequest, HECTaxCheckMatchResult, HECTaxCheckStatus, UserAnswers}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, Error, HECSession, HECTaxCheckCode, HECTaxCheckMatchRequest, HECTaxCheckMatchResult, HECTaxCheckStatus, TaxCheckVerificationAttempts, UserAnswers}
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
 import uk.gov.hmrc.heclicensingbodyfrontend.services.{HECTaxMatchService, JourneyService, VerificationService}
 import uk.gov.hmrc.heclicensingbodyfrontend.util.TimeUtils
 import uk.gov.hmrc.http.HeaderCarrier
 
-import java.time.LocalDate
+import java.time.{LocalDate, ZonedDateTime}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -68,6 +67,7 @@ class DateOfBirthControllerSpec
     HECTaxCheckMatchRequest(hecTaxCheckCode, LicenceType.DriverOfTaxisAndPrivateHires, Right(DateOfBirth(date)))
 
   implicit val appConfig = instanceOf[AppConfig]
+  val lockExpiresAt      = ZonedDateTime.now().plusHours(appConfig.verificationAttemptsLockTimeHours)
 
   def mockMatchTaxCheck(taxCheckMatchRequest: HECTaxCheckMatchRequest)(result: Either[Error, HECTaxCheckMatchResult]) =
     (taxCheckService
@@ -77,7 +77,7 @@ class DateOfBirthControllerSpec
 
   def mockIsMaxVerificationAttemptReached(hectaxCheckCode: HECTaxCheckCode)(result: Boolean) =
     (verificationService
-      .maxVerificationAttemptReached(_: HECTaxCheckCode)(_: RequestWithSessionData[_]))
+      .maxVerificationAttemptReached(_: HECTaxCheckCode)(_: HECSession))
       .expects(hectaxCheckCode, *)
       .returning(result)
 
@@ -91,7 +91,7 @@ class DateOfBirthControllerSpec
         _: HECTaxCheckMatchResult,
         _: HECTaxCheckCode,
         _: Either[CRN, DateOfBirth]
-      )(_: RequestWithSessionData[_]))
+      )(_: HECSession))
       .expects(matchResult, taxCheckCode, verifier, *)
       .returning(result)
 
@@ -315,8 +315,8 @@ class DateOfBirthControllerSpec
 
           def testVerificationAttempt(
             returnStatus: HECTaxCheckStatus,
-            initialAttemptMap: Map[HECTaxCheckCode, Int],
-            newAttemptMap: Map[HECTaxCheckCode, Int],
+            initialAttemptMap: Map[HECTaxCheckCode, TaxCheckVerificationAttempts],
+            newAttemptMap: Map[HECTaxCheckCode, TaxCheckVerificationAttempts],
             dateOfBirth: DateOfBirth
           ) = {
             val answers             = UserAnswers.empty.copy(
@@ -351,18 +351,23 @@ class DateOfBirthControllerSpec
 
           }
 
-          "the verification attempt has reached maximum attempt" when {
+          "the verification attempt has reached maximum attempt and lock is not expired" when {
 
             "session remains same irrespective of status" in {
-
               val answers = UserAnswers.empty.copy(
                 taxCheckCode = Some(hecTaxCheckCode),
-                licenceType = Some(LicenceType.DriverOfTaxisAndPrivateHires)
+                licenceType = Some(LicenceType.DriverOfTaxisAndPrivateHires),
+                dateOfBirth = Some(DateOfBirth(date))
               )
               val session = HECSession(
                 answers,
                 None,
-                verificationAttempts = Map(hecTaxCheckCode -> appConfig.maxVerificationAttempts)
+                verificationAttempts = Map(
+                  hecTaxCheckCode -> TaxCheckVerificationAttempts(
+                    appConfig.maxVerificationAttempts,
+                    Some(lockExpiresAt)
+                  )
+                )
               )
 
               val updatedSession = session
@@ -380,12 +385,32 @@ class DateOfBirthControllerSpec
 
           }
 
+          "the verification attempt has reached maximum attempt and lock has expired" when {
+
+            "verification attempt counter restarts from 1 in case of no match" in {
+              testVerificationAttempt(
+                NoMatch,
+                Map(
+                  hecTaxCheckCode  -> TaxCheckVerificationAttempts(3, Some(lockExpiresAt.minusHours(1))),
+                  hecTaxCheckCode2 -> TaxCheckVerificationAttempts(2, None)
+                ),
+                Map(
+                  hecTaxCheckCode  -> TaxCheckVerificationAttempts(1, None),
+                  hecTaxCheckCode2 -> TaxCheckVerificationAttempts(2, None)
+                ),
+                DateOfBirth(date)
+              )
+            }
+          }
           "the verification attempt is less than max attempt" in {
 
             testVerificationAttempt(
               Match,
-              Map(hecTaxCheckCode  -> 2, hecTaxCheckCode2 -> 2),
-              Map(hecTaxCheckCode2 -> 2),
+              Map(
+                hecTaxCheckCode    -> TaxCheckVerificationAttempts(2, None),
+                hecTaxCheckCode2   -> TaxCheckVerificationAttempts(2, None)
+              ),
+              Map(hecTaxCheckCode2 -> TaxCheckVerificationAttempts(2, None)),
               DateOfBirth(date)
             )
 

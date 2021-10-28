@@ -23,7 +23,6 @@ import cats.instances.string._
 import cats.syntax.eq._
 import com.google.inject.{ImplementedBy, Inject, Singleton}
 import play.api.mvc.Call
-import uk.gov.hmrc.heclicensingbodyfrontend.config.AppConfig
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.RequestWithSessionData
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.routes
 import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus._
@@ -50,8 +49,12 @@ trait JourneyService {
 }
 
 @Singleton
-class JourneyServiceImpl @Inject() (sessionStore: SessionStore)(implicit ex: ExecutionContext, appConfig: AppConfig)
-    extends JourneyService {
+class JourneyServiceImpl @Inject() (
+  sessionStore: SessionStore,
+  verificationService: VerificationService
+)(implicit
+  ex: ExecutionContext
+) extends JourneyService {
 
   implicit val callEq: Eq[Call] = Eq.instance(_.url === _.url)
 
@@ -130,30 +133,30 @@ class JourneyServiceImpl @Inject() (sessionStore: SessionStore)(implicit ex: Exe
 
     }
 
-  private def dateOfBirthOrCRNRoute(session: HECSession): Call =
-    session.taxCheckMatch match {
-      case Some(taxMatch) =>
-        val currentAttemptMap   = session.verificationAttempts
-        val taxCode             = session.userAnswers.taxCheckCode.getOrElse(sys.error("taxCheckCode is not in session"))
-        val currentAttemptCount = currentAttemptMap.getOrElse(taxCode, 0)
-        val maxAttemptReached   = currentAttemptCount >= appConfig.maxVerificationAttempts
-        if (maxAttemptReached) {
-          routes.TaxCheckResultController.tooManyVerificationAttempts()
-        } else {
+  private def dateOfBirthOrCRNRoute(session: HECSession): Call = {
+    val taxCode           = session.userAnswers.taxCheckCode.getOrElse(sys.error("taxCheckCode is not in session"))
+    val maxAttemptReached = verificationService.maxVerificationAttemptReached(taxCode)(session)
+    if (maxAttemptReached) {
+      routes.TaxCheckResultController.tooManyVerificationAttempts()
+    } else {
+      session.taxCheckMatch match {
+        case Some(taxMatch) =>
           taxMatch match {
             case HECTaxCheckMatchResult(_, _, Match)   => routes.TaxCheckResultController.taxCheckMatch()
             case HECTaxCheckMatchResult(_, _, Expired) => routes.TaxCheckResultController.taxCheckExpired()
             case HECTaxCheckMatchResult(_, _, NoMatch) => routes.TaxCheckResultController.taxCheckNotMatch()
           }
-        }
 
-      case None =>
-        session.taxCheckMatch.map(_.matchRequest.verifier) match {
-          case Some(Left(_))  => sys.error("Could not find tax match result for crn route")
-          case Some(Right(_)) => sys.error("Could not find tax match result for date of birth route")
-          case None           => sys.error("Neither date of birth nor crn in session")
-        }
+        case None =>
+          session.taxCheckMatch.map(_.matchRequest.verifier) match {
+            case Some(Left(_))  => sys.error("Could not find tax match result for crn route")
+            case Some(Right(_)) => sys.error("Could not find tax match result for date of birth route")
+            case None           => sys.error("Neither date of birth nor crn in session")
+          }
 
+      }
     }
+
+  }
 
 }

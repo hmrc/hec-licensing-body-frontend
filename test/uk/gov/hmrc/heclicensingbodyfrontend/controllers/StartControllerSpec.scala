@@ -21,7 +21,7 @@ import play.api.inject.guice.GuiceableModule
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECSession, HECTaxCheckCode, UserAnswers}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECSession, HECTaxCheckCode, TaxCheckVerificationAttempts, UserAnswers}
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
 import uk.gov.hmrc.heclicensingbodyfrontend.services.JourneyService
 
@@ -46,9 +46,13 @@ class StartControllerSpec extends ControllerSpec with SessionSupport with Journe
       val hecTaxCheckCode = HECTaxCheckCode("XNFFGBDD6")
 
       val currentSession =
-        HECSession(UserAnswers.empty.copy(taxCheckCode = Some(hecTaxCheckCode)), None, Map(hecTaxCheckCode -> 2))
+        HECSession(
+          UserAnswers.empty.copy(taxCheckCode = Some(hecTaxCheckCode)),
+          None,
+          Map(hecTaxCheckCode -> TaxCheckVerificationAttempts(2, None))
+        )
 
-      val newSession     = HECSession(UserAnswers.empty, None)
+      val newSession = HECSession(UserAnswers.empty, None)
 
       "show an error page" when {
 

@@ -1,0 +1,91 @@
+@*
+ * Copyright 2021 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import play.api.i18n.Messages
+@import uk.gov.hmrc.heclicensingbodyfrontend.models.UserAnswers
+@import uk.gov.hmrc.govukfrontend.views.html.components._
+@import uk.gov.hmrc.heclicensingbodyfrontend.models.views.LicenceTypeOption
+@import uk.gov.hmrc.heclicensingbodyfrontend.models.DateOfBirth
+@import uk.gov.hmrc.heclicensingbodyfrontend.models.ids.CRN
+@import uk.gov.hmrc.heclicensingbodyfrontend.util.TimeUtils
+
+@this(govukSummaryList : GovukSummaryList)
+
+@(userAnswers: UserAnswers)(implicit messages: Messages)
+
+@key = @{"detailsEntered"}
+@taxCheckCodeRow = @{
+  userAnswers.taxCheckCode.map {
+    taxCheckCode => SummaryListRow(
+      key = Key(
+        content = Text(messages(s"$key.taxCheckCodeKey"))
+      ),
+      value = Value(
+        content = Text(taxCheckCode.value.grouped(3).mkString(" "))
+      )
+    )
+  }
+}
+@licenceTypeRow = @{
+  userAnswers.licenceType.map {
+    licenceType => SummaryListRow(
+      key = Key(
+        content = Text(messages(s"$key.licenceTypeKey"))
+      ),
+      value = Value(
+        content = Text(messages(s"licenceType.${LicenceTypeOption.licenceTypeOption(licenceType).messageKey}"))
+      )
+    )
+  }
+}
+
+@crnRow = @{
+  userAnswers.crn.map {
+    (fa: CRN) => SummaryListRow(
+      key = Key(
+        content = Text(messages(s"$key.crnKey"))
+      ),
+      value = Value(
+        content = Text(fa.value)
+      )
+    )
+  }
+}
+
+@dateOfBirthRow = @{
+  userAnswers.dateOfBirth.map {
+    (fb: DateOfBirth) => SummaryListRow(
+      key = Key(
+        content = Text(messages(s"$key.dateOfBirthKey"))
+      ),
+      value = Value(
+        content = Text(TimeUtils.govDisplayFormat(fb.value))
+      )
+    )
+  }
+}
+
+
+@rows = @{List(
+  taxCheckCodeRow,
+  licenceTypeRow,
+  crnRow,
+  dateOfBirthRow
+).collect{ case Some(r) => r }}
+
+@govukSummaryList(SummaryList(
+  rows = rows
+))

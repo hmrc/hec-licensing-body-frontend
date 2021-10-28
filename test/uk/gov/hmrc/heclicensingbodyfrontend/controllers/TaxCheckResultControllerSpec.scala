@@ -54,10 +54,11 @@ class TaxCheckResultControllerSpec
   val hecTaxCheckCode: HECTaxCheckCode = HECTaxCheckCode("ABCDEF123")
   val dateOfBirth: DateOfBirth         = DateOfBirth(LocalDate.of(1922, 12, 1))
 
-  val date: LocalDate                = TimeUtils.today().minusYears(20)
-  val dateTimeChecked: ZonedDateTime = ZonedDateTime.of(2021, 9, 10, 8, 2, 0, 0, ZoneId.of("Europe/London"))
+  val date: LocalDate = TimeUtils.today().minusYears(20)
 
-  val crn = CRN("SS123456")
+  val dateTimeChecked: ZonedDateTime = ZonedDateTime.of(2021, 9, 10, 8, 2, 0, 0, ZoneId.of("Europe/London"))
+  val zonedDateTimeNow               = dateTimeChecked.plusHours(2)
+  val crn                            = CRN("SS123456")
 
   val answers: UserAnswers = UserAnswers.empty.copy(
     taxCheckCode = Some(hecTaxCheckCode),
@@ -122,6 +123,49 @@ class TaxCheckResultControllerSpec
         DetailsEnteredRow(question, answer)
       }
       rows shouldBe (expectedRows ++ eRows)
+    }
+
+    def checkDetailsEnteredRowsByUserAnswers(doc: Document, userAnswers: UserAnswers) = {
+      val eRows: List[DetailsEnteredRow] = userAnswers match {
+        case UserAnswers(Some(taxCheckCode), Some(_), _, Some(_), None)   =>
+          List(
+            DetailsEnteredRow(
+              messageFromMessageKey("detailsEntered.taxCheckCodeKey"),
+              taxCheckCode.value.grouped(3).mkString(" ")
+            ),
+            DetailsEnteredRow(
+              messageFromMessageKey("detailsEntered.licenceTypeKey"),
+              messageFromMessageKey("licenceType.driverOfTaxis")
+            ),
+            DetailsEnteredRow(
+              messageFromMessageKey("detailsEntered.dateOfBirthKey"),
+              TimeUtils.govDisplayFormat(date)
+            )
+          )
+        case UserAnswers(Some(taxCheckCode), Some(_), _, None, Some(crn)) =>
+          List(
+            DetailsEnteredRow(
+              messageFromMessageKey("detailsEntered.taxCheckCodeKey"),
+              taxCheckCode.value.grouped(3).mkString(" ")
+            ),
+            DetailsEnteredRow(
+              messageFromMessageKey("detailsEntered.licenceTypeKey"),
+              messageFromMessageKey("licenceType.operatorOfPrivateHireVehicles")
+            ),
+            DetailsEnteredRow(
+              messageFromMessageKey("detailsEntered.crnKey"),
+              crn.value
+            )
+          )
+        case _                                                            => List.empty
+      }
+      val rows                           = doc.select(".govuk-summary-list__row").iterator().asScala.toList.map { element =>
+        val question = element.select(".govuk-summary-list__key").text()
+        val answer   = element.select(".govuk-summary-list__value").text()
+        DetailsEnteredRow(question, answer)
+      }
+      rows shouldBe eRows
+
     }
 
     "handling request to tax check Valid page " must {
@@ -517,6 +561,110 @@ class TaxCheckResultControllerSpec
 
         }
 
+      }
+
+    }
+
+    "handling request to too may attempts page" must {
+
+      def performAction(): Future[Result] = controller.tooManyVerificationAttempts(FakeRequest())
+
+      def testTooManyAttemptPage(session: HECSession, regex: String) = {
+
+        inSequence {
+          mockGetSession(session)
+        }
+
+        checkPageIsDisplayed(
+          performAction(),
+          messageFromMessageKey("tooManyAttempts.title"),
+          { doc =>
+            doc.select(".govuk-body").text should include regex regex
+            checkDetailsEnteredRowsByUserAnswers(doc, session.userAnswers)
+          }
+        )
+      }
+
+      "return an InternalServerError" when {
+
+        "tax check code cannot be found in session " in {
+
+          val session = HECSession(UserAnswers.empty, None)
+
+          inSequence {
+            mockGetSession(session)
+          }
+
+          status(performAction()) shouldBe INTERNAL_SERVER_ERROR
+
+        }
+
+        "verification attempt is at max but the lock expire date is not in session" in {
+          val session = HECSession(
+            answers,
+            Some(HECTaxCheckMatchResult(matchRequest, dateTimeChecked, NoMatch)),
+            Map(hecTaxCheckCode -> TaxCheckVerificationAttempts(3, None))
+          )
+
+          inSequence {
+            mockGetSession(session)
+          }
+
+          status(performAction()) shouldBe INTERNAL_SERVER_ERROR
+        }
+
+      }
+
+      "display the page " when {
+
+        "too many failed attempt against a tax check code" when {
+
+          "applicant is an individual and max verification attempt reached in same session " in {
+            testTooManyAttemptPage(
+              HECSession(
+                answers,
+                Some(HECTaxCheckMatchResult(matchRequest, dateTimeChecked, NoMatch)),
+                Map(hecTaxCheckCode -> TaxCheckVerificationAttempts(3, Some(zonedDateTimeNow)))
+              ),
+              "10 September 2021, 10:02am"
+            )
+
+          }
+
+          "applicant is an individual and attempting when already locked" in {
+            testTooManyAttemptPage(
+              HECSession(
+                answers,
+                None,
+                Map(hecTaxCheckCode -> TaxCheckVerificationAttempts(3, Some(zonedDateTimeNow)))
+              ),
+              "10 September 2021, 10:02am"
+            )
+          }
+
+          "applicant is a company and and max verification attempt reached in same session" in {
+            testTooManyAttemptPage(
+              HECSession(
+                companyAnswers,
+                Some(HECTaxCheckMatchResult(companyMatchRequest, dateTimeChecked, NoMatch)),
+                Map(hecTaxCheckCode -> TaxCheckVerificationAttempts(3, Some(zonedDateTimeNow)))
+              ),
+              "10 September 2021, 10:02am"
+            )
+          }
+
+          "applicant is a company and trying when already locked" in {
+            testTooManyAttemptPage(
+              HECSession(
+                companyAnswers,
+                None,
+                Map(hecTaxCheckCode -> TaxCheckVerificationAttempts(3, Some(zonedDateTimeNow)))
+              ),
+              "10 September 2021, 10:02am"
+            )
+          }
+
+        }
       }
 
     }
