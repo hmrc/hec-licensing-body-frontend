@@ -28,12 +28,11 @@ import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
 import uk.gov.hmrc.heclicensingbodyfrontend.models._
 import uk.gov.hmrc.heclicensingbodyfrontend.util.{TimeProvider, TimeUtils}
 
-import java.time.{LocalDate, ZonedDateTime}
+import java.time.{LocalDate, ZoneId, ZonedDateTime}
 
 class VerificationServiceSpec extends ControllerSpec {
 
-  implicit val appConfig = instanceOf[AppConfig]
-  val dateTimeChecked    = TimeUtils.now()
+  val dateTimeChecked = TimeUtils.now()
 
   val hecTaxCode1 = HECTaxCheckCode("123 456 ABC")
   val hecTaxCode2 = HECTaxCheckCode("123 456 ABD")
@@ -43,18 +42,23 @@ class VerificationServiceSpec extends ControllerSpec {
   val dobVerifier = Right(DateOfBirth(date))
   val crnVerifier = Left(CRN("112345"))
 
-  val timeProvider = mock[TimeProvider]
+  val mockTimeProvider = mock[TimeProvider]
 
   override val overrideBindings =
     List[GuiceableModule](
-      bind[TimeProvider].toInstance(timeProvider)
+      bind[TimeProvider].toInstance(mockTimeProvider)
     )
+  implicit val appConfig        = instanceOf[AppConfig]
 
-  val verificationService = new VerificationServiceImpl(timeProvider)
+  val verificationService = new VerificationServiceImpl(mockTimeProvider)
 
-  val lockExpiresAt = ZonedDateTime.now.plusHours(appConfig.lockHours)
+  val zonedDateTimeNow = ZonedDateTime.of(2021, 10, 9, 12, 30, 0, 0, ZoneId.of("Europe/London"))
+  val lockExpiresAt    = zonedDateTimeNow.plusHours(2)
 
   def requestWithSessionData(s: HECSession): RequestWithSessionData[_] = RequestWithSessionData(FakeRequest(), s)
+
+  def mockTimeProviderNow(now: ZonedDateTime) =
+    (mockTimeProvider.now _).expects().returning(now)
 
   "VerificationServiceSpec" when {
 
@@ -72,7 +76,7 @@ class VerificationServiceSpec extends ControllerSpec {
 
       "return true" when {
 
-        "tax check code in session is equal to max attempts" in {
+        "verification attempt for a tax check code in session === max attempts and the lock expire time > current time" in {
 
           implicit val request: RequestWithSessionData[_] = requestWithSessionData(
             createSession(
@@ -83,11 +87,14 @@ class VerificationServiceSpec extends ControllerSpec {
               )
             )
           )
+          inSequence {
+            mockTimeProviderNow(zonedDateTimeNow)
+          }
           val result                                      = verificationService.maxVerificationAttemptReached(hecTaxCode1)
           result shouldBe true
         }
 
-        "tax check code in session is more than max attempts" in {
+        "verification attempt for a tax check code in session > max attempts and the lock expire time > current time" in {
 
           implicit val request: RequestWithSessionData[_] = requestWithSessionData(
             createSession(
@@ -98,6 +105,9 @@ class VerificationServiceSpec extends ControllerSpec {
               )
             )
           )
+          inSequence {
+            mockTimeProviderNow(zonedDateTimeNow)
+          }
           val result                                      = verificationService.maxVerificationAttemptReached(hecTaxCode1)
           result shouldBe true
         }
@@ -106,7 +116,7 @@ class VerificationServiceSpec extends ControllerSpec {
 
       "return false" when {
 
-        "tax check code is not in verification attempt map" in {
+        "tax check code in session  is not in verification attempt map" in {
 
           implicit val request: RequestWithSessionData[_] = requestWithSessionData(
             createSession(
@@ -121,7 +131,7 @@ class VerificationServiceSpec extends ControllerSpec {
           result shouldBe false
         }
 
-        "tax check code in session is less than max attempts" in {
+        "verification attempt for a tax check code in session < max attempts" in {
 
           implicit val request: RequestWithSessionData[_] = requestWithSessionData(
             createSession(
@@ -132,6 +142,23 @@ class VerificationServiceSpec extends ControllerSpec {
               )
             )
           )
+          val result                                      = verificationService.maxVerificationAttemptReached(hecTaxCode1)
+          result shouldBe false
+        }
+
+        "verification attempt for a tax check code in session == max attempt and lock expire time < current time " in {
+          implicit val request: RequestWithSessionData[_] = requestWithSessionData(
+            createSession(
+              hecTaxCode1,
+              Map(
+                hecTaxCode1 -> Attempts(appConfig.maxVerificationAttempts, Some(zonedDateTimeNow.minusHours(1))),
+                hecTaxCode2 -> Attempts(2, None)
+              )
+            )
+          )
+          inSequence {
+            mockTimeProviderNow(zonedDateTimeNow)
+          }
           val result                                      = verificationService.maxVerificationAttemptReached(hecTaxCode1)
           result shouldBe false
         }
