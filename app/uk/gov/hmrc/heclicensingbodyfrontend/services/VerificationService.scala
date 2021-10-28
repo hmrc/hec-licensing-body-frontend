@@ -66,24 +66,24 @@ class VerificationServiceImpl @Inject() (timeProvider: TimeProvider)(implicit ap
       case Right(dob) => session.userAnswers.copy(dateOfBirth = Some(dob))
     }
 
-    val currentVerificationAttemptMap = session.verificationAttempts
-    val currentAttempt                = getCurrentAttemptsByTaxCheckCode(taxCheckCode)(session)
-    val penultimateAttempt            = currentAttempt.count === (appConfig.maxVerificationAttempts - 1)
-    val maxAttempt                    = currentAttempt.count === appConfig.maxVerificationAttempts
+    lazy val currentVerificationAttemptMap = session.verificationAttempts
+    lazy val currentAttempt                = getCurrentAttemptsByTaxCheckCode(taxCheckCode)(session)
+    lazy val penultimateAttempt            = currentAttempt.count === (appConfig.maxVerificationAttempts - 1)
+    lazy val maxAttempt                    = currentAttempt.count === appConfig.maxVerificationAttempts
 
-    val updateAttemptCountAndLockExpiresTime =
+    lazy val updateAttemptCountAndLockExpiresTime =
       currentVerificationAttemptMap + (taxCheckCode -> TaxCheckVerificationAttempts(
         currentAttempt.count + 1,
         Some(timeProvider.now.plusHours(appConfig.verificationAttemptsLockTimeHours))
       ))
 
-    val resetAttemptCount = currentVerificationAttemptMap + (taxCheckCode -> TaxCheckVerificationAttempts(1, None))
+    lazy val resetAttemptCount = currentVerificationAttemptMap + (taxCheckCode -> TaxCheckVerificationAttempts(1, None))
 
-    val incrementAttemptCountOnly = currentVerificationAttemptMap + (taxCheckCode -> TaxCheckVerificationAttempts(
+    lazy val incrementAttemptCountOnly = currentVerificationAttemptMap + (taxCheckCode -> TaxCheckVerificationAttempts(
       currentAttempt.count + 1,
       None
     ))
-    val removeAttemptFromSession  = currentVerificationAttemptMap - taxCheckCode
+    lazy val removeAttemptFromSession  = currentVerificationAttemptMap - taxCheckCode
 
     val verificationAttempts = if (taxMatch.status === NoMatch) {
       //case when user verification attempt == max attempt

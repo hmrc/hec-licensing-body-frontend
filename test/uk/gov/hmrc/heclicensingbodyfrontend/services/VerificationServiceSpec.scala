@@ -213,12 +213,32 @@ class VerificationServiceSpec extends ControllerSpec {
 
       }
 
+      def testVerificationAttemptLowerThanMaxAttempt(
+        verifier: Either[CRN, DateOfBirth],
+        status: HECTaxCheckStatus,
+        oldVerificationAttempt: Map[HECTaxCheckCode, TaxCheckVerificationAttempts],
+        newVerificationAttempt: Map[HECTaxCheckCode, TaxCheckVerificationAttempts]
+      ) = {
+        val taxCheckMatch = getTaxCheckMatch(verifier, status)
+        val session       = createSession(hecTaxCode1, oldVerificationAttempt, Some(taxCheckMatch))
+
+        val result                      = verificationService.updateVerificationAttemptCount(taxCheckMatch, hecTaxCode1, verifier)(session)
+        val updatedAnswers: UserAnswers = verifier match {
+          case Left(crn)  => session.userAnswers.copy(crn = Some(crn))
+          case Right(dob) => session.userAnswers.copy(dateOfBirth = Some(dob))
+        }
+        val expectedSession             =
+          session.copy(userAnswers = updatedAnswers, verificationAttempts = newVerificationAttempt)
+        result shouldBe expectedSession
+
+      }
+
       "verification attempt map is empty" when {
 
         "session has date Of birth" when {
 
           "Tax Check No Match found, add new map in the session with value 1" in {
-            testVerificationAttempt(
+            testVerificationAttemptLowerThanMaxAttempt(
               dobVerifier,
               NoMatch,
               Map.empty,
@@ -227,18 +247,18 @@ class VerificationServiceSpec extends ControllerSpec {
           }
 
           "Tax Check Match found, no change in attempt verification map" in {
-            testVerificationAttempt(dobVerifier, Match, Map.empty, Map.empty)
+            testVerificationAttemptLowerThanMaxAttempt(dobVerifier, Match, Map.empty, Map.empty)
           }
 
           "Tax Check Match found but expired, no change in attempt verification map" in {
-            testVerificationAttempt(dobVerifier, Expired, Map.empty, Map.empty)
+            testVerificationAttemptLowerThanMaxAttempt(dobVerifier, Expired, Map.empty, Map.empty)
           }
         }
 
         "session has crn " when {
 
           "Tax Check No Match found, new map in the session with value 1" in {
-            testVerificationAttempt(
+            testVerificationAttemptLowerThanMaxAttempt(
               crnVerifier,
               NoMatch,
               Map.empty,
@@ -247,11 +267,11 @@ class VerificationServiceSpec extends ControllerSpec {
           }
 
           "Tax Check Match found, no change in attempt verification map" in {
-            testVerificationAttempt(crnVerifier, Match, Map.empty, Map.empty)
+            testVerificationAttemptLowerThanMaxAttempt(crnVerifier, Match, Map.empty, Map.empty)
           }
 
           "Tax Check Match found but expired, no change in attempt verification map" in {
-            testVerificationAttempt(crnVerifier, Expired, Map.empty, Map.empty)
+            testVerificationAttemptLowerThanMaxAttempt(crnVerifier, Expired, Map.empty, Map.empty)
           }
 
         }
@@ -264,7 +284,7 @@ class VerificationServiceSpec extends ControllerSpec {
           "Tax Check No Match found" when {
 
             "difference between the max attempt and the tax check code attempt is more than 1, increment only the count " in {
-              testVerificationAttempt(
+              testVerificationAttemptLowerThanMaxAttempt(
                 dobVerifier,
                 NoMatch,
                 Map(
@@ -299,7 +319,7 @@ class VerificationServiceSpec extends ControllerSpec {
           }
 
           "Tax Check Match found, remove that tax check code from map" in {
-            testVerificationAttempt(
+            testVerificationAttemptLowerThanMaxAttempt(
               dobVerifier,
               Match,
               Map(
@@ -311,7 +331,7 @@ class VerificationServiceSpec extends ControllerSpec {
           }
 
           "Tax Check Match found but expired, remove that tax check code from map" in {
-            testVerificationAttempt(
+            testVerificationAttemptLowerThanMaxAttempt(
               dobVerifier,
               Expired,
               Map(
@@ -328,7 +348,7 @@ class VerificationServiceSpec extends ControllerSpec {
           "Tax Check No Match found" when {
 
             "difference between the max attempt and the tax check code attempt is more than 1, increment only the count" in {
-              testVerificationAttempt(
+              testVerificationAttemptLowerThanMaxAttempt(
                 crnVerifier,
                 NoMatch,
                 Map(
@@ -360,7 +380,7 @@ class VerificationServiceSpec extends ControllerSpec {
           }
 
           "Tax Check Match found, remove that tax check from the map" in {
-            testVerificationAttempt(
+            testVerificationAttemptLowerThanMaxAttempt(
               crnVerifier,
               Match,
               Map(
@@ -372,7 +392,7 @@ class VerificationServiceSpec extends ControllerSpec {
           }
 
           "Tax Check Match found but expired, remove that tax check from the map" in {
-            testVerificationAttempt(
+            testVerificationAttemptLowerThanMaxAttempt(
               crnVerifier,
               Expired,
               Map(
