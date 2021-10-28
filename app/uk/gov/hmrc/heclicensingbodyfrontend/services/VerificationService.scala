@@ -83,6 +83,8 @@ class VerificationServiceImpl @Inject() (timeProvider: TimeProvider)(implicit ap
           currentAttempt.count + 1,
           Some(ZonedDateTime.now().plusHours(appConfig.lockHours))
         ))
+      //case when attempt is max but expired earlier,
+      // then the counter should restart from 1 and not increment
       else if (currentAttempt.count === appConfig.maxVerificationAttempts) {
         currentVerificationAttemptMap + (taxCheckCode -> Attempts(1, None))
       } else

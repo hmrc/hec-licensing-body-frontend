@@ -428,7 +428,7 @@ class CRNControllerSpec
             checkIsRedirect(performAction("crn" -> crn.value), mockNextCall)
           }
 
-          "the verification attempt has reached maximum attempt" when {
+          "the verification attempt has reached maximum attempt and lock is not expired" when {
 
             "session remains same irrespective of status" in {
               testWhenVerificationAttemptIsMax(
@@ -436,6 +436,21 @@ class CRNControllerSpec
                   hecTaxCheckCode  -> Attempts(appConfig.maxVerificationAttempts, Some(lockExpiresAt)),
                   hecTaxCheckCode2 -> Attempts(2, None)
                 ),
+                CRN("1123456")
+              )
+            }
+          }
+
+          "the verification attempt has reached maximum attempt and lock has expired" when {
+
+            "verification attempt counter restarts from 1 in case of no match" in {
+              testVerificationAttempt(
+                NoMatch,
+                Map(
+                  hecTaxCheckCode   -> Attempts(3, Some(lockExpiresAt.minusHours(1))),
+                  hecTaxCheckCode2  -> Attempts(2, None)
+                ),
+                Map(hecTaxCheckCode -> Attempts(1, None), hecTaxCheckCode2 -> Attempts(2, None)),
                 CRN("1123456")
               )
             }
