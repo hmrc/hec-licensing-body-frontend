@@ -48,7 +48,7 @@ class StartController @Inject() (
       } yield ()
       newSessionStore
         .fold(
-          _.throws("Could not store session"),
+          _.doThrow("Could not store session"),
           _ => Redirect(journeyService.firstPage)
         )
 

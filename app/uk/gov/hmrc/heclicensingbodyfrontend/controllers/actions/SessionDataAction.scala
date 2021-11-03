@@ -47,7 +47,7 @@ class SessionDataAction @Inject() (
     sessionStore
       .get()(request)
       .foldF[Result](
-        _.throws("Could not get session data"),
+        _.doThrow("Could not get session data"),
         {
           case None          => Redirect(routes.StartController.start())
           case Some(session) => block(RequestWithSessionData(request, session))

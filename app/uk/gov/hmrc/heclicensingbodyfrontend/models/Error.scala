@@ -26,8 +26,8 @@ object Error {
 
   @SuppressWarnings(Array("org.wartremover.warts.Throw"))
   implicit class ErrorOps(e: Error) {
-    def throws(message: String): Nothing =
-      e.value.fold(info => sys.error(s"$info::$message"), ex => throw new RuntimeException(message, ex))
+    def doThrow(message: String): Nothing =
+      e.value.fold(info => sys.error(s"$message::$info"), ex => throw new RuntimeException(message, ex))
   }
 
 }

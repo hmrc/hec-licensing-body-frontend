@@ -65,7 +65,7 @@ class DateOfBirthController @Inject() (
           request.sessionData.copy(userAnswers = request.sessionData.userAnswers.copy(dateOfBirth = Some(dob)))
         )
         .fold(
-          _.throws("Could not update session and proceed"),
+          _.doThrow("Could not update session and proceed"),
           Redirect
         )
 
@@ -92,7 +92,7 @@ class DateOfBirthController @Inject() (
   ): Future[Result] =
     getTaxMatchResult(dob)
       .fold(
-        _.throws("Couldn't get tax check code"),
+        _.doThrow("Couldn't get tax check code"),
         Redirect
       )
 
