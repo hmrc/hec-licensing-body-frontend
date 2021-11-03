@@ -65,7 +65,7 @@ class HECTaxCheckCodeController @Inject() (
         .fold(
           { e =>
             logger.warn("Could not store session and find next location", e)
-            InternalServerError
+            sys.error("Could not store session and find next location")
           },
           Redirect
         )

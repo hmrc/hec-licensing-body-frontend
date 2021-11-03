@@ -51,7 +51,7 @@ class StartController @Inject() (
         .fold(
           { e =>
             logger.warn("Could not store session", e)
-            InternalServerError
+            sys.error("Could not store session")
           },
           _ => Redirect(journeyService.firstPage)
         )

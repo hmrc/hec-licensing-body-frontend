@@ -21,7 +21,7 @@ import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.mvc.Result
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{status, _}
+import play.api.test.Helpers._
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.TaxCheckResultControllerSpec.DetailsEnteredRow
 import uk.gov.hmrc.heclicensingbodyfrontend.models.EntityType.{Company, Individual}
 import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus._
@@ -172,7 +172,7 @@ class TaxCheckResultControllerSpec
 
       def performAction(): Future[Result] = controller.taxCheckMatch(FakeRequest())
 
-      "return an InternalServerError" when {
+      "return a technical error" when {
 
         "a tax check code cannot be found in session " in {
 
@@ -181,8 +181,7 @@ class TaxCheckResultControllerSpec
           inSequence {
             mockGetSession(session)
           }
-
-          status(performAction()) shouldBe INTERNAL_SERVER_ERROR
+          assertThrows[RuntimeException](await(performAction()))
 
         }
 
@@ -193,8 +192,7 @@ class TaxCheckResultControllerSpec
           inSequence {
             mockGetSession(session)
           }
-
-          status(performAction()) shouldBe INTERNAL_SERVER_ERROR
+          assertThrows[RuntimeException](await(performAction()))
 
         }
 
@@ -206,7 +204,7 @@ class TaxCheckResultControllerSpec
             mockGetSession(session)
           }
 
-          status(performAction()) shouldBe INTERNAL_SERVER_ERROR
+          assertThrows[RuntimeException](await(performAction()))
 
         }
 
@@ -311,8 +309,7 @@ class TaxCheckResultControllerSpec
             inSequence {
               mockGetSession(session)
             }
-
-            status(performAction()) shouldBe INTERNAL_SERVER_ERROR
+            assertThrows[RuntimeException](await(performAction()))
 
           }
 
@@ -326,7 +323,7 @@ class TaxCheckResultControllerSpec
 
       def performAction(): Future[Result] = controller.taxCheckExpired(FakeRequest())
 
-      "return an InternalServerError" when {
+      "return a technical error" when {
 
         "tax check code cannot be found in session " in {
 
@@ -335,8 +332,7 @@ class TaxCheckResultControllerSpec
           inSequence {
             mockGetSession(session)
           }
-
-          status(performAction()) shouldBe INTERNAL_SERVER_ERROR
+          assertThrows[RuntimeException](await(performAction()))
 
         }
 
@@ -347,8 +343,7 @@ class TaxCheckResultControllerSpec
           inSequence {
             mockGetSession(session)
           }
-
-          status(performAction()) shouldBe INTERNAL_SERVER_ERROR
+          assertThrows[RuntimeException](await(performAction()))
 
         }
 
@@ -359,8 +354,7 @@ class TaxCheckResultControllerSpec
           inSequence {
             mockGetSession(session)
           }
-
-          status(performAction()) shouldBe INTERNAL_SERVER_ERROR
+          assertThrows[RuntimeException](await(performAction()))
 
         }
       }
@@ -472,7 +466,7 @@ class TaxCheckResultControllerSpec
 
       def performAction(): Future[Result] = controller.taxCheckNotMatch(FakeRequest())
 
-      "return an InternalServerError" when {
+      "return a technical error" when {
 
         "tax check code cannot be found in session " in {
 
@@ -484,8 +478,7 @@ class TaxCheckResultControllerSpec
               mockPreviousCall
             )
           }
-
-          status(performAction()) shouldBe INTERNAL_SERVER_ERROR
+          assertThrows[RuntimeException](await(performAction()))
 
         }
 
@@ -499,8 +492,7 @@ class TaxCheckResultControllerSpec
               mockPreviousCall
             )
           }
-
-          status(performAction()) shouldBe INTERNAL_SERVER_ERROR
+          assertThrows[RuntimeException](await(performAction()))
 
         }
 
@@ -514,8 +506,7 @@ class TaxCheckResultControllerSpec
               mockPreviousCall
             )
           }
-
-          status(performAction()) shouldBe INTERNAL_SERVER_ERROR
+          assertThrows[RuntimeException](await(performAction()))
 
         }
       }
@@ -585,7 +576,7 @@ class TaxCheckResultControllerSpec
         )
       }
 
-      "return an InternalServerError" when {
+      "return a technical error" when {
 
         "tax check code cannot be found in session " in {
 
@@ -594,8 +585,7 @@ class TaxCheckResultControllerSpec
           inSequence {
             mockGetSession(session)
           }
-
-          status(performAction()) shouldBe INTERNAL_SERVER_ERROR
+          assertThrows[RuntimeException](await(performAction()))
 
         }
 
@@ -609,8 +599,8 @@ class TaxCheckResultControllerSpec
           inSequence {
             mockGetSession(session)
           }
+          assertThrows[RuntimeException](await(performAction()))
 
-          status(performAction()) shouldBe INTERNAL_SERVER_ERROR
         }
 
       }

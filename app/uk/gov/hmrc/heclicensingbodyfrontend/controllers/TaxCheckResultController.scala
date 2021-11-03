@@ -49,7 +49,8 @@ class TaxCheckResultController @Inject() (
         Ok(taxCheckValidPage(taxCheckMatchResult, dateTime))
       case _                                                                  =>
         logger.warn("Tax check match Result not found for 'Match' page")
-        InternalServerError
+        sys.error("Tax check match Result not found for 'Match' page")
+
     }
   }
 
@@ -61,7 +62,7 @@ class TaxCheckResultController @Inject() (
         Ok(taxCheckExpiredPage(taxCheckMatchResult, dateTime))
       case _                                                                    =>
         logger.warn("Tax check match Result not found for 'Expired' page")
-        InternalServerError
+        sys.error("Tax check match Result not found for 'Expired' page")
 
     }
   }
@@ -79,7 +80,7 @@ class TaxCheckResultController @Inject() (
         )
       case _                                                             =>
         logger.warn("Tax check match Result not found for 'No Match' page")
-        InternalServerError
+        sys.error("Tax check match Result not found for 'No Match' page")
     }
   }
 
@@ -95,12 +96,12 @@ class TaxCheckResultController @Inject() (
           case Some(lockAttemptExpiresAt) => Ok(tooManyAttemptsPage(userAnswers, lockAttemptExpiresAt))
           case None                       =>
             logger.warn("Verification attempt lock expire time is not found in session ")
-            InternalServerError
+            sys.error("Verification attempt lock expire time is not found in session ")
         }
 
       case None =>
         logger.warn("Tax check code  is not found in session ")
-        InternalServerError
+        sys.error("Tax check code  is not found in session ")
     }
   }
 

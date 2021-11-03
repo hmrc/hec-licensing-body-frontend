@@ -152,7 +152,7 @@ class LicenceTypeControllerSpec
 
       }
 
-      "return an internal server error" when {
+      "return a technical error" when {
 
         "the call to update and next fails" in {
           val answers        = UserAnswers.empty
@@ -166,7 +166,8 @@ class LicenceTypeControllerSpec
               Left(Error(new Exception))
             )
           }
-          status(performAction("licenceType" -> "0")) shouldBe INTERNAL_SERVER_ERROR
+          assertThrows[RuntimeException](await(performAction("licenceType" -> "0")))
+
         }
 
       }

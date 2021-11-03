@@ -59,15 +59,15 @@ class StartControllerSpec extends ControllerSpec with SessionSupport with Journe
         "there is an error getting an existing  session" in {
 
           mockGetSession(Left(Error("")))
-          status(performAction()) shouldBe INTERNAL_SERVER_ERROR
+          assertThrows[RuntimeException](await(performAction()))
         }
 
         "there is an error storing a new session" in {
 
           mockGetSession(Right(None))
           mockStoreSession(newSession)(Left(Error("")))
+          assertThrows[RuntimeException](await(performAction()))
 
-          status(performAction()) shouldBe INTERNAL_SERVER_ERROR
         }
 
       }

@@ -69,7 +69,7 @@ class CRNController @Inject() (
       .fold(
         { e =>
           logger.warn("Could not update session and proceed", e)
-          InternalServerError
+          sys.error("Could not update session and proceed")
         },
         Redirect
       )
@@ -90,7 +90,7 @@ class CRNController @Inject() (
 
     request.sessionData.userAnswers.taxCheckCode match {
       case Some(taxCheckCode) => formAction(taxCheckCode)
-      case None               => InternalServerError
+      case None               => sys.error("tax check code is not present in session")
     }
   }
 
@@ -98,8 +98,8 @@ class CRNController @Inject() (
     getTaxMatchResult(crn)
       .fold(
         { e =>
-          logger.warn(" Couldn't get tax check code", e)
-          InternalServerError
+          logger.warn("Couldn't get tax check code", e)
+          sys.error("Couldn't get tax check code")
         },
         Redirect
       )

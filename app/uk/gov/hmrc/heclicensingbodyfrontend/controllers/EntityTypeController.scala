@@ -67,7 +67,7 @@ class EntityTypeController @Inject() (
         .fold(
           { e =>
             logger.warn("Could not update session and proceed", e)
-            InternalServerError
+            sys.error("Could not update session and proceed")
           },
           Redirect
         )

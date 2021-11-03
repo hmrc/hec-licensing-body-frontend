@@ -17,7 +17,7 @@
 package uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions
 
 import com.google.inject.{Inject, Singleton}
-import play.api.mvc.Results.{InternalServerError, Redirect}
+import play.api.mvc.Results.Redirect
 import play.api.mvc.{ActionBuilder, ActionFunction, AnyContent, BodyParser, MessagesControllerComponents, Request, Result, WrappedRequest}
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.routes
 import uk.gov.hmrc.heclicensingbodyfrontend.models.HECSession
@@ -51,7 +51,7 @@ class SessionDataAction @Inject() (
       .foldF[Result](
         { e =>
           logger.warn("Could not get session data", e)
-          InternalServerError
+          sys.error("Could not get session data")
         },
         {
           case None          => Redirect(routes.StartController.start())
