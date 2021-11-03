@@ -27,7 +27,6 @@ import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.SessionDataActio
 import uk.gov.hmrc.heclicensingbodyfrontend.models.EntityType
 import uk.gov.hmrc.heclicensingbodyfrontend.models.EntityType.{Company, Individual}
 import uk.gov.hmrc.heclicensingbodyfrontend.services.JourneyService
-import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging.LoggerOps
 import uk.gov.hmrc.heclicensingbodyfrontend.util.{FormUtils, Logging}
 import uk.gov.hmrc.heclicensingbodyfrontend.views.html
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
@@ -65,10 +64,7 @@ class EntityTypeController @Inject() (
           request.sessionData.copy(userAnswers = updatedAnswers)
         )
         .fold(
-          { e =>
-            logger.warn("Could not update session and proceed", e)
-            InternalServerError
-          },
+          _.doThrow("Could not update session and proceed"),
           Redirect
         )
     }

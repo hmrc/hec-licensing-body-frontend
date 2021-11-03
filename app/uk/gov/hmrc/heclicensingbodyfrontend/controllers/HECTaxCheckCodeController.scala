@@ -19,19 +19,18 @@ package uk.gov.hmrc.heclicensingbodyfrontend.controllers
 import cats.instances.future._
 import com.google.inject.Inject
 import play.api.data.Form
-import play.api.i18n.I18nSupport
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import play.api.data.Forms.{mapping, nonEmptyText}
 import play.api.data.validation.{Constraint, Invalid, Valid}
+import play.api.i18n.I18nSupport
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import uk.gov.hmrc.heclicensingbodyfrontend.config.AppConfig
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.SessionDataAction
 import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckCode
 import uk.gov.hmrc.heclicensingbodyfrontend.services.JourneyService
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging
-import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging.LoggerOps
 import uk.gov.hmrc.heclicensingbodyfrontend.util.StringUtils.StringOps
-import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import uk.gov.hmrc.heclicensingbodyfrontend.views.html
+import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 import java.util.Locale
 import scala.concurrent.{ExecutionContext, Future}
@@ -63,10 +62,7 @@ class HECTaxCheckCodeController @Inject() (
       journeyService
         .updateAndNext(routes.HECTaxCheckCodeController.hecTaxCheckCode(), updatedSession)
         .fold(
-          { e =>
-            logger.warn("Could not store session and find next location", e)
-            InternalServerError
-          },
+          _.doThrow("Could not store session and find next location"),
           Redirect
         )
     }

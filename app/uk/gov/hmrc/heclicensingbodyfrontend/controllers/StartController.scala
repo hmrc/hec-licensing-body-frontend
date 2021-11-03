@@ -23,7 +23,6 @@ import uk.gov.hmrc.heclicensingbodyfrontend.models.{HECSession, UserAnswers}
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
 import uk.gov.hmrc.heclicensingbodyfrontend.services.JourneyService
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging
-import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging.LoggerOps
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 import scala.concurrent.ExecutionContext
@@ -49,10 +48,7 @@ class StartController @Inject() (
       } yield ()
       newSessionStore
         .fold(
-          { e =>
-            logger.warn("Could not store session", e)
-            InternalServerError
-          },
+          _.doThrow("Could not store session"),
           _ => Redirect(journeyService.firstPage)
         )
 

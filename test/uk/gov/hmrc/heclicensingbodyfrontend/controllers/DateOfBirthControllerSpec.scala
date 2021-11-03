@@ -257,7 +257,7 @@ class DateOfBirthControllerSpec
 
       }
 
-      "return an InternalServerError" when {
+      "return a technical error" when {
 
         "there is an error updating and getting the next endpoint" in {
 
@@ -289,7 +289,7 @@ class DateOfBirthControllerSpec
             )
           }
 
-          status(performAction(formData(date): _*)) shouldBe INTERNAL_SERVER_ERROR
+          assertThrows[RuntimeException](await(performAction(formData(date): _*)))
         }
 
         "there is no taxCheckCode in the session" in {
@@ -303,8 +303,8 @@ class DateOfBirthControllerSpec
           inSequence {
             mockGetSession(session)
           }
+          assertThrows[RuntimeException](await(performAction(formData(date): _*)))
 
-          status(performAction(formData(date): _*)) shouldBe INTERNAL_SERVER_ERROR
         }
 
       }

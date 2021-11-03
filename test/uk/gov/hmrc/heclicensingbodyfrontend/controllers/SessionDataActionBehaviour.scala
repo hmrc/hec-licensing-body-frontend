@@ -32,7 +32,7 @@ trait SessionDataActionBehaviour { this: ControllerSpec with SessionSupport =>
       "there is an error getting session data" in {
         mockGetSession(Left(Error("")))
 
-        status(performAction()) shouldBe INTERNAL_SERVER_ERROR
+        assertThrows[RuntimeException](await(performAction()))
 
       }
 

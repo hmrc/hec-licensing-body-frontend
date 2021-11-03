@@ -27,7 +27,6 @@ import uk.gov.hmrc.heclicensingbodyfrontend.controllers.DateOfBirthController.da
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.{RequestWithSessionData, SessionDataAction}
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, Error, HECTaxCheckCode, HECTaxCheckMatchRequest}
 import uk.gov.hmrc.heclicensingbodyfrontend.services.{HECTaxMatchService, JourneyService, VerificationService}
-import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging.LoggerOps
 import uk.gov.hmrc.heclicensingbodyfrontend.util.{Logging, TimeUtils}
 import uk.gov.hmrc.heclicensingbodyfrontend.views.html
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
@@ -66,10 +65,7 @@ class DateOfBirthController @Inject() (
           request.sessionData.copy(userAnswers = request.sessionData.userAnswers.copy(dateOfBirth = Some(dob)))
         )
         .fold(
-          { e =>
-            logger.warn("Could not update session and proceed", e)
-            InternalServerError
-          },
+          _.doThrow("Could not update session and proceed"),
           Redirect
         )
 
@@ -86,7 +82,7 @@ class DateOfBirthController @Inject() (
 
     request.sessionData.userAnswers.taxCheckCode match {
       case Some(taxCheckCode) => formAction(taxCheckCode)
-      case None               => InternalServerError
+      case None               => sys.error("Tax check code is not present in the session.")
     }
 
   }
@@ -96,10 +92,7 @@ class DateOfBirthController @Inject() (
   ): Future[Result] =
     getTaxMatchResult(dob)
       .fold(
-        { e =>
-          logger.warn(" Couldn't get tax check code", e)
-          InternalServerError
-        },
+        _.doThrow("Couldn't get tax check code"),
         Redirect
       )
 

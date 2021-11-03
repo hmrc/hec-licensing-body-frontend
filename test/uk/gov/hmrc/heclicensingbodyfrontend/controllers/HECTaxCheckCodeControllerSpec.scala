@@ -190,7 +190,7 @@ class HECTaxCheckCodeControllerSpec
 
       }
 
-      "show an error page" when {
+      "show technical error page" when {
 
         "valid data is submitted but there is a problem updating and getting the next page" in {
           val taxCheckCode = HECTaxCheckCode("223ABC789")
@@ -203,8 +203,8 @@ class HECTaxCheckCodeControllerSpec
               currentSession.copy(userAnswers = currentSession.userAnswers.copy(taxCheckCode = Some(taxCheckCode)))
             )(Left(Error(new RuntimeException("Oh no!"))))
           }
+          assertThrows[RuntimeException](await(performAction("taxCheckCode" -> taxCheckCode.value)))
 
-          status(performAction("taxCheckCode" -> taxCheckCode.value)) shouldBe INTERNAL_SERVER_ERROR
         }
 
       }

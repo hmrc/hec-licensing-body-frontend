@@ -18,12 +18,11 @@ package uk.gov.hmrc.heclicensingbodyfrontend.controllers
 
 import cats.data.EitherT
 import cats.instances.future._
-import play.api.http.Status.INTERNAL_SERVER_ERROR
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.mvc.Result
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{status, _}
+import play.api.test.Helpers._
 import uk.gov.hmrc.heclicensingbodyfrontend.config.AppConfig
 import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus._
 import uk.gov.hmrc.heclicensingbodyfrontend.models.ids.CRN
@@ -297,7 +296,7 @@ class CRNControllerSpec
         }
       }
 
-      "return an InternalServerError" when {
+      "return a technical error" when {
 
         "there is an error updating and getting the next endpoint" in {
 
@@ -333,7 +332,7 @@ class CRNControllerSpec
             )
           }
 
-          status(performAction("crn" -> validCRN(0).value)) shouldBe INTERNAL_SERVER_ERROR
+          assertThrows[RuntimeException](await(performAction("crn" -> validCRN(0).value)))
         }
 
         "there is no taxCheckCode in the session" in {
@@ -347,8 +346,7 @@ class CRNControllerSpec
           inSequence {
             mockGetSession(session)
           }
-
-          status(performAction("crn" -> validCRN(0).value)) shouldBe INTERNAL_SERVER_ERROR
+          assertThrows[RuntimeException](await(performAction("crn" -> validCRN(0).value)))
         }
 
       }

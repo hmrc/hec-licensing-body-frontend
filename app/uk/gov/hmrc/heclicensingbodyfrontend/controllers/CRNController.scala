@@ -30,7 +30,6 @@ import uk.gov.hmrc.heclicensingbodyfrontend.models.ids.CRN
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECTaxCheckCode, HECTaxCheckMatchRequest}
 import uk.gov.hmrc.heclicensingbodyfrontend.services.{HECTaxMatchService, JourneyService, VerificationService}
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging
-import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging.LoggerOps
 import uk.gov.hmrc.heclicensingbodyfrontend.util.StringUtils.StringOps
 import uk.gov.hmrc.heclicensingbodyfrontend.views.html
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
@@ -67,10 +66,7 @@ class CRNController @Inject() (
         request.sessionData.copy(userAnswers = request.sessionData.userAnswers.copy(crn = Some(crn)))
       )
       .fold(
-        { e =>
-          logger.warn("Could not update session and proceed", e)
-          InternalServerError
-        },
+        _.doThrow("Could not update session and proceed"),
         Redirect
       )
 
@@ -90,17 +86,14 @@ class CRNController @Inject() (
 
     request.sessionData.userAnswers.taxCheckCode match {
       case Some(taxCheckCode) => formAction(taxCheckCode)
-      case None               => InternalServerError
+      case None               => sys.error("tax check code is not present in session")
     }
   }
 
   private def handleValidCrn(crn: CRN)(implicit request: RequestWithSessionData[_]): Future[Result] =
     getTaxMatchResult(crn)
       .fold(
-        { e =>
-          logger.warn(" Couldn't get tax check code", e)
-          InternalServerError
-        },
+        _.doThrow("Couldn't get tax check code"),
         Redirect
       )
 
