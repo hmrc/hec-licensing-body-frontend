@@ -18,13 +18,11 @@ package uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions
 
 import com.google.inject.{Inject, Singleton}
 import play.api.mvc.Results.Redirect
-import play.api.mvc.{ActionBuilder, ActionFunction, AnyContent, BodyParser, MessagesControllerComponents, Request, Result, WrappedRequest}
-import uk.gov.hmrc.heclicensingbodyfrontend.controllers.routes
+import play.api.mvc._
+import uk.gov.hmrc.heclicensingbodyfrontend.controllers.{routes, toFuture}
 import uk.gov.hmrc.heclicensingbodyfrontend.models.HECSession
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging
-import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging.LoggerOps
-import uk.gov.hmrc.heclicensingbodyfrontend.controllers.toFuture
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -49,10 +47,7 @@ class SessionDataAction @Inject() (
     sessionStore
       .get()(request)
       .foldF[Result](
-        { e =>
-          logger.warn("Could not get session data", e)
-          sys.error("Could not get session data")
-        },
+        _.throws("Could not get session data"),
         {
           case None          => Redirect(routes.StartController.start())
           case Some(session) => block(RequestWithSessionData(request, session))

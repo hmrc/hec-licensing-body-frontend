@@ -19,20 +19,19 @@ package uk.gov.hmrc.heclicensingbodyfrontend.controllers
 import cats.instances.future._
 import com.google.inject.{Inject, Singleton}
 import play.api.data.Form
-import play.api.i18n.I18nSupport
 import play.api.data.Forms.{mapping, of}
+import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.LicenceTypeController.{licenceTypeForm, licenceTypeOptions, licenceTypes}
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.{RequestWithSessionData, SessionDataAction}
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{HECSession, UserAnswers}
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType.{DriverOfTaxisAndPrivateHires, OperatorOfPrivateHireVehicles, ScrapMetalDealerSite, ScrapMetalMobileCollector}
 import uk.gov.hmrc.heclicensingbodyfrontend.models.views.LicenceTypeOption
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{HECSession, UserAnswers}
 import uk.gov.hmrc.heclicensingbodyfrontend.services.JourneyService
 import uk.gov.hmrc.heclicensingbodyfrontend.util.{FormUtils, Logging}
-import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging.LoggerOps
-import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 import uk.gov.hmrc.heclicensingbodyfrontend.views.html
+import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -83,10 +82,7 @@ class LicenceTypeController @Inject() (
     journeyService
       .updateAndNext(routes.LicenceTypeController.licenceType(), updatedSession)
       .fold(
-        { e =>
-          logger.warn("Could not update session and proceed", e)
-          sys.error("Could not update session and proceed")
-        },
+        _.throws("Could not update session and proceed"),
         Redirect
       )
   }

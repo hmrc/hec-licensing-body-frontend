@@ -30,7 +30,6 @@ import uk.gov.hmrc.heclicensingbodyfrontend.models.ids.CRN
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECTaxCheckCode, HECTaxCheckMatchRequest}
 import uk.gov.hmrc.heclicensingbodyfrontend.services.{HECTaxMatchService, JourneyService, VerificationService}
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging
-import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging.LoggerOps
 import uk.gov.hmrc.heclicensingbodyfrontend.util.StringUtils.StringOps
 import uk.gov.hmrc.heclicensingbodyfrontend.views.html
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
@@ -67,10 +66,7 @@ class CRNController @Inject() (
         request.sessionData.copy(userAnswers = request.sessionData.userAnswers.copy(crn = Some(crn)))
       )
       .fold(
-        { e =>
-          logger.warn("Could not update session and proceed", e)
-          sys.error("Could not update session and proceed")
-        },
+        _.throws("Could not update session and proceed"),
         Redirect
       )
 
@@ -97,10 +93,7 @@ class CRNController @Inject() (
   private def handleValidCrn(crn: CRN)(implicit request: RequestWithSessionData[_]): Future[Result] =
     getTaxMatchResult(crn)
       .fold(
-        { e =>
-          logger.warn("Couldn't get tax check code", e)
-          sys.error("Couldn't get tax check code")
-        },
+        _.throws("Couldn't get tax check code"),
         Redirect
       )
 
