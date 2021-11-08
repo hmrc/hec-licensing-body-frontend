@@ -19,14 +19,14 @@ taxCheckCode.error.nonAlphanumericChars = Tax check codes are made up of numbers
 taxCheckCode.error.invalidAlphanumericChars = The tax check code must not include the letters I, O, S, U, V, W, or the numbers 0, 1, 5
 
 # Licence type
-licenceType.title = What type of licence is being renewed or applied for?
+licenceType.title = What type of licence is being applied for?
 licenceType.driverOfTaxis = Driver of taxis and private hires
 licenceType.driverOfTaxis.hint = Includes hackney carriage and dual licences.
 licenceType.operatorOfPrivateHireVehicles = Operator of private hire vehicles
 licenceType.scrapMetalCollector = Scrap metal mobile collector
 licenceType.scrapMetalDealer = Scrap metal dealer site
-licenceType.error.required = Select the type of licence that is being renewed or applied for
-licenceType.error.invalid = Select the type of licence that is being renewed or applied for
+licenceType.error.required = Select the type of licence that is being applied for
+licenceType.error.invalid = Select the type of licence that is being applied for
 
 # Entity type
 entityType.title = Is the applicant an individual or a company?
