@@ -31,7 +31,7 @@ import uk.gov.hmrc.http.{HeaderCarrier, SessionId}
 import java.util.UUID
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class SessionStoreImplSpec extends AnyWordSpec with Matchers with MongoSupport with Eventually {
+class SessionStoreImplSpec extends AnyWordSpec with Matchers with MongoSupportSpec with Eventually {
 
   val config = Configuration(
     ConfigFactory.parseString(
