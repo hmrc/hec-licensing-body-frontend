@@ -18,21 +18,13 @@ package uk.gov.hmrc.heclicensingbodyfrontend.repos
 
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Suite}
-import play.api.test.Helpers._
-import uk.gov.hmrc.mongo.{MongoComponent, MongoSpecSupport}
+import uk.gov.hmrc.mongo.test.MongoSupport
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
-trait MongoSupport extends MongoSpecSupport with BeforeAndAfterEach with BeforeAndAfterAll { this: Suite with Matchers ⇒
-
-  private def newMongoComponent(): MongoComponent = MongoComponent(mongoUri)
-
-  val mongoComponent: MongoComponent =
-    newMongoComponent()
+trait MongoSupportSpec extends MongoSupport with BeforeAndAfterEach with BeforeAndAfterAll { this: Suite with Matchers ⇒
 
   abstract override def beforeEach(): Unit = {
     super.beforeEach()
-    await(mongo().drop())
+    dropDatabase()
   }
 
   abstract override def afterAll(): Unit = {
