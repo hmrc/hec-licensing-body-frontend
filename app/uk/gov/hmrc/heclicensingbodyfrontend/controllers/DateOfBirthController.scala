@@ -25,10 +25,13 @@ import play.api.i18n.{I18nSupport, Messages}
 import play.api.mvc._
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.DateOfBirthController.dateOfBirthForm
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.{RequestWithSessionData, SessionDataAction}
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, Error, HECTaxCheckCode, HECTaxCheckMatchRequest}
-import uk.gov.hmrc.heclicensingbodyfrontend.services.{HECTaxMatchService, JourneyService, VerificationService}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.AuditEvent.TaxCheckCodeChecked
+import uk.gov.hmrc.heclicensingbodyfrontend.models.EntityType.Individual
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, Error, HECSession, HECTaxCheckCode, HECTaxCheckMatchRequest, HECTaxCheckMatchResult}
+import uk.gov.hmrc.heclicensingbodyfrontend.services.{AuditService, HECTaxMatchService, JourneyService, VerificationService}
 import uk.gov.hmrc.heclicensingbodyfrontend.util.{Logging, TimeUtils}
 import uk.gov.hmrc.heclicensingbodyfrontend.views.html
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 import java.time.LocalDate
@@ -39,6 +42,7 @@ class DateOfBirthController @Inject() (
   sessionDataAction: SessionDataAction,
   journeyService: JourneyService,
   taxMatchService: HECTaxMatchService,
+  auditService: AuditService,
   verificationService: VerificationService,
   dateOfBirthPage: html.DateOfBirth,
   mcc: MessagesControllerComponents
@@ -110,6 +114,7 @@ class DateOfBirthController @Inject() (
             verificationService.updateVerificationAttemptCount(taxMatch, taxCheckCode, Right(dateOfBirth))(
               request.sessionData
             )
+          _              = auditTaxCheckResult(dateOfBirth, taxMatch, updatedSession)
           next          <- journeyService
                              .updateAndNext(routes.DateOfBirthController.dateOfBirth(), updatedSession)
         } yield next
@@ -122,6 +127,27 @@ class DateOfBirthController @Inject() (
           )
         )
     }
+  }
+
+  private def auditTaxCheckResult(
+    dateOfBirth: DateOfBirth,
+    matchResult: HECTaxCheckMatchResult,
+    session: HECSession
+  )(implicit hc: HeaderCarrier, r: Request[_]): Unit = {
+    val taxCheckCode = matchResult.matchRequest.taxCheckCode
+    val auditEvent   = TaxCheckCodeChecked(
+      matchResult.status,
+      TaxCheckCodeChecked.SubmittedData(
+        taxCheckCode,
+        Individual,
+        matchResult.matchRequest.licenceType,
+        Some(dateOfBirth),
+        None
+      ),
+      session.verificationAttempts.get(taxCheckCode).exists(_.lockExpiresAt.nonEmpty)
+    )
+
+    auditService.sendEvent(auditEvent)
   }
 
 }

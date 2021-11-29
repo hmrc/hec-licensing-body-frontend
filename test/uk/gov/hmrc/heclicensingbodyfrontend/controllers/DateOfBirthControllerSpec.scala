@@ -24,12 +24,14 @@ import play.api.mvc.Result
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.heclicensingbodyfrontend.config.AppConfig
+import uk.gov.hmrc.heclicensingbodyfrontend.models.AuditEvent.TaxCheckCodeChecked
+import uk.gov.hmrc.heclicensingbodyfrontend.models.EntityType.Individual
 import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus._
 import uk.gov.hmrc.heclicensingbodyfrontend.models.ids.CRN
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, Error, HECSession, HECTaxCheckCode, HECTaxCheckMatchRequest, HECTaxCheckMatchResult, HECTaxCheckStatus, TaxCheckVerificationAttempts, UserAnswers}
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
-import uk.gov.hmrc.heclicensingbodyfrontend.services.{HECTaxMatchService, JourneyService, VerificationService}
+import uk.gov.hmrc.heclicensingbodyfrontend.services.{AuditService, AuditServiceSupport, HECTaxMatchService, JourneyService, VerificationService}
 import uk.gov.hmrc.heclicensingbodyfrontend.util.TimeUtils
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -41,7 +43,8 @@ class DateOfBirthControllerSpec
     extends ControllerSpec
     with SessionSupport
     with SessionDataActionBehaviour
-    with JourneyServiceSupport {
+    with JourneyServiceSupport
+    with AuditServiceSupport {
 
   val taxCheckService     = mock[HECTaxMatchService]
   val verificationService = mock[VerificationService]
@@ -51,7 +54,8 @@ class DateOfBirthControllerSpec
       bind[SessionStore].toInstance(mockSessionStore),
       bind[JourneyService].toInstance(mockJourneyService),
       bind[HECTaxMatchService].toInstance(taxCheckService),
-      bind[VerificationService].toInstance(verificationService)
+      bind[VerificationService].toInstance(verificationService),
+      bind[AuditService].toInstance(mockAuditService)
     )
 
   val controller = instanceOf[DateOfBirthController]
@@ -94,6 +98,27 @@ class DateOfBirthControllerSpec
       )(_: HECSession))
       .expects(matchResult, taxCheckCode, verifier, *)
       .returning(result)
+
+  def mockSendTaxCheckResultAuditEvent(
+    dateOfBirth: DateOfBirth,
+    matchResult: HECTaxCheckMatchResult,
+    session: HECSession
+  ) = {
+    val taxCheckCode = matchResult.matchRequest.taxCheckCode
+    val auditEvent   = TaxCheckCodeChecked(
+      matchResult.status,
+      TaxCheckCodeChecked.SubmittedData(
+        taxCheckCode,
+        Individual,
+        matchResult.matchRequest.licenceType,
+        Some(dateOfBirth),
+        None
+      ),
+      session.verificationAttempts.get(taxCheckCode).exists(_.lockExpiresAt.nonEmpty)
+    )
+
+    mockSendAuditEvent(auditEvent)
+  }
 
   "DateOfBirthControllerSpec" when {
 
@@ -260,6 +285,9 @@ class DateOfBirthControllerSpec
       "return a technical error" when {
 
         "there is an error updating and getting the next endpoint" in {
+          val dob                 = DateOfBirth(date)
+          val taxCheckMatchResult =
+            HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Match)
 
           val answers = UserAnswers.empty.copy(
             taxCheckCode = Some(hecTaxCheckCode),
@@ -269,7 +297,7 @@ class DateOfBirthControllerSpec
 
           val updatedSession =
             session.copy(
-              userAnswers = answers.copy(dateOfBirth = Some(DateOfBirth(date))),
+              userAnswers = answers.copy(dateOfBirth = Some(dob)),
               taxCheckMatch = Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Match))
             )
 
@@ -279,11 +307,8 @@ class DateOfBirthControllerSpec
             mockMatchTaxCheck(taxCheckMatchRequest)(
               Right(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Match))
             )
-            mockVerificationAttempt(
-              HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Match),
-              hecTaxCheckCode,
-              Right(DateOfBirth(date))
-            )(updatedSession)
+            mockVerificationAttempt(taxCheckMatchResult, hecTaxCheckCode, Right(dob))(updatedSession)
+            mockSendTaxCheckResultAuditEvent(dob, taxCheckMatchResult, updatedSession)
             mockJourneyServiceUpdateAndNext(routes.DateOfBirthController.dateOfBirth(), session, updatedSession)(
               Left(Error(""))
             )
@@ -342,6 +367,7 @@ class DateOfBirthControllerSpec
                 Right(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, returnStatus))
               )
               mockVerificationAttempt(taxCheckMatchResult, hecTaxCheckCode, Right(dateOfBirth))(updatedSession)
+              mockSendTaxCheckResultAuditEvent(dateOfBirth, taxCheckMatchResult, updatedSession)
               mockJourneyServiceUpdateAndNext(routes.DateOfBirthController.dateOfBirth(), session, updatedSession)(
                 Right(mockNextCall)
               )
