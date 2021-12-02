@@ -19,21 +19,21 @@ taxCheckCode.error.nonAlphanumericChars = Tax check codes are made up of numbers
 taxCheckCode.error.invalidAlphanumericChars = The tax check code must not include the letters I, O, S, U, V, W, or the numbers 0, 1, 5
 
 # Licence type
-licenceType.title = What type of licence is being renewed or applied for?
+licenceType.title = What type of licence is being applied for?
 licenceType.driverOfTaxis = Driver of taxis and private hires
 licenceType.driverOfTaxis.hint = Includes hackney carriage and dual licences.
 licenceType.operatorOfPrivateHireVehicles = Operator of private hire vehicles
 licenceType.scrapMetalCollector = Scrap metal mobile collector
 licenceType.scrapMetalDealer = Scrap metal dealer site
-licenceType.error.required = Select the type of licence that is being renewed or applied for
-licenceType.error.invalid = Select the type of licence that is being renewed or applied for
+licenceType.error.required = Select the type of licence that is being applied for
+licenceType.error.invalid = Select the type of licence that is being applied for
 
 # Entity type
 entityType.title = Is the applicant an individual or a company?
 entityType.Individual = Individual
 entityType.Company = Company
-entityType.error.required = Select whether the applicant is 'Individual' or 'Company'
-entityType.error.invalid = Select whether the applicant is 'Individual' or 'Company'
+entityType.error.required = Select Individual or Company
+entityType.error.invalid = Select Individual or Company
 
 # Months
 date.1=January
@@ -57,17 +57,17 @@ date.afterNoon = pm
 dateOfBirth.title = What is the applicant’s date of birth?
 dateOfBirth.hint = For example, 23 11 1995.
 dateOfBirth.link = Find out what to do if you do not have a licence
-dateOfBirth.error.invalid = Date of Birth must be a real date
-dateOfBirth.error.required = You must provide an applicant's date of birth
-dateOfBirth.error.dayRequired = Date of Birth must include a day
-dateOfBirth.error.monthRequired = Date of Birth must include a month
-dateOfBirth.error.yearRequired = Date of Birth must include a year
-dateOfBirth.error.yearLength = Date of Birth year must be four characters
-dateOfBirth.error.monthAndYearRequired = Date of Birth must include a month and a year
-dateOfBirth.error.dayAndYearRequired= Date of Birth must include a day and a year
-dateOfBirth.error.dayAndMonthRequired = Date of Birth must include a day and a month
-dateOfBirth.error.inFuture = Date of Birth must be before {0}
-dateOfBirth.error.tooFarInPast = Date of Birth must be after {0}
+dateOfBirth.error.invalid = Date of birth must be a real date
+dateOfBirth.error.required = Enter the applicant’s date of birth
+dateOfBirth.error.dayRequired = Date of birth must include a day
+dateOfBirth.error.monthRequired = Date of birth must include a month
+dateOfBirth.error.yearRequired = Date of birth must include a year
+dateOfBirth.error.yearLength = Date of birth year must be four characters
+dateOfBirth.error.monthAndYearRequired = Date of birth must include a month and a year
+dateOfBirth.error.dayAndYearRequired= Date of birth must include a day and a year
+dateOfBirth.error.dayAndMonthRequired = Date of birth must include a day and a month
+dateOfBirth.error.inFuture = Date of birth must be before {0}
+dateOfBirth.error.tooFarInPast = Date of birth must be after {0}
 
 # Tax check valid page
 taxCheckValid.title = Tax check code valid
@@ -92,8 +92,8 @@ taxCheckExpired.print = You can <a href="#print-dialogue" class="govuk-link">pri
 taxCheckExpired.whatNext.heading = What you must do next
 taxCheckExpired.whatNext.p1 = Tax check codes are valid for 120 days.
 taxCheckExpired.whatNext.p2 = You must ask the applicant to do a new tax check, and provide a new tax check code.
-taxCheckExpired.viewAnother.heading = If you want to view another code
-taxCheckExpired.viewAnother.link = View another tax check code
+taxCheckExpired.viewAnother.heading = Confirm another tax check code
+taxCheckExpired.viewAnother.link = Confirm another applicant’s tax check code
 
 # Tax check Not Matched
 taxCheckNoMatch.title = We could not match these details
@@ -110,8 +110,8 @@ taxCheckExpired.print = You can <a href="#print-dialogue" class="govuk-link">pri
 taxCheckExpired.whatNext.heading = What you must do next
 taxCheckExpired.whatNext.p1 = Tax check codes are valid for 120 days.
 taxCheckExpired.whatNext.p2 = You must ask the applicant to do a new tax check, and provide a new tax check code.
-taxCheckExpired.viewAnother.heading = If you want to view another code
-taxCheckExpired.viewAnother.link = View another tax check code
+taxCheckExpired.viewAnother.heading = Confirm another tax check code
+taxCheckExpired.viewAnother.link = Confirm another applicant’s tax check code
 
 #CRN
 crn.title = What is the applicant’s company registration number?
@@ -123,7 +123,7 @@ crn.error.crnInvalid = Enter the applicant’s company registration number in th
 
 # Too many attempts page
 tooManyAttempts.title = You’ve tried these details too many times
-tooManyAttempts.whatNext.p1 = You’ll need to wait till {0} before trying again. You can try another applicant’s tax check code.
+tooManyAttempts.whatNext.p1 = You’ll need to wait until {0} before trying again. You can try another applicant’s tax check code.
 tooManyAttempts.whatNext.p2 = Before you try these details again, make sure you have the correct:
 tooManyAttempts.bullet1 = 9-character tax check code
 tooManyAttempts.bullet2 = date of birth
