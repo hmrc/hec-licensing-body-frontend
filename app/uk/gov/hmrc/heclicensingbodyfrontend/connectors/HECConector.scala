@@ -40,12 +40,12 @@ class HECConnectorImpl @Inject() (http: HttpClient, config: Configuration)(impli
   private val servicesConfig           = new ServicesConfig(config)
   private val baseUrl: String          = servicesConfig.baseUrl("hec")
   private val matchTaxCheckUrl: String = s"$baseUrl/hec/match-tax-check"
+  val internalAuthToken: String        = config.get[String]("internal-auth.token")
 
   override def matchTaxCheck(taxCheckMatchRequest: HECTaxCheckMatchRequest)(implicit
     hc: HeaderCarrier
   ): EitherT[Future, Error, HttpResponse] = EitherT[Future, Error, HttpResponse] {
-    val internalAuthToken = config.get[String]("internal-auth.token")
-    val headers           = Seq(HeaderNames.authorisation -> internalAuthToken)
+    val headers = Seq(HeaderNames.authorisation -> internalAuthToken)
     http
       .POST[HECTaxCheckMatchRequest, HttpResponse](matchTaxCheckUrl, taxCheckMatchRequest, headers)
       .map(Right(_))

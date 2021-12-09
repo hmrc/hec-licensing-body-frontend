@@ -16,22 +16,18 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.connectors
 
-import cats.data.EitherT
 import com.typesafe.config.ConfigFactory
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.Configuration
 import play.api.http.HeaderNames
-import play.api.test.Helpers._
-import uk.gov.hmrc.heclicensingbodyfrontend.models
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, HECTaxCheckCode, HECTaxCheckMatchRequest}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.http.{HeaderCarrier}
 
 import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 class HECConnectorImplSpec extends AnyWordSpec with Matchers with MockFactory with HttpSupport with ConnectorSpec {
 
@@ -50,7 +46,6 @@ class HECConnectorImplSpec extends AnyWordSpec with Matchers with MockFactory wi
                                  | }
                                  |""".stripMargin)
   )
-
 
   val connector                  = new HECConnectorImpl(mockHttp, config)
   implicit val hc: HeaderCarrier = HeaderCarrier()
