@@ -18,9 +18,10 @@ package uk.gov.hmrc.heclicensingbodyfrontend.connectors
 
 import cats.data.EitherT
 import com.google.inject.{ImplementedBy, Inject, Singleton}
+import play.api.Configuration
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECTaxCheckMatchRequest}
 import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
+import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, HttpClient, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -33,19 +34,21 @@ trait HECConnector {
 }
 
 @Singleton
-class HECConnectorImpl @Inject() (http: HttpClient, servicesConfig: ServicesConfig)(implicit
+class HECConnectorImpl @Inject() (http: HttpClient, config: Configuration)(implicit
   ec: ExecutionContext
 ) extends HECConnector {
-
+  private val servicesConfig           = new ServicesConfig(config)
   private val baseUrl: String          = servicesConfig.baseUrl("hec")
   private val matchTaxCheckUrl: String = s"$baseUrl/hec/match-tax-check"
 
   override def matchTaxCheck(taxCheckMatchRequest: HECTaxCheckMatchRequest)(implicit
     hc: HeaderCarrier
-  ): EitherT[Future, Error, HttpResponse] = EitherT[Future, Error, HttpResponse](
+  ): EitherT[Future, Error, HttpResponse] = EitherT[Future, Error, HttpResponse] {
+    val internalAuthToken = config.get[String]("internal-auth.token")
+    val headers           = Seq(HeaderNames.authorisation -> internalAuthToken)
     http
-      .POST[HECTaxCheckMatchRequest, HttpResponse](matchTaxCheckUrl, taxCheckMatchRequest)
+      .POST[HECTaxCheckMatchRequest, HttpResponse](matchTaxCheckUrl, taxCheckMatchRequest, headers)
       .map(Right(_))
       .recover { case e => Left(Error(e)) }
-  )
+  }
 }
