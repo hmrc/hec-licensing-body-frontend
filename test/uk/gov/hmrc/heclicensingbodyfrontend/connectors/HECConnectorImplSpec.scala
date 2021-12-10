@@ -21,10 +21,10 @@ import org.scalamock.scalatest.MockFactory
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.Configuration
+import play.api.http.HeaderNames
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, HECTaxCheckCode, HECTaxCheckMatchRequest}
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import uk.gov.hmrc.http.{HeaderCarrier}
 
 import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -40,10 +40,14 @@ class HECConnectorImplSpec extends AnyWordSpec with Matchers with MockFactory wi
                                  |    host     = "$host"
                                  |    port     = $port
                                  |  }
+                                 |
+                                 | internal-auth {
+                                 |  token = "123456789"
+                                 | }
                                  |""".stripMargin)
   )
 
-  val connector                  = new HECConnectorImpl(mockHttp, new ServicesConfig(config))
+  val connector                  = new HECConnectorImpl(mockHttp, config)
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
   val hecTaxCheckCode = HECTaxCheckCode("ABC DEF 123")
@@ -61,7 +65,7 @@ class HECConnectorImplSpec extends AnyWordSpec with Matchers with MockFactory wi
       val expectedUrl = s"$protocol://$host:$port/hec/match-tax-check"
 
       behave like connectorBehaviour(
-        mockPost(expectedUrl, Seq.empty, taxCheckMatchRequest)(_),
+        mockPost(expectedUrl, Seq(HeaderNames.AUTHORIZATION -> "123456789"), taxCheckMatchRequest)(_),
         () => connector.matchTaxCheck(taxCheckMatchRequest)
       )
 
