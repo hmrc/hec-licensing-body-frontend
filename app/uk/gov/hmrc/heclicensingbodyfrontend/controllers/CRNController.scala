@@ -26,12 +26,15 @@ import play.api.i18n.I18nSupport
 import play.api.mvc._
 import uk.gov.hmrc.heclicensingbodyfrontend.config.AppConfig
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.{RequestWithSessionData, SessionDataAction}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.AuditEvent.TaxCheckCodeChecked
+import uk.gov.hmrc.heclicensingbodyfrontend.models.EntityType.Company
 import uk.gov.hmrc.heclicensingbodyfrontend.models.ids.CRN
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECTaxCheckCode, HECTaxCheckMatchRequest}
-import uk.gov.hmrc.heclicensingbodyfrontend.services.{HECTaxMatchService, JourneyService, VerificationService}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECSession, HECTaxCheckCode, HECTaxCheckMatchRequest, HECTaxCheckMatchResult}
+import uk.gov.hmrc.heclicensingbodyfrontend.services.{AuditService, HECTaxMatchService, JourneyService, VerificationService}
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging
 import uk.gov.hmrc.heclicensingbodyfrontend.util.StringUtils.StringOps
 import uk.gov.hmrc.heclicensingbodyfrontend.views.html
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 import java.util.Locale
@@ -43,6 +46,7 @@ class CRNController @Inject() (
   journeyService: JourneyService,
   taxMatchService: HECTaxMatchService,
   verificationService: VerificationService,
+  auditService: AuditService,
   crnPage: html.CompanyRegistrationNumber,
   mcc: MessagesControllerComponents
 )(implicit ec: ExecutionContext, appConfig: AppConfig)
@@ -106,6 +110,7 @@ class CRNController @Inject() (
           taxMatch      <- taxMatchService.matchTaxCheck(HECTaxCheckMatchRequest(taxCheckCode, lType, Left(crn)))
           updatedSession =
             verificationService.updateVerificationAttemptCount(taxMatch, taxCheckCode, Left(crn))(request.sessionData)
+          _              = auditTaxCheckResult(crn, taxMatch, updatedSession)
           next          <- journeyService
                              .updateAndNext(routes.CRNController.companyRegistrationNumber(), updatedSession)
         } yield next
@@ -118,6 +123,27 @@ class CRNController @Inject() (
           )
         )
     }
+  }
+
+  private def auditTaxCheckResult(
+    crn: CRN,
+    matchResult: HECTaxCheckMatchResult,
+    session: HECSession
+  )(implicit hc: HeaderCarrier, r: Request[_]): Unit = {
+    val taxCheckCode = matchResult.matchRequest.taxCheckCode
+    val auditEvent   = TaxCheckCodeChecked(
+      matchResult.status,
+      TaxCheckCodeChecked.SubmittedData(
+        taxCheckCode,
+        Company,
+        matchResult.matchRequest.licenceType,
+        None,
+        Some(crn)
+      ),
+      session.verificationAttempts.get(taxCheckCode).exists(_.lockExpiresAt.nonEmpty)
+    )
+
+    auditService.sendEvent(auditEvent)
   }
 
 }
