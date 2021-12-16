@@ -50,7 +50,7 @@ object AuditEvent {
       entityType: EntityType,
       licenceType: LicenceType,
       dateOfBirth: Option[DateOfBirth],
-      crn: Option[CRN]
+      companyRegistrationNumber: Option[CRN]
     )
 
     implicit val submittedDataWrites: OWrites[SubmittedData] = Json.writes

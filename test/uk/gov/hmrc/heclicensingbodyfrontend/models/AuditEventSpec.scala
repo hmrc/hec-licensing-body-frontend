@@ -89,7 +89,7 @@ class AuditEventSpec extends Matchers with AnyWordSpecLike {
             |    "taxCheckCode": "ABC",
             |    "entityType": "Company",
             |    "licenceType": "ScrapMetalMobileCollector",
-            |    "crn": "crn"
+            |    "companyRegistrationNumber": "crn"
             |  },
             |  "tooManyAttempts": true
             |}
