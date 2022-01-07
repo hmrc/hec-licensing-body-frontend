@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.models
 
-import play.api.libs.json.{Json, OWrites}
+import play.api.libs.json.{JsString, Json, OWrites, Writes}
 import uk.gov.hmrc.heclicensingbodyfrontend.models.AuditEvent.TaxCheckCodeChecked.SubmittedData
 import uk.gov.hmrc.heclicensingbodyfrontend.models.ids.CRN
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
@@ -55,7 +55,15 @@ object AuditEvent {
 
     implicit val submittedDataWrites: OWrites[SubmittedData] = Json.writes
 
-    implicit val taxCheckCodeCheckedWRites: OWrites[TaxCheckCodeChecked] = Json.writes
+    implicit val taxCheckCodeCheckedWrites: OWrites[TaxCheckCodeChecked] = {
+      implicit val hecTaxCheckStatusWrites: Writes[HECTaxCheckStatus] = Writes {
+        case HECTaxCheckStatus.Match   => JsString("Success")
+        case HECTaxCheckStatus.NoMatch => JsString("Failed")
+        case HECTaxCheckStatus.Expired => JsString("Expired")
+      }
+
+      Json.writes
+    }
   }
 
 }
