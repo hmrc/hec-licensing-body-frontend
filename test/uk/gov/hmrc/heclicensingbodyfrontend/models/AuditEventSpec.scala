@@ -32,69 +32,80 @@ class AuditEventSpec extends Matchers with AnyWordSpecLike {
 
     "have the correct JSON" when {
 
-      "individual data is given" in {
-        val date  = LocalDate.of(2000, 12, 31)
-        val event = TaxCheckCodeChecked(
-          HECTaxCheckStatus.Match,
-          SubmittedData(
-            HECTaxCheckCode("ABC"),
-            EntityType.Individual,
-            LicenceType.OperatorOfPrivateHireVehicles,
-            Some(DateOfBirth(date)),
-            None
-          ),
-          tooManyAttempts = false
+      val taxCheckStatusTestCases =
+        List(
+          HECTaxCheckStatus.Match   -> "Success",
+          HECTaxCheckStatus.NoMatch -> "Failed",
+          HECTaxCheckStatus.Expired -> "Expired"
         )
 
-        event.auditType       shouldBe "TaxCheckCodeChecked"
-        event.transactionName shouldBe "tax-check-code-checked"
-        Json.toJson(event)    shouldBe Json.parse(
-          """
-            |{
-            |  "result": "Match",
-            |  "submittedData" : {
-            |    "taxCheckCode": "ABC",
-            |    "entityType": "Individual",
-            |    "licenceType": "OperatorOfPrivateHireVehicles",
-            |    "dateOfBirth": "20001231"
-            |  },
-            |  "tooManyAttempts": false
-            |}
-            |""".stripMargin
-        )
+      "individual data is given" in {
+        taxCheckStatusTestCases.foreach { case (hecTaxCheckStatus, hecTaxCheckStatusString) =>
+          val date  = LocalDate.of(2000, 12, 31)
+          val event = TaxCheckCodeChecked(
+            hecTaxCheckStatus,
+            SubmittedData(
+              HECTaxCheckCode("ABC"),
+              EntityType.Individual,
+              LicenceType.OperatorOfPrivateHireVehicles,
+              Some(DateOfBirth(date)),
+              None
+            ),
+            tooManyAttempts = false
+          )
+
+          event.auditType       shouldBe "TaxCheckCodeChecked"
+          event.transactionName shouldBe "tax-check-code-checked"
+          Json.toJson(event)    shouldBe Json.parse(
+            s"""
+                |{
+                |  "result": "$hecTaxCheckStatusString",
+                |  "submittedData" : {
+                |    "taxCheckCode": "ABC",
+                |    "entityType": "Individual",
+                |    "licenceType": "OperatorOfPrivateHireVehicles",
+                |    "dateOfBirth": "2000-12-31"
+                |  },
+                |  "tooManyAttempts": false
+                |}
+                |""".stripMargin
+          )
+        }
 
       }
 
       "company data is given" in {
-        val crn   = CRN("crn")
-        val event = TaxCheckCodeChecked(
-          HECTaxCheckStatus.NoMatch,
-          SubmittedData(
-            HECTaxCheckCode("ABC"),
-            EntityType.Company,
-            LicenceType.ScrapMetalMobileCollector,
-            None,
-            Some(crn)
-          ),
-          tooManyAttempts = true
-        )
+        taxCheckStatusTestCases.foreach { case (hecTaxCheckStatus, hecTaxCheckStatusString) =>
+          val crn   = CRN("crn")
+          val event = TaxCheckCodeChecked(
+            hecTaxCheckStatus,
+            SubmittedData(
+              HECTaxCheckCode("ABC"),
+              EntityType.Company,
+              LicenceType.ScrapMetalMobileCollector,
+              None,
+              Some(crn)
+            ),
+            tooManyAttempts = true
+          )
 
-        event.auditType       shouldBe "TaxCheckCodeChecked"
-        event.transactionName shouldBe "tax-check-code-checked"
-        Json.toJson(event)    shouldBe Json.parse(
-          """
-            |{
-            |  "result": "NoMatch",
-            |  "submittedData" : {
-            |    "taxCheckCode": "ABC",
-            |    "entityType": "Company",
-            |    "licenceType": "ScrapMetalMobileCollector",
-            |    "companyRegistrationNumber": "crn"
-            |  },
-            |  "tooManyAttempts": true
-            |}
-            |""".stripMargin
-        )
+          event.auditType       shouldBe "TaxCheckCodeChecked"
+          event.transactionName shouldBe "tax-check-code-checked"
+          Json.toJson(event)    shouldBe Json.parse(
+            s"""
+              |{
+              |  "result": "$hecTaxCheckStatusString",
+              |  "submittedData" : {
+              |    "taxCheckCode": "ABC",
+              |    "entityType": "Company",
+              |    "licenceType": "ScrapMetalMobileCollector",
+              |    "companyRegistrationNumber": "crn"
+              |  },
+              |  "tooManyAttempts": true
+              |}
+              |""".stripMargin
+          )
+        }
       }
 
     }
