@@ -19,9 +19,10 @@ package uk.gov.hmrc.heclicensingbodyfrontend.connectors
 import cats.data.EitherT
 import com.google.inject.{ImplementedBy, Inject, Singleton}
 import play.api.Configuration
+import play.api.libs.json.Writes
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECTaxCheckMatchRequest}
 import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, HttpClient, HttpResponse}
+import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, HttpClient, HttpReads, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -47,7 +48,12 @@ class HECConnectorImpl @Inject() (http: HttpClient, config: Configuration)(impli
   ): EitherT[Future, Error, HttpResponse] = EitherT[Future, Error, HttpResponse] {
     val headers = Seq(HeaderNames.authorisation -> internalAuthToken)
     http
-      .POST[HECTaxCheckMatchRequest, HttpResponse](matchTaxCheckUrl, taxCheckMatchRequest, headers)
+      .POST[HECTaxCheckMatchRequest, HttpResponse](matchTaxCheckUrl, taxCheckMatchRequest, headers)(
+        implicitly[Writes[HECTaxCheckMatchRequest]],
+        implicitly[HttpReads[HttpResponse]],
+        implicitly[HeaderCarrier].copy(authorization = None),
+        ec
+      )
       .map(Right(_))
       .recover { case e => Left(Error(e)) }
   }

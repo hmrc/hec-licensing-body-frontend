@@ -28,7 +28,7 @@ trait HttpSupport { this: MockFactory with Matchers ⇒
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val mockHttp: HttpClient = mock[HttpClient]
 
-  def mockPost[A](url: String, headers: Seq[(String, String)], body: A)(
+  def mockPost[A](url: String, headers: Seq[(String, String)], body: A, hc: HeaderCarrier)(
     result: Option[HttpResponse]
   ): Unit =
     (mockHttp
@@ -38,7 +38,7 @@ trait HttpSupport { this: MockFactory with Matchers ⇒
         _: HeaderCarrier,
         _: ExecutionContext
       ))
-      .expects(url, body, headers.toSeq, *, *, *, *)
+      .expects(url, body, headers.toSeq, *, *, hc, *)
       .returning(
         result.fold[Future[HttpResponse]](
           Future.failed(new Exception("Test exception message"))
