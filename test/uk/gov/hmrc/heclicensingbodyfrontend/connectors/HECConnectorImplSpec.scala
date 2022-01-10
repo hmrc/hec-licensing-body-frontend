@@ -24,7 +24,7 @@ import play.api.Configuration
 import play.api.http.HeaderNames
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, HECTaxCheckCode, HECTaxCheckMatchRequest}
-import uk.gov.hmrc.http.{HeaderCarrier}
+import uk.gov.hmrc.http.{Authorization, HeaderCarrier}
 
 import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -60,12 +60,17 @@ class HECConnectorImplSpec extends AnyWordSpec with Matchers with MockFactory wi
 
     "handling requests to get HEC Tax match  Result" must {
 
-      implicit val hc: HeaderCarrier = HeaderCarrier()
+      implicit val hc: HeaderCarrier = HeaderCarrier(authorization = Some(Authorization("token")))
 
       val expectedUrl = s"$protocol://$host:$port/hec/match-tax-check"
 
       behave like connectorBehaviour(
-        mockPost(expectedUrl, Seq(HeaderNames.AUTHORIZATION -> "123456789"), taxCheckMatchRequest)(_),
+        mockPost(
+          expectedUrl,
+          Seq(HeaderNames.AUTHORIZATION -> "123456789"),
+          taxCheckMatchRequest,
+          hc.copy(authorization = None)
+        )(_),
         () => connector.matchTaxCheck(taxCheckMatchRequest)
       )
 
