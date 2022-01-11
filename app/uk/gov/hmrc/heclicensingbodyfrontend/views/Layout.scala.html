@@ -56,7 +56,7 @@
 }
 @backUrl = @{
     backLocation.map(call =>
-        if(call.url === routes.StartController.start.url) appConfig.taxCheckGuidanceUrl
+        if(call.url === routes.StartController.start.url) appConfig.licencingBodyStartUrl
         else call.url
     )
 }
