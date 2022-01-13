@@ -21,8 +21,10 @@
 @import uk.gov.hmrc.heclicensingbodyfrontend.controllers.routes
 @import uk.gov.hmrc.govukfrontend.views.html.components._
 @import uk.gov.hmrc.heclicensingbodyfrontend.config.AppConfig
+@import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcNewTabLink
+@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.newtablink.NewTabLink
 
-@this(layout: Layout, govukInput: GovukInput, govukButton: GovukButton, formWithCSRF: FormWithCSRF, govukErrorSummary : GovukErrorSummary)
+@this(layout: Layout, govukInput: GovukInput, govukButton: GovukButton, formWithCSRF: FormWithCSRF, govukErrorSummary : GovukErrorSummary, hmrcNewTabLink: HmrcNewTabLink)
 
 
 @(form: Form[models.HECTaxCheckCode], back: Call)(implicit request: Request[_], messages: Messages, appConfig: AppConfig)
@@ -57,7 +59,11 @@
     ))
 
     <p class="govuk-body">
-      <a class="govuk-link" href="@{appConfig.taxCheckGuidanceUrl}" target="_blank">@{messages(s"$key.link")}</a>
+        @hmrcNewTabLink(params = NewTabLink(
+            href = Some(appConfig.taxCheckGuidanceUrl),
+            text = messages(s"$key.link"),
+            language = Some(messages("lang.code"))
+        ))
     </p>
 
     @govukButton(Button(
