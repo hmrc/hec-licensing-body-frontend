@@ -8,6 +8,7 @@ generic.errorSummary = There is a problem
 phaseBanner.beta.text = This is a new service – your <a class="govuk-link" href="{0}">feedback</a> will help us to improve it.
 
 button.continue = Continue
+button.back=Back
 
 taxCheckCode.title = What is the applicant’s tax check code?
 taxCheckCode.hint = It is 9 characters, for example ‘266 RLR TK6’.

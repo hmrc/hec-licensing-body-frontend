@@ -1,62 +1,97 @@
-lang.code = cy
-gov.uk = GOV.UK
-service.name = Confirm an applicant has done a tax check
-service.text = Dyma'ch gwasanaeth newydd
-
-generic.errorPrefix = Error:
-generic.errorSummary = There is a problem
-phaseBanner.beta.text = This is a new service – your <a class="govuk-link" href="{0}">feedback</a> will help us to improve it.
-
-button.continue = Welsh Continue
-
-taxCheckCode.title =Welsh What is the applicant’s tax check code?
-taxCheckCode.error.required = Welsh Enter the applicant’s tax check code
-
-
-# Licence type
-licenceType.title = Welsh What type of licence is being renewed or applied for?
-licenceType.error.required = Welsh Select the type of licence that is being renewed or applied for
-
-
-# Entity type
-entityType.title = Welsh Is the applicant an individual or a company?
-entityType.error.required = Welsh Select whether the applicant is 'Individual' or 'Company'
-
-# Date Of Birth
-dateOfBirth.title = Welsh What is the applicant’s date of birth?
-dateOfBirth.error.required = Welsh You must provide an applicant's date of birth
-
-
-# Tax check valid page
-taxCheckValid.title = Welsh Tax check code valid
-
-
-# Details entered
-detailsEntered.title = Welsh Details entered
-
-
-# Tax check Expired page
-taxCheckExpired.title = Welsh Expired tax check code
-
-
-# Tax check Not Matched
-taxCheckNoMatch.title = Welsh We could not match these details
-
-
-
-# Tax check Expired page
-taxCheckExpired.title = Welsh Expired tax check code
-
-
-#CRN
-crn.title = Welsh What is the applicant’s company registration number?
-crn.error.required = Welsh Enter the applicant’s company registration number
-
-
-# Too many attempts page
-tooManyAttempts.title = Welsh You’ve tried these details too many times
-
-
-
-
+lang.code=cy
+gov.uk=GOV.UK/CYMRAEG
+service.name=Cadarnhau bod ymgeisydd wedi gwneud gwiriad treth
+service.text=Dyma’ch gwasanaeth newydd
+generic.errorPrefix=Gwall:
+generic.errorSummary=Mae problem wedi codi
+phaseBanner.beta.text=Mae hwn yn wasanaeth newydd – bydd eich <a class="govuk-link" href="{0}">adborth</a> yn ein helpu i’w wella.
+button.continue=Yn eich blaen
+button.back=Yn ôl
+taxCheckCode.title=Beth yw cod gwirio treth yr ymgeisydd?
+taxCheckCode.hint=Mae’n 9 o gymeriadau, er enghraifft ‘266 RLR TK6’.
+taxCheckCode.link=Dysgu sut y gall ymgeiswyr gael cod gwirio treth (yn agor tab newydd)
+taxCheckCode.error.required=Nodwch god gwirio treth yr ymgeisydd
+taxCheckCode.error.tooLong=Mae’n rhaid i’r cod gwirio treth fod yn 9 cymeriad o hyd
+taxCheckCode.error.tooShort=Mae’n rhaid i’r cod gwirio treth fod yn 9 cymeriad o hyd
+taxCheckCode.error.nonAlphanumericChars=Mae codau gwirio treth yn cynnwys rhifau a llythrennau yn unig
+taxCheckCode.error.invalidAlphanumericChars=Ni ddylai’r cod gwirio treth gynnwys y llythrennau I, O, S, U, V, W, na’r rhifau 0, 1, 5
+licenceType.title=Pa fath o drwydded sy’n cael ei defnyddio?
+licenceType.driverOfTaxis=Gyrrwr tacsis a hurio preifat
+licenceType.driverOfTaxis.hint=Yn cynnwys trwyddedau cerbydau hacni a deuol.
+licenceType.operatorOfPrivateHireVehicles=Gweithredwr cerbydau hurio preifat
+licenceType.scrapMetalCollector=Casglwr symudol metel sgrap
+licenceType.scrapMetalDealer=Safle deliwr metel sgrap
+licenceType.error.required=Dewiswch y fath o drwydded y mae cais yn cael ei wneud amdani
+licenceType.error.invalid=Dewiswch y fath o drwydded y mae cais yn cael ei wneud amdani
+entityType.title=A yw’r ymgeisydd yn unigolyn neu’n gwmni?
+entityType.Individual=Unigolyn
+entityType.Company=Cwmni
+entityType.error.required=Dewiswch Unigolyn neu Gwmni
+entityType.error.invalid=Dewiswch Unigolyn neu Gwmni
+date.1=Ionawr
+date.2=Chwefror
+date.3=Mawrth
+date.4=Ebrill
+date.5=Mai
+date.6=Mehefin
+date.7=Gorffennaf
+date.8=Awst
+date.9=Medi
+date.10=Hydref
+date.11=Tachwedd
+date.12=Rhagfyr
+date.beforeNoon=am
+date.afterNoon=pm
+dateOfBirth.title=Beth yw dyddiad geni’r ymgeisydd?
+dateOfBirth.hint=Er enghraifft, 23 11 1995.
+dateOfBirth.link=Dysgu beth i’w wneud os nad oes gennych drwydded
+dateOfBirth.error.invalid=Mae’n rhaid i’r dyddiad geni fod yn ddyddiad go iawn
+dateOfBirth.error.required=Nodwch ddyddiad geni’r ymgeisydd
+dateOfBirth.error.dayRequired=Mae’n rhaid i’r dyddiad geni gynnwys diwrnod
+dateOfBirth.error.monthRequired=Mae’n rhaid i’r dyddiad geni gynnwys mis
+dateOfBirth.error.yearRequired=Mae’n rhaid i’r dyddiad geni gynnwys blwyddyn
+dateOfBirth.error.yearLength=Mae’n rhaid i’r dyddiad geni fod yn bedwar o gymeriadau
+dateOfBirth.error.monthAndYearRequired=Mae’n rhaid i’r dyddiad geni gynnwys mis a blwyddyn
+dateOfBirth.error.dayAndYearRequired=Mae’n rhaid i’r dyddiad geni gynnwys diwrnod a blwyddyn
+dateOfBirth.error.dayAndMonthRequired=Mae’n rhaid i’r dyddiad geni gynnwys diwrnod a mis
+dateOfBirth.error.inFuture=Mae’n rhaid i’r dyddiad geni fod cyn {0}
+dateOfBirth.error.tooFarInPast=Mae’n rhaid i’r dyddiad geni fod ar ôl {0}
+taxCheckValid.title=Cod gwirio treth yn ddilys
+taxCheckValid.subtitle=Gwiriwyd ar
+taxCheckValid.print=Gallwch <a href="#print-dialogue" class="govuk-link">argraffu neu gadw’r dudalen hon fel PDF</a>.
+taxCheckValid.whatNext.heading=Yr hyn sy’n digwydd nesaf
+taxCheckValid.whatNext.p1=Mae’r ymgeisydd wedi cwblhau ei wiriad treth. Mae hyn yn golygu y gallwch ystyried ei gais am drwydded.
+taxCheckValid.viewAnother.heading=Cadarnhau cod gwirio treth arall
+taxCheckValid.viewAnother.link=Cadarnhau cod gwirio treth ymgeisydd arall
+detailsEntered.title=Manylion wedi’u nodi
+detailsEntered.taxCheckCodeKey=Cod gwirio treth
+detailsEntered.licenceTypeKey=Y fath o drwydded
+detailsEntered.dateOfBirthKey=Dyddiad geni
+detailsEntered.crnKey=Rhif cofrestru’r cwmni
+taxCheckExpired.title=Cod Gwirio Treth wedi dod i ben
+taxCheckExpired.subtitle=Gwiriwyd ar
+taxCheckExpired.print=Gallwch <a href="#print-dialogue" class="govuk-link">argraffu neu gadw’r dudalen hon fel PDF</a>.
+taxCheckExpired.whatNext.heading=Yr hyn sydd yn rhaid i chi ei wneud nesaf
+taxCheckExpired.whatNext.p1=Mae codau gwirio treth yn ddilys am 120 diwrnod.
+taxCheckExpired.whatNext.p2=Mae’n rhaid i chi ofyn i’r ymgeisydd wneud gwiriad treth newydd, a darparu cod gwirio treth newydd.
+taxCheckExpired.viewAnother.heading=Cadarnhau cod gwirio treth arall
+taxCheckExpired.viewAnother.link=Cadarnhau cod gwirio treth ymgeisydd arall
+taxCheckNoMatch.title=Ni allem baru’r manylion hyn
+taxCheckNoMatch.whatNext.p1=Bydd angen i chi wirio bod gennych y manylion cywir gan yr ymgeisydd, megis:
+taxCheckNoMatch.bullet1=cod gwirio treth 9 cymeriad dilys
+taxCheckNoMatch.bullet2=dyddiad geni neu rif cofrestru’r cwmni
+taxCheckNoMatch.viewAnother.link=Rhowch gynnig arall arni
+crn.title=Beth yw rhif cofrestru cwmni’r ymgeisydd?
+crn.hint=Anfonodd Tŷ’r Cwmnïau hyn at yr ymgeisydd pan sefydlodd ei gwmni. Gelwir hyn hefyd yn rhif cwmni. Er enghraifft, SN898989 neu 12345678.
+crn.link=Chwiliwch am rif cofrestru’r cwmni
+crn.error.required=Nodwch rif cofrestru cwmni’r ymgeisydd
+crn.error.nonAlphanumericChars=Mae’n rhaid i rif cofrestru cwmni’r ymgeisydd gynnwys y llythrennau a i z a’r rhifau 0 i 9 yn unig
+crn.error.crnInvalid=Nodwch rif cofrestru cwmni’r ymgeisydd yn y fformat cywir
+tooManyAttempts.title=Rydych wedi rhoi cynnig ar y manylion hyn gormod o weithiau
+tooManyAttempts.whatNext.p1=Bydd angen i chi aros hyd at {0} cyn rhoi cynnig arall arni. Gallwch roi cynnig ar god gwirio treth ymgeisydd arall.
+tooManyAttempts.whatNext.p2=Cyn i chi roi cynnig ar y manylion hyn eto, gwnewch yn siŵr bod gennych y manylion cywir:
+tooManyAttempts.bullet1=cod gwirio treth 9 cymeriad
+tooManyAttempts.bullet2=dyddiad geni’r person
+tooManyAttempts.bullet3=rhif cofrestru’r cwmni
+tooManyAttempts.viewAnother.link=Cadarnhau cod gwirio treth ymgeisydd arall
 

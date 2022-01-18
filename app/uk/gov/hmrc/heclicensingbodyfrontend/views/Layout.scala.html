@@ -67,7 +67,7 @@
         )),
         content = HtmlContent(messages("phaseBanner.beta.text", appConfig.betaFeedbackUrl))
     ))
-    @backUrl.map(back => govukBackLink(BackLink(href = back, attributes = Map("id" -> "back"))))
+    @backUrl.map(back => govukBackLink(BackLink(href = back, attributes = Map("id" -> "back"), content = Text(messages("button.back")))))
 
 @if(appConfig.welshLanguageSupportEnabled) { @hmrcLanguageSelectHelper() }
 }
