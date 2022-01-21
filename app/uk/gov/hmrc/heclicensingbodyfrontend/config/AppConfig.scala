@@ -23,8 +23,11 @@ import uk.gov.hmrc.hmrcfrontend.config.ContactFrontendConfig
 @Singleton
 class AppConfig @Inject() (config: Configuration, contactFrontendConfig: ContactFrontendConfig) {
 
-  val contactFrontendUrl: String           =
+  val platformHost: Option[String] = config.getOptional[String]("platform.frontend.host")
+
+  val contactFrontendUrl: String =
     contactFrontendConfig.baseUrl.getOrElse(sys.error("Could not find config for contact frontend url"))
+
   val contactFormServiceIdentifier: String =
     contactFrontendConfig.serviceId.getOrElse(sys.error("Could not find config for contact frontend service id"))
 
@@ -42,5 +45,10 @@ class AppConfig @Inject() (config: Configuration, contactFrontendConfig: Contact
   val maxVerificationAttempts: Int = config.get[Int]("maximum-verification-attempts")
 
   val verificationAttemptsLockTimeHours: Long = config.get[Long]("tax-check-verification-attempts-lock-hours")
+
+  val exitSurveyUrl: String = {
+    val baseUrl = platformHost.getOrElse(config.get[String]("feedback-frontend.base-url"))
+    s"$baseUrl/feedback/$contactFormServiceIdentifier"
+  }
 
 }
