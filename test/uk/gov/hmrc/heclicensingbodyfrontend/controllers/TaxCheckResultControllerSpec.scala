@@ -375,6 +375,7 @@ class TaxCheckResultControllerSpec
                 { doc =>
                   doc.select(".govuk-panel__body").text should include regex matchRegex
                   checkDetailsEnteredRows(doc, matchRequest)
+                  checkExitSurveyLink(doc)
                 }
               )
             }
@@ -422,6 +423,7 @@ class TaxCheckResultControllerSpec
                 { doc =>
                   doc.select(".govuk-panel__body").text should include regex matchRegex
                   checkDetailsEnteredRows(doc, companyMatchRequest)
+                  checkExitSurveyLink(doc)
                 }
               )
             }
