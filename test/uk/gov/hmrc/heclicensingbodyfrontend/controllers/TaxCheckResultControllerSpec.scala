@@ -168,6 +168,12 @@ class TaxCheckResultControllerSpec
 
     }
 
+    def checkExitSurveyLink(doc: Document) =
+      doc.select(".govuk-body > .govuk-link").last().parents().first().html shouldBe messageFromMessageKey(
+        "exitSurvey.linkText",
+        routes.ExitSurveyController.exitSurvey().url
+      )
+
     "handling request to tax check Valid page " must {
 
       def performAction(): Future[Result] = controller.taxCheckMatch(FakeRequest())
@@ -228,6 +234,7 @@ class TaxCheckResultControllerSpec
                 { doc =>
                   doc.select(".govuk-panel__body").text should include regex matchRegex
                   checkDetailsEnteredRows(doc, matchRequest)
+                  checkExitSurveyLink(doc)
                 }
               )
             }
@@ -272,6 +279,7 @@ class TaxCheckResultControllerSpec
                 { doc =>
                   doc.select(".govuk-panel__body").text should include regex matchRegex
                   checkDetailsEnteredRows(doc, companyMatchRequest)
+                  checkExitSurveyLink(doc)
                 }
               )
             }
@@ -299,17 +307,6 @@ class TaxCheckResultControllerSpec
               testValidPageForCompany(dateTime, "10 September 2021, 12:00am")
 
             }
-
-          }
-
-          "a tax check code cannot be found in session " in {
-
-            val session = HECSession(UserAnswers.empty, None)
-
-            inSequence {
-              mockGetSession(session)
-            }
-            assertThrows[RuntimeException](await(performAction()))
 
           }
 
@@ -378,6 +375,7 @@ class TaxCheckResultControllerSpec
                 { doc =>
                   doc.select(".govuk-panel__body").text should include regex matchRegex
                   checkDetailsEnteredRows(doc, matchRequest)
+                  checkExitSurveyLink(doc)
                 }
               )
             }
@@ -425,6 +423,7 @@ class TaxCheckResultControllerSpec
                 { doc =>
                   doc.select(".govuk-panel__body").text should include regex matchRegex
                   checkDetailsEnteredRows(doc, companyMatchRequest)
+                  checkExitSurveyLink(doc)
                 }
               )
             }

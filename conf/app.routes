@@ -24,3 +24,4 @@ GET        /code-expired                        uk.gov.hmrc.heclicensingbodyfron
 GET        /details-not-found                   uk.gov.hmrc.heclicensingbodyfrontend.controllers.TaxCheckResultController.taxCheckNotMatch
 GET        /too-many-attempts                   uk.gov.hmrc.heclicensingbodyfrontend.controllers.TaxCheckResultController.tooManyVerificationAttempts
 
+GET        /exit-survey                         uk.gov.hmrc.heclicensingbodyfrontend.controllers.ExitSurveyController.exitSurvey
