@@ -26,13 +26,23 @@
 @(form: Form[models.DateOfBirth], back: Call)(implicit request: Request[_], messages: Messages)
 @key = @{"dateOfBirth"}
 @title = @{messages(s"$key.title")}
-@inputErrorClass = @{if(form.hasErrors) " govuk-input--error" else ""}
+@inputErrorClass = @{"govuk-input--error"}
+@wholeDateErrors = @{List("error.invalid", "error.required", "error.inFuture", "error.tooFarInPast")}
+@dayErrors = @{List("error.dayRequired", "error.dayAndYearRequired", "error.dayAndMonthRequired")}
+@monthErrors = @{List("error.monthRequired", "error.monthAndYearRequired", "error.dayAndMonthRequired")}
+@yearErrors = @{List("error.yearRequired", "error.yearLength", "error.monthAndYearRequired", "error.dayAndYearRequired")}
+@errorLink = @{form.error(key).map(e =>
+  if (wholeDateErrors.contains(e.message) || dayErrors.contains(e.message)) { "day" }
+  else if (monthErrors.contains(e.message)) { "month" }
+  else if (yearErrors.contains(e.message)) { "year" }
+  else ""
+).getOrElse("")}
 
 @layout(pageTitle = Some(title), hasErrors = form.hasErrors, backLocation = Some(back)) {
 
     @if(form.errors.nonEmpty) {
         @govukErrorSummary(ErrorSummary(errorList = form.errors.map(e => ErrorLink(
-            href = Some(s"#${e.key}-day"),
+            href = Some(s"#${e.key}-$errorLink"),
             content = Text(s"${messages(s"${e.key}.${e.message}", e.args: _*)}")
         )), title = Text(messages("generic.errorSummary"))))
     }
@@ -47,17 +57,26 @@
                 InputItem(
                     name = "day",
                     value = form.data.get(s"$key-day"),
-                    classes = "govuk-input--width-2" + inputErrorClass
+                    classes = "govuk-input--width-2" + form.error(key).map(e =>
+                      if (wholeDateErrors.contains(e.message) || dayErrors.contains(e.message)) { s" $inputErrorClass" }
+                      else ""
+                    ).getOrElse("")
                 ),
                 InputItem(
                     name = "month",
                     value = form.data.get(s"$key-month"),
-                    classes = "govuk-input--width-2" + inputErrorClass
+                    classes = "govuk-input--width-2" + form.error(key).map(e =>
+                      if (wholeDateErrors.contains(e.message) || monthErrors.contains(e.message)) { s" $inputErrorClass" }
+                      else ""
+                    ).getOrElse("")
                 ),
                 InputItem(
                     name = "year",
                     value = form.data.get(s"$key-year"),
-                    classes = "govuk-input--width-4" + inputErrorClass
+                    classes = "govuk-input--width-4" + form.error(key).map(e =>
+                      if (wholeDateErrors.contains(e.message) || yearErrors.contains(e.message)) { s" $inputErrorClass" }
+                      else ""
+                    ).getOrElse("")
                 )
             ),
             hint = Some(Hint(
