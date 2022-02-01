@@ -14,6 +14,8 @@
  * limitations under the License.
  *@
 
+@import cats.syntax.eq._
+@import cats.instances.string._
 @import play.api.i18n.Messages
 @import play.api.data.Form
 @import play.api.mvc.{Call, Request}
@@ -25,17 +27,36 @@
 
 @(form: Form[models.DateOfBirth], back: Call)(implicit request: Request[_], messages: Messages)
 @key = @{"dateOfBirth"}
+@dayKey = @{ s"$key-day" }
+@monthKey = @{ s"$key-month" }
+@yearKey = @{ s"$key-year" }
 @title = @{messages(s"$key.title")}
-@inputErrorClass = @{if(form.hasErrors) " govuk-input--error" else ""}
+@errorLinksTo = @{
+  List(dayKey, monthKey, yearKey, key).collectFirst{
+      case k if form.errors.map(_.key).contains(k) => if(k === key) dayKey else k
+  }.getOrElse("")
+}
+@inputClassWithErrorIfRequired(inputKey: String, baseClass: String) = @{
+    if(form.errors.exists(e => e.key === inputKey || e.key === key)) s"$baseClass  govuk-input--error"
+    else baseClass
+}
 
 @layout(pageTitle = Some(title), hasErrors = form.hasErrors, backLocation = Some(back)) {
 
     @if(form.errors.nonEmpty) {
-        @govukErrorSummary(ErrorSummary(errorList = form.errors.map(e => ErrorLink(
-            href = Some(s"#${e.key}-day"),
-            content = Text(s"${messages(s"${e.key}.${e.message}", e.args: _*)}")
-        )), title = Text(messages("generic.errorSummary"))))
+        @govukErrorSummary(
+            ErrorSummary(
+                title = Text(messages("generic.errorSummary")),
+                errorList = form.errors.headOption.toList.map(e =>
+                ErrorLink(
+                    href = Some(s"#$errorLinksTo"),
+                    content = Text(s"${messages(s"$key.${e.message}", e.args: _*)}")
+                )
+            )
+            )
+        )
     }
+
 
 
     @formWithCSRF(action = routes.DateOfBirthController.dateOfBirthSubmit()) {
@@ -47,24 +68,24 @@
                 InputItem(
                     name = "day",
                     value = form.data.get(s"$key-day"),
-                    classes = "govuk-input--width-2" + inputErrorClass
+                    classes = inputClassWithErrorIfRequired(dayKey, "govuk-input--width-2")
                 ),
                 InputItem(
                     name = "month",
                     value = form.data.get(s"$key-month"),
-                    classes = "govuk-input--width-2" + inputErrorClass
+                    classes = inputClassWithErrorIfRequired(monthKey, "govuk-input--width-2")
                 ),
                 InputItem(
                     name = "year",
                     value = form.data.get(s"$key-year"),
-                    classes = "govuk-input--width-4" + inputErrorClass
+                    classes = inputClassWithErrorIfRequired(yearKey, "govuk-input--width-4")
                 )
             ),
             hint = Some(Hint(
                 content = Text(messages(s"$key.hint"))
             )),
-            errorMessage = form.error(key).map(e => ErrorMessage(
-                content = Text(s"${messages(s"${e.key}.${e.message}", e.args: _*)}")
+            errorMessage = form.errors.headOption.map(e => ErrorMessage(
+                content = Text(s"${messages(s"$key.${e.message}", e.args: _*)}")
             )),
             fieldset = Some(Fieldset(
                 legend = Some(Legend(
