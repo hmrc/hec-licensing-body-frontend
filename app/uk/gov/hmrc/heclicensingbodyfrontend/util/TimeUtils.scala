@@ -69,7 +69,8 @@ object TimeUtils {
           case None :: None :: Some(_) :: Nil    =>
             val errorMessage = "error.dayAndMonthRequired"
             Left(Seq(FormError(dayKey, errorMessage), FormError(monthKey, errorMessage)))
-          case _                                 => Left(Seq(FormError(dateKey, "error.required")))
+          case _                                 =>
+            Left(Seq(FormError(dateKey, "error.required")))
         }
 
       def toValidInt(
@@ -88,28 +89,29 @@ object TimeUtils {
       ): Either[Seq[FormError], LocalDate] =
         for {
           dateFieldStrings <- dateFieldStringValues(data)
-          day ← toValidInt(dateFieldStrings._1, Some(31), dayKey).leftMap(Seq(_))
           month ← toValidInt(dateFieldStrings._2, Some(12), monthKey).leftMap(Seq(_))
           year ← toValidInt(dateFieldStrings._3, None, yearKey).leftMap(Seq(_))
-          date ← Either
-                   .fromTry(Try(LocalDate.of(year, month, day)))
-                   .leftMap(_ => Seq(FormError(dateKey, "error.invalid")))
-                   .flatMap(date =>
-                     if (dateFieldStrings._3.length =!= 4) {
-                       Left(Seq(FormError(yearKey, "error.yearLength")))
-                     } else {
-                       if (maximumDateInclusive.exists(_.isBefore(date)))
-                         Left(Seq(FormError(dateKey, "error.inFuture", tooFarInFutureArgs)))
-                       else if (minimumDateInclusive.exists(_.isAfter(date)))
-                         Left(Seq(FormError(dateKey, "error.tooFarInPast", tooFarInPastArgs)))
-                       else
-                         extraValidation
-                           .map(_(date))
-                           .find(_.isLeft)
-                           .getOrElse(Right(()))
-                           .map(_ => date)
-                     }
+          date ← toValidInt(dateFieldStrings._1, Some(31), dayKey)
+                   .leftMap(Seq(_))
+                   .flatMap(day =>
+                     Either
+                       .fromTry(Try(LocalDate.of(year, month, day)))
+                       .leftMap(_ => Seq(FormError(dayKey, "error.invalid")))
                    )
+          _ ←
+            if (dateFieldStrings._3.length =!= 4)
+              Left(Seq(FormError(yearKey, "error.yearLength")))
+            else if (maximumDateInclusive.exists(_.isBefore(date)))
+              Left(Seq(FormError(dateKey, "error.inFuture", tooFarInFutureArgs)))
+            else if (minimumDateInclusive.exists(_.isAfter(date)))
+              Left(Seq(FormError(dateKey, "error.tooFarInPast", tooFarInPastArgs)))
+            else
+              extraValidation
+                .map(_(date))
+                .find(_.isLeft)
+                .getOrElse(Right(()))
+                .map(_ => date)
+
         } yield date
 
       override def unbind(key: String, value: LocalDate): Map[String, String] =
