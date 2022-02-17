@@ -46,7 +46,7 @@
 )(contentBlock: Html)(implicit request: Request[_], messages: Messages)
 
 @serviceNameAndHeading = @{pageTitle.fold(messages("service.name"))(t => s"""$t - ${messages("service.name")}""")}
-@govTitle = @{serviceNameAndHeading + " - " + messages("gov.uk")}
+@govTitle = @{serviceNameAndHeading + " - GOV.UK"}
 @documentTitle = @{if(hasErrors) { messages("generic.errorPrefix") + ": " + govTitle } else { govTitle }}
 @head = {
   @headBlock.getOrElse(Html(""))
