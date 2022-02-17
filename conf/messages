@@ -3,7 +3,10 @@ gov.uk = GOV.UK
 service.name = Confirm an applicant has done a tax check
 service.text = This is your new service
 
-generic.errorPrefix = Error:
+generic.day=Day
+generic.month=Month
+generic.year=Year
+generic.errorPrefix = Error
 generic.errorSummary = There is a problem
 phaseBanner.beta.text = This is a new service – your <a class="govuk-link" href="{0}">feedback</a> will help us to improve it.
 

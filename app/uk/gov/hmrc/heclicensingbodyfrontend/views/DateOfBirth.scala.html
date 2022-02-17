@@ -64,19 +64,23 @@
         @govukDateInput(DateInput(
             id = key,
             namePrefix = Some(key),
+            classes = s"lang-${messages("lang.code")}",
             items = Seq(
                 InputItem(
                     name = "day",
+                    label = Some(messages("generic.day")),
                     value = form.data.get(s"$key-day"),
                     classes = inputClassWithErrorIfRequired(dayKey, "govuk-input--width-2")
                 ),
                 InputItem(
                     name = "month",
+                    label = Some(messages("generic.month")),
                     value = form.data.get(s"$key-month"),
                     classes = inputClassWithErrorIfRequired(monthKey, "govuk-input--width-2")
                 ),
                 InputItem(
                     name = "year",
+                    label = Some(messages("generic.year")),
                     value = form.data.get(s"$key-year"),
                     classes = inputClassWithErrorIfRequired(yearKey, "govuk-input--width-4")
                 )
@@ -85,12 +89,13 @@
                 content = Text(messages(s"$key.hint"))
             )),
             errorMessage = form.errors.headOption.map(e => ErrorMessage(
-                content = Text(s"${messages(s"$key.${e.message}", e.args: _*)}")
+                content = Text(s"${messages(s"$key.${e.message}", e.args: _*)}"),
+                visuallyHiddenText = Some(messages("generic.errorPrefix"))
             )),
             fieldset = Some(Fieldset(
                 legend = Some(Legend(
                     content = Text(title),
-                    classes = "govuk-fieldset__legend--xl",
+                    classes = s"govuk-fieldset__legend--xl lang-${messages("lang.code")}",
                     isPageHeading = true
                 ))
             ))

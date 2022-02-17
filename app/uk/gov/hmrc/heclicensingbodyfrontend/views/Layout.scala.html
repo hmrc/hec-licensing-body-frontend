@@ -47,7 +47,7 @@
 
 @serviceNameAndHeading = @{pageTitle.fold(messages("service.name"))(t => s"""$t - ${messages("service.name")}""")}
 @govTitle = @{serviceNameAndHeading + " - " + messages("gov.uk")}
-@documentTitle = @{if(hasErrors) { messages("generic.errorPrefix") + " " + govTitle } else { govTitle }}
+@documentTitle = @{if(hasErrors) { messages("generic.errorPrefix") + ": " + govTitle } else { govTitle }}
 @head = {
   @headBlock.getOrElse(Html(""))
   @Html(s"""<link rel="stylesheet" media="screen" href="${controllers.routes.Assets.versioned("stylesheets/application.css")}" ${CSPNonce.attr}>""")

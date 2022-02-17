@@ -40,3 +40,10 @@ body:not(.js-enabled) .js-visible {
     transform: rotate(-45deg);
   }
 }
+
+.govuk-date-input.lang-cy > .govuk-date-input__item {
+  margin-right: 30px;
+  &:first-of-type {
+    margin-right: 12px;
+  }
+}
