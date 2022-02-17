@@ -2,7 +2,10 @@ lang.code=cy
 gov.uk=GOV.UK/CYMRAEG
 service.name=Cadarnhau bod ymgeisydd wedi gwneud gwiriad treth
 service.text=Dyma’ch gwasanaeth newydd
-generic.errorPrefix=Gwall:
+generic.day=Diwrnod
+generic.month=Mis
+generic.year=Blwyddyn
+generic.errorPrefix=Gwall
 generic.errorSummary=Mae problem wedi codi
 phaseBanner.beta.text=Mae hwn yn wasanaeth newydd – bydd eich <a class="govuk-link" href="{0}">adborth</a> yn ein helpu i’w wella.
 button.continue=Yn eich blaen
