@@ -23,9 +23,9 @@
 @import uk.gov.hmrc.heclicensingbodyfrontend.config.AppConfig
 @import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcNewTabLink
 @import uk.gov.hmrc.hmrcfrontend.views.viewmodels.newtablink.NewTabLink
+@import uk.gov.hmrc.heclicensingbodyfrontend.views.helpers.FormErrorMessage.formErrorMessage
 
 @this(layout: Layout, govukInput: GovukInput, govukButton: GovukButton, formWithCSRF: FormWithCSRF, govukErrorSummary : GovukErrorSummary, hmrcNewTabLink: HmrcNewTabLink)
-
 
 @(form: Form[models.HECTaxCheckCode], back: Call)(implicit request: Request[_], messages: Messages, appConfig: AppConfig)
 @key = @{"taxCheckCode"}
@@ -53,10 +53,7 @@
       hint = Some(Hint(
         content = Text(messages(s"$key.hint"))
       )),
-      errorMessage = form.error(key).map(e => ErrorMessage(
-        content = Text(messages(s"$key.${e.message}")),
-        visuallyHiddenText = Some(messages("generic.errorPrefix"))
-      ))
+      errorMessage = formErrorMessage(form, key)
     ))
 
     <p class="govuk-body">
