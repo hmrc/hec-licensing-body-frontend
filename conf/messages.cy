@@ -64,7 +64,6 @@ taxCheckValid.subtitle=Gwiriwyd ar
 taxCheckValid.print=Gallwch <a href="#print-dialogue" class="govuk-link">argraffu neu gadw’r dudalen hon fel PDF</a>.
 taxCheckValid.whatNext.heading=Yr hyn sy’n digwydd nesaf
 taxCheckValid.whatNext.p1=Mae’r ymgeisydd wedi cwblhau ei wiriad treth. Mae hyn yn golygu y gallwch ystyried ei gais am drwydded.
-taxCheckValid.viewAnother.heading=Cadarnhau cod gwirio treth arall
 taxCheckValid.viewAnother.link=Cadarnhau cod gwirio treth ymgeisydd arall
 detailsEntered.title=Manylion wedi’u nodi
 detailsEntered.taxCheckCodeKey=Cod gwirio treth

@@ -79,7 +79,6 @@ taxCheckValid.subtitle = Checked on
 taxCheckValid.print = You can <a href="#print-dialogue" class="govuk-link">print or save this page as a PDF</a>.
 taxCheckValid.whatNext.heading = What happens next
 taxCheckValid.whatNext.p1 = The applicant has completed their tax check. This means you can consider their application for a licence.
-taxCheckValid.viewAnother.heading = Confirm another tax check code
 taxCheckValid.viewAnother.link = Confirm another applicant’s tax check code
 exitSurvey.linkText=<a class="govuk-link" href="{0}">What did you think of this service?</a> (takes 30 seconds)
 
