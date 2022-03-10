@@ -103,7 +103,8 @@ taxCheckExpired.viewAnother.link = Confirm another applicant’s tax check code
 taxCheckNoMatch.title = We could not match these details
 taxCheckNoMatch.whatNext.p1 = You’ll need to check you have the correct details from the applicant, such as their:
 taxCheckNoMatch.bullet1 = valid 9-character tax check code
-taxCheckNoMatch.bullet2 = date of birth or company registration number
+taxCheckNoMatch.bullet2 = licence type
+taxCheckNoMatch.bullet3 = date of birth or company registration number
 taxCheckNoMatch.viewAnother.link = Try again
 
 
