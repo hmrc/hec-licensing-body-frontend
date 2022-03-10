@@ -30,22 +30,23 @@
 
 @layout(pageTitle = Some(title)) {
 
-    <h1 class="govuk-heading-xl">@title</h1>
+  <h1 class="govuk-heading-xl">@title</h1>
 
-    @detailsEntered(userAnswers)
+  @detailsEntered(userAnswers)
 
-    <p class="govuk-body">@messages(s"$key.whatNext.p1", TimeUtils.govDateTimeDisplayFormat(lockAttemptExpiresAt))</p>
+  <p class="govuk-body">@messages(s"$key.whatNext.p1", TimeUtils.govDateTimeDisplayFormat(lockAttemptExpiresAt))</p>
 
-    <p class="govuk-body">@messages(s"$key.whatNext.p2")</p>
+  <p class="govuk-body">@messages(s"$key.whatNext.p2")</p>
 
-    <ul class="govuk-list govuk-list--bullet">
-        <li>@messages(s"$key.bullet1")</li>
-        <li>@messages(s"$key.bullet2")</li>
-        <li>@messages(s"$key.bullet3")</li>
-    </ul>
+  <ul class="govuk-list govuk-list--bullet">
+      <li>@messages(s"$key.bullet1")</li>
+      <li>@messages(s"$key.bullet2")</li>
+      <li>@messages(s"$key.bullet3")</li>
+  </ul>
 
-    <p class="govuk-body govuk-!-margin-bottom-9">
-        <a class="govuk-link" role="button" data-module="govuk-link" href="@{routes.StartController.start()}">@messages(s"$key.viewAnother.link")</a>
-    </p>
+  <h2 class="govuk-heading-m">@messages(s"$key.viewAnother.heading")</h2>
+  <p class="govuk-body govuk-!-margin-bottom-9">
+    <a class="govuk-link" role="button" data-module="govuk-link" href="@{routes.StartController.start()}">@messages(s"$key.viewAnother.link")</a>
+  </p>
 
 }

@@ -127,11 +127,12 @@ crn.error.crnInvalid = Enter the applicant’s company registration number in th
 
 # Too many attempts page
 tooManyAttempts.title = You’ve tried these details too many times
-tooManyAttempts.whatNext.p1 = You’ll need to wait until {0} before trying again. You can try another applicant’s tax check code.
-tooManyAttempts.whatNext.p2 = Before you try these details again, make sure you have the correct:
+tooManyAttempts.whatNext.p1 = You’ll need to wait until {0} before trying this licence applicant’s details again.
+tooManyAttempts.whatNext.p2 = Before you try again, make sure you have the correct:
 tooManyAttempts.bullet1 = 9-character tax check code
-tooManyAttempts.bullet2 = date of birth
-tooManyAttempts.bullet3 = company registration number
+tooManyAttempts.bullet2 = licence type
+tooManyAttempts.bullet3 = date of birth or company registration number
+tooManyAttempts.viewAnother.heading = Next applicant
 tooManyAttempts.viewAnother.link = Confirm another applicant’s tax check code
 
 
