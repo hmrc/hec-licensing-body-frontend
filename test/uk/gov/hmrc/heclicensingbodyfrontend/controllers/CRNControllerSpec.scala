@@ -20,7 +20,7 @@ import cats.data.EitherT
 import cats.instances.future._
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.mvc.Result
+import play.api.mvc.{Cookie, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.heclicensingbodyfrontend.config.AppConfig
@@ -30,7 +30,7 @@ import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus._
 import uk.gov.hmrc.heclicensingbodyfrontend.models.ids.CRN
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType.OperatorOfPrivateHireVehicles
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, Error, HECSession, HECTaxCheckCode, HECTaxCheckMatchRequest, HECTaxCheckMatchResult, HECTaxCheckStatus, TaxCheckVerificationAttempts, UserAnswers}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, Error, HECSession, HECTaxCheckCode, HECTaxCheckMatchRequest, HECTaxCheckMatchResult, HECTaxCheckStatus, Language, TaxCheckVerificationAttempts, UserAnswers}
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
 import uk.gov.hmrc.heclicensingbodyfrontend.services.{AuditService, AuditServiceSupport, HECTaxMatchService, JourneyService, VerificationService}
 import uk.gov.hmrc.heclicensingbodyfrontend.util.StringUtils.StringOps
@@ -106,7 +106,8 @@ class CRNControllerSpec
   def mockSendTaxCheckResultAuditEvent(
     crn: CRN,
     matchResult: HECTaxCheckMatchResult,
-    session: HECSession
+    session: HECSession,
+    language: Language
   ) = {
     val taxCheckCode = matchResult.matchRequest.taxCheckCode
     val auditEvent   = TaxCheckCodeChecked(
@@ -118,7 +119,8 @@ class CRNControllerSpec
         None,
         Some(crn)
       ),
-      session.verificationAttempts.get(taxCheckCode).exists(_.lockExpiresAt.nonEmpty)
+      session.verificationAttempts.get(taxCheckCode).exists(_.lockExpiresAt.nonEmpty),
+      language
     )
     mockSendAuditEvent(auditEvent)
   }
@@ -209,10 +211,12 @@ class CRNControllerSpec
 
     "handling submit on the CRN page" must {
 
-      def performAction(data: (String, String)*): Future[Result] =
-        controller.companyRegistrationNumberSubmit(FakeRequest().withFormUrlEncodedBody(data: _*))
+      def performAction(data: (String, String)*)(language: Language): Future[Result] =
+        controller.companyRegistrationNumberSubmit(
+          FakeRequest().withFormUrlEncodedBody(data: _*).withCookies(Cookie("PLAY_LANG", language.code))
+        )
 
-      behave like sessionDataActionBehaviour(() => performAction())
+      behave like sessionDataActionBehaviour(() => performAction()(Language.English))
 
       val currentSession = HECSession(UserAnswers.empty.copy(taxCheckCode = Some(hecTaxCheckCode)), None)
 
@@ -228,7 +232,7 @@ class CRNControllerSpec
           }
 
           checkFormErrorIsDisplayed(
-            performAction(),
+            performAction()(Language.English),
             messageFromMessageKey("crn.title"),
             messageFromMessageKey("crn.error.required")
           )
@@ -244,7 +248,7 @@ class CRNControllerSpec
           }
 
           checkFormErrorIsDisplayed(
-            performAction("crn" -> "1234567890"),
+            performAction("crn" -> "1234567890")(Language.English),
             messageFromMessageKey("crn.title"),
             messageFromMessageKey("crn.error.crnInvalid")
           )
@@ -260,7 +264,7 @@ class CRNControllerSpec
           }
 
           checkFormErrorIsDisplayed(
-            performAction("crn" -> "12345"),
+            performAction("crn" -> "12345")(Language.English),
             messageFromMessageKey("crn.title"),
             messageFromMessageKey("crn.error.crnInvalid")
           )
@@ -279,7 +283,7 @@ class CRNControllerSpec
               }
 
               checkFormErrorIsDisplayed(
-                performAction("crn" -> crn.value),
+                performAction("crn" -> crn.value)(Language.English),
                 messageFromMessageKey("crn.title"),
                 messageFromMessageKey("crn.error.nonAlphanumericChars")
               )
@@ -310,7 +314,7 @@ class CRNControllerSpec
               }
 
               checkFormErrorIsDisplayed(
-                performAction("crn" -> crn.value),
+                performAction("crn" -> crn.value)(Language.English),
                 messageFromMessageKey("crn.title"),
                 messageFromMessageKey("crn.error.crnInvalid")
               )
@@ -345,7 +349,7 @@ class CRNControllerSpec
               Right(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Match))
             )
             mockVerificationAttempt(taxCheckMatchResult, hecTaxCheckCode, Left(validCRN(0)))(updatedSession)
-            mockSendTaxCheckResultAuditEvent(crn, taxCheckMatchResult, updatedSession)
+            mockSendTaxCheckResultAuditEvent(crn, taxCheckMatchResult, updatedSession, Language.Welsh)
             mockJourneyServiceUpdateAndNext(
               routes.CRNController.companyRegistrationNumber(),
               session,
@@ -355,7 +359,7 @@ class CRNControllerSpec
             )
           }
 
-          assertThrows[RuntimeException](await(performAction("crn" -> validCRN(0).value)))
+          assertThrows[RuntimeException](await(performAction("crn" -> validCRN(0).value)(Language.Welsh)))
         }
 
         "there is no taxCheckCode in the session" in {
@@ -369,7 +373,7 @@ class CRNControllerSpec
           inSequence {
             mockGetSession(session)
           }
-          assertThrows[RuntimeException](await(performAction("crn" -> validCRN(0).value)))
+          assertThrows[RuntimeException](await(performAction("crn" -> validCRN(0).value)(Language.English)))
         }
 
       }
@@ -410,7 +414,7 @@ class CRNControllerSpec
                 Right(HECTaxCheckMatchResult(newMatchRequest, dateTimeChecked, returnStatus))
               )
               mockVerificationAttempt(taxCheckMatchResult, hecTaxCheckCode, Left(crn))(updatedSession)
-              mockSendTaxCheckResultAuditEvent(crn, taxCheckMatchResult, updatedSession)
+              mockSendTaxCheckResultAuditEvent(crn, taxCheckMatchResult, updatedSession, Language.English)
               mockJourneyServiceUpdateAndNext(
                 routes.CRNController.companyRegistrationNumber(),
                 session,
@@ -420,7 +424,7 @@ class CRNControllerSpec
               )
             }
 
-            checkIsRedirect(performAction("crn" -> crn.value), mockNextCall)
+            checkIsRedirect(performAction("crn" -> crn.value)(Language.English), mockNextCall)
           }
 
           def testWhenVerificationAttemptIsMax(
@@ -445,7 +449,7 @@ class CRNControllerSpec
                 Right(mockNextCall)
               )
             }
-            checkIsRedirect(performAction("crn" -> crn.value), mockNextCall)
+            checkIsRedirect(performAction("crn" -> crn.value)(Language.English), mockNextCall)
           }
 
           "the verification attempt has reached maximum attempt and lock is not expired" when {

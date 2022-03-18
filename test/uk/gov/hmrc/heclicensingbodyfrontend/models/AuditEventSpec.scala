@@ -51,7 +51,8 @@ class AuditEventSpec extends Matchers with AnyWordSpecLike {
               Some(DateOfBirth(date)),
               None
             ),
-            tooManyAttempts = false
+            tooManyAttempts = false,
+            Language.English
           )
 
           event.auditType       shouldBe "TaxCheckCodeChecked"
@@ -66,7 +67,8 @@ class AuditEventSpec extends Matchers with AnyWordSpecLike {
                 |    "licenceType": "OperatorOfPrivateHireVehicles",
                 |    "dateOfBirth": "2000-12-31"
                 |  },
-                |  "tooManyAttempts": false
+                |  "tooManyAttempts": false,
+                |  "languagePreference": "English"
                 |}
                 |""".stripMargin
           )
@@ -86,7 +88,8 @@ class AuditEventSpec extends Matchers with AnyWordSpecLike {
               None,
               Some(crn)
             ),
-            tooManyAttempts = true
+            tooManyAttempts = true,
+            Language.Welsh
           )
 
           event.auditType       shouldBe "TaxCheckCodeChecked"
@@ -101,7 +104,8 @@ class AuditEventSpec extends Matchers with AnyWordSpecLike {
               |    "licenceType": "ScrapMetalMobileCollector",
               |    "companyRegistrationNumber": "crn"
               |  },
-              |  "tooManyAttempts": true
+              |  "tooManyAttempts": true,
+              |  "languagePreference": "Welsh"
               |}
               |""".stripMargin
           )

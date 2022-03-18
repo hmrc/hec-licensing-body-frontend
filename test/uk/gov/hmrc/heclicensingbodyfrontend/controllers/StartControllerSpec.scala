@@ -16,9 +16,11 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.controllers
 
+import com.typesafe.config.ConfigFactory
+import play.api.Configuration
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.mvc.Call
+import play.api.mvc.{Call, Cookie}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECSession, HECTaxCheckCode, TaxCheckVerificationAttempts, UserAnswers}
@@ -35,13 +37,23 @@ class StartControllerSpec extends ControllerSpec with SessionSupport with Journe
       bind[JourneyService].toInstance(mockJourneyService)
     )
 
+  override def additionalConfig =
+    Configuration(
+      ConfigFactory.parseString(
+        """
+          |play.i18n.langs = ["en", "cy", "fr"]
+          |""".stripMargin
+      )
+    )
+
   val controller: StartController = instanceOf[StartController]
 
   "StartController" when {
 
     "handling requests to start" must {
 
-      def performAction() = controller.start(FakeRequest())
+      def performAction(languageCode: String) =
+        controller.start(FakeRequest().withCookies(Cookie("PLAY_LANG", languageCode)))
 
       val hecTaxCheckCode = HECTaxCheckCode("XNFFGBDD6")
 
@@ -59,15 +71,21 @@ class StartControllerSpec extends ControllerSpec with SessionSupport with Journe
         "there is an error getting an existing  session" in {
 
           mockGetSession(Left(Error("")))
-          assertThrows[RuntimeException](await(performAction()))
+          assertThrows[RuntimeException](await(performAction("en")))
         }
 
         "there is an error storing a new session" in {
 
           mockGetSession(Right(None))
           mockStoreSession(newSession)(Left(Error("")))
-          assertThrows[RuntimeException](await(performAction()))
+          assertThrows[RuntimeException](await(performAction("en")))
 
+        }
+
+        "the language is not recognised" in {
+          mockGetSession(Right(None))
+          mockStoreSession(newSession)(Right(()))
+          assertThrows[RuntimeException](await(performAction("fr")))
         }
 
       }
@@ -84,7 +102,7 @@ class StartControllerSpec extends ControllerSpec with SessionSupport with Journe
             mockFirstPge(firstPage)
           }
 
-          checkIsRedirect(performAction(), firstPage)
+          checkIsRedirect(performAction("en"), firstPage)
         }
 
         "a new session has been created with verification attempts of previous session " in {
@@ -97,7 +115,7 @@ class StartControllerSpec extends ControllerSpec with SessionSupport with Journe
             mockFirstPge(firstPage)
           }
 
-          checkIsRedirect(performAction(), firstPage)
+          checkIsRedirect(performAction("cy"), firstPage)
         }
 
       }

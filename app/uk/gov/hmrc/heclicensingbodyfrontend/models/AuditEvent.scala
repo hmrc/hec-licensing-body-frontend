@@ -34,7 +34,8 @@ object AuditEvent {
   final case class TaxCheckCodeChecked(
     result: HECTaxCheckStatus,
     submittedData: SubmittedData,
-    tooManyAttempts: Boolean
+    tooManyAttempts: Boolean,
+    languagePreference: Language
   ) extends AuditEvent {
 
     val auditType: String = "TaxCheckCodeChecked"

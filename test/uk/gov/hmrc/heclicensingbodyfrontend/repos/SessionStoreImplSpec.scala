@@ -25,7 +25,7 @@ import play.api.mvc.Request
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.RequestWithSessionData
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{HECSession, UserAnswers}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{HECSession, Language, UserAnswers}
 import uk.gov.hmrc.http.{HeaderCarrier, SessionId}
 
 import java.util.UUID
@@ -49,7 +49,7 @@ class SessionStoreImplSpec extends AnyWordSpec with Matchers with MongoSupportSp
     val fakeRequest                  = FakeRequest().withSession(("sessionId", sessionId.toString))
     implicit val hc: HeaderCarrier   = HeaderCarrier()
     implicit val request: Request[_] =
-      RequestWithSessionData(fakeRequest, sessionData)
+      RequestWithSessionData(fakeRequest, sessionData, Language.English)
   }
 
   "SessionStoreImpl" must {

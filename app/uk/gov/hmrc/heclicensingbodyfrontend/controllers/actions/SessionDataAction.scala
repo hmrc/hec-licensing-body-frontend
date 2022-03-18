@@ -16,11 +16,12 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions
 
+import cats.syntax.either._
 import com.google.inject.{Inject, Singleton}
 import play.api.mvc.Results.Redirect
 import play.api.mvc._
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.{routes, toFuture}
-import uk.gov.hmrc.heclicensingbodyfrontend.models.HECSession
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{HECSession, Language}
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging
 
@@ -28,7 +29,8 @@ import scala.concurrent.{ExecutionContext, Future}
 
 final case class RequestWithSessionData[A](
   request: Request[A],
-  sessionData: HECSession
+  sessionData: HECSession,
+  language: Language
 ) extends WrappedRequest[A](request)
 
 @Singleton
@@ -50,7 +52,10 @@ class SessionDataAction @Inject() (
         _.doThrow("Could not get session data"),
         {
           case None          => Redirect(routes.StartController.start())
-          case Some(session) => block(RequestWithSessionData(request, session))
+          case Some(session) =>
+            val messagesRequest = new MessagesRequest(request, mcc.messagesApi)
+            val language        = Language.fromRequest(messagesRequest).valueOr(sys.error)
+            block(RequestWithSessionData(request, session, language))
         }
       )
 

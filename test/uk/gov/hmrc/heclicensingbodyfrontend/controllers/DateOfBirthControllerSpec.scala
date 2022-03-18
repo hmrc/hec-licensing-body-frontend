@@ -20,7 +20,7 @@ import cats.data.EitherT
 import cats.instances.future._
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.mvc.Result
+import play.api.mvc.{Cookie, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.heclicensingbodyfrontend.config.AppConfig
@@ -29,7 +29,7 @@ import uk.gov.hmrc.heclicensingbodyfrontend.models.EntityType.Individual
 import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus._
 import uk.gov.hmrc.heclicensingbodyfrontend.models.ids.CRN
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, Error, HECSession, HECTaxCheckCode, HECTaxCheckMatchRequest, HECTaxCheckMatchResult, HECTaxCheckStatus, TaxCheckVerificationAttempts, UserAnswers}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, Error, HECSession, HECTaxCheckCode, HECTaxCheckMatchRequest, HECTaxCheckMatchResult, HECTaxCheckStatus, Language, TaxCheckVerificationAttempts, UserAnswers}
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
 import uk.gov.hmrc.heclicensingbodyfrontend.services.{AuditService, AuditServiceSupport, HECTaxMatchService, JourneyService, VerificationService}
 import uk.gov.hmrc.heclicensingbodyfrontend.util.TimeUtils
@@ -102,7 +102,8 @@ class DateOfBirthControllerSpec
   def mockSendTaxCheckResultAuditEvent(
     dateOfBirth: DateOfBirth,
     matchResult: HECTaxCheckMatchResult,
-    session: HECSession
+    session: HECSession,
+    language: Language
   ) = {
     val taxCheckCode = matchResult.matchRequest.taxCheckCode
     val auditEvent   = TaxCheckCodeChecked(
@@ -114,7 +115,8 @@ class DateOfBirthControllerSpec
         Some(dateOfBirth),
         None
       ),
-      session.verificationAttempts.get(taxCheckCode).exists(_.lockExpiresAt.nonEmpty)
+      session.verificationAttempts.get(taxCheckCode).exists(_.lockExpiresAt.nonEmpty),
+      language
     )
 
     mockSendAuditEvent(auditEvent)
@@ -190,8 +192,10 @@ class DateOfBirthControllerSpec
 
     "handling submit on the date of birth page" must {
 
-      def performAction(data: (String, String)*): Future[Result] =
-        controller.dateOfBirthSubmit(FakeRequest().withFormUrlEncodedBody(data: _*))
+      def performAction(data: (String, String)*)(language: Language): Future[Result] =
+        controller.dateOfBirthSubmit(
+          FakeRequest().withFormUrlEncodedBody(data: _*).withCookies(Cookie("PLAY_LANG", language.code))
+        )
 
       def formData(date: LocalDate): List[(String, String)] = List(
         "dateOfBirth-day"   -> date.getDayOfMonth.toString,
@@ -211,7 +215,7 @@ class DateOfBirthControllerSpec
           }
 
           checkFormErrorIsDisplayed(
-            performAction(),
+            performAction()(Language.English),
             messageFromMessageKey("dateOfBirth.title"),
             messageFromMessageKey("dateOfBirth.error.required")
           )
@@ -236,7 +240,7 @@ class DateOfBirthControllerSpec
                 }
 
                 checkFormErrorIsDisplayed(
-                  performAction(data: _*),
+                  performAction(data: _*)(Language.English),
                   messageFromMessageKey("dateOfBirth.title"),
                   messageFromMessageKey(scenario.expectedErrorMessageKey)
                 )
@@ -254,7 +258,7 @@ class DateOfBirthControllerSpec
           }
 
           checkFormErrorIsDisplayed(
-            performAction(formData(date): _*),
+            performAction(formData(date): _*)(Language.English),
             messageFromMessageKey("dateOfBirth.title"),
             messageFromMessageKey(
               "dateOfBirth.error.inFuture",
@@ -274,7 +278,7 @@ class DateOfBirthControllerSpec
           }
 
           checkFormErrorIsDisplayed(
-            performAction(formData(date): _*),
+            performAction(formData(date): _*)(Language.English),
             messageFromMessageKey("dateOfBirth.title"),
             messageFromMessageKey("dateOfBirth.error.tooFarInPast", TimeUtils.govDisplayFormat(cutoffDate))
           )
@@ -308,13 +312,13 @@ class DateOfBirthControllerSpec
               Right(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Match))
             )
             mockVerificationAttempt(taxCheckMatchResult, hecTaxCheckCode, Right(dob))(updatedSession)
-            mockSendTaxCheckResultAuditEvent(dob, taxCheckMatchResult, updatedSession)
+            mockSendTaxCheckResultAuditEvent(dob, taxCheckMatchResult, updatedSession, Language.Welsh)
             mockJourneyServiceUpdateAndNext(routes.DateOfBirthController.dateOfBirth(), session, updatedSession)(
               Left(Error(""))
             )
           }
 
-          assertThrows[RuntimeException](await(performAction(formData(date): _*)))
+          assertThrows[RuntimeException](await(performAction(formData(date): _*)(Language.Welsh)))
         }
 
         "there is no taxCheckCode in the session" in {
@@ -328,7 +332,7 @@ class DateOfBirthControllerSpec
           inSequence {
             mockGetSession(session)
           }
-          assertThrows[RuntimeException](await(performAction(formData(date): _*)))
+          assertThrows[RuntimeException](await(performAction(formData(date): _*)(Language.English)))
 
         }
 
@@ -367,13 +371,13 @@ class DateOfBirthControllerSpec
                 Right(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, returnStatus))
               )
               mockVerificationAttempt(taxCheckMatchResult, hecTaxCheckCode, Right(dateOfBirth))(updatedSession)
-              mockSendTaxCheckResultAuditEvent(dateOfBirth, taxCheckMatchResult, updatedSession)
+              mockSendTaxCheckResultAuditEvent(dateOfBirth, taxCheckMatchResult, updatedSession, Language.English)
               mockJourneyServiceUpdateAndNext(routes.DateOfBirthController.dateOfBirth(), session, updatedSession)(
                 Right(mockNextCall)
               )
             }
 
-            checkIsRedirect(performAction(formData(date): _*), mockNextCall)
+            checkIsRedirect(performAction(formData(date): _*)(Language.English), mockNextCall)
 
           }
 
@@ -406,7 +410,7 @@ class DateOfBirthControllerSpec
                 )
               }
 
-              checkIsRedirect(performAction(formData(date): _*), mockNextCall)
+              checkIsRedirect(performAction(formData(date): _*)(Language.English), mockNextCall)
             }
 
           }
