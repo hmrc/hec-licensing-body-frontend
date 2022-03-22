@@ -25,7 +25,7 @@ import play.api.test.FakeRequest
 import uk.gov.hmrc.heclicensingbodyfrontend.models.AuditEvent.TaxCheckCodeChecked
 import uk.gov.hmrc.heclicensingbodyfrontend.models.AuditEvent.TaxCheckCodeChecked.SubmittedData
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, EntityType, HECTaxCheckCode, HECTaxCheckStatus}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, EntityType, HECTaxCheckCode, HECTaxCheckStatus, Language}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.AuditExtensions._
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
@@ -74,7 +74,8 @@ class AuditServiceImplSpec extends Matchers with AnyWordSpecLike with MockFactor
             Some(DateOfBirth(LocalDate.now())),
             None
           ),
-          tooManyAttempts = false
+          tooManyAttempts = false,
+          Language.English
         )
 
         val extendedDataEvent = ExtendedDataEvent(

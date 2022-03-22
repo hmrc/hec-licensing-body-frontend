@@ -35,7 +35,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 class JourneyServiceSpec extends ControllerSpec with SessionSupport {
 
-  def requestWithSessionData(s: HECSession): RequestWithSessionData[_] = RequestWithSessionData(FakeRequest(), s)
+  def requestWithSessionData(s: HECSession): RequestWithSessionData[_] =
+    RequestWithSessionData(FakeRequest(), s, Language.Welsh)
 
   implicit val hc: HeaderCarrier                                                                          = HeaderCarrier()
   val mockVerificationService                                                                             = mock[VerificationService]

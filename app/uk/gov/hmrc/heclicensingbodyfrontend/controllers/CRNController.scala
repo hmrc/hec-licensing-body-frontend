@@ -129,7 +129,7 @@ class CRNController @Inject() (
     crn: CRN,
     matchResult: HECTaxCheckMatchResult,
     session: HECSession
-  )(implicit hc: HeaderCarrier, r: Request[_]): Unit = {
+  )(implicit hc: HeaderCarrier, r: RequestWithSessionData[_]): Unit = {
     val taxCheckCode = matchResult.matchRequest.taxCheckCode
     val auditEvent   = TaxCheckCodeChecked(
       matchResult.status,
@@ -140,7 +140,8 @@ class CRNController @Inject() (
         None,
         Some(crn)
       ),
-      session.verificationAttempts.get(taxCheckCode).exists(_.lockExpiresAt.nonEmpty)
+      session.verificationAttempts.get(taxCheckCode).exists(_.lockExpiresAt.nonEmpty),
+      r.language
     )
 
     auditService.sendEvent(auditEvent)

@@ -133,7 +133,7 @@ class DateOfBirthController @Inject() (
     dateOfBirth: DateOfBirth,
     matchResult: HECTaxCheckMatchResult,
     session: HECSession
-  )(implicit hc: HeaderCarrier, r: Request[_]): Unit = {
+  )(implicit hc: HeaderCarrier, r: RequestWithSessionData[_]): Unit = {
     val taxCheckCode = matchResult.matchRequest.taxCheckCode
     val auditEvent   = TaxCheckCodeChecked(
       matchResult.status,
@@ -144,7 +144,8 @@ class DateOfBirthController @Inject() (
         Some(dateOfBirth),
         None
       ),
-      session.verificationAttempts.get(taxCheckCode).exists(_.lockExpiresAt.nonEmpty)
+      session.verificationAttempts.get(taxCheckCode).exists(_.lockExpiresAt.nonEmpty),
+      r.language
     )
 
     auditService.sendEvent(auditEvent)
