@@ -57,7 +57,7 @@ class CRNController @Inject() (
   import CRNController._
 
   val companyRegistrationNumber: Action[AnyContent] = sessionDataAction { implicit request =>
-    val back = journeyService.previous(routes.CRNController.companyRegistrationNumber())
+    val back = journeyService.previous(routes.CRNController.companyRegistrationNumber)
     val crn  = request.sessionData.userAnswers.crn
     val form = crn.fold(crnForm)(crnForm.fill)
     Ok(crnPage(form, back))
@@ -66,7 +66,7 @@ class CRNController @Inject() (
   val companyRegistrationNumberSubmit: Action[AnyContent] = sessionDataAction.async { implicit request =>
     def goToNextPage(crn: CRN): Future[Result] = journeyService
       .updateAndNext(
-        routes.CRNController.companyRegistrationNumber(),
+        routes.CRNController.companyRegistrationNumber,
         request.sessionData.copy(userAnswers = request.sessionData.userAnswers.copy(crn = Some(crn)))
       )
       .fold(
@@ -81,7 +81,7 @@ class CRNController @Inject() (
           Ok(
             crnPage(
               formWithErrors,
-              journeyService.previous(routes.CRNController.companyRegistrationNumber())
+              journeyService.previous(routes.CRNController.companyRegistrationNumber)
             )
           ),
         if (verificationService.maxVerificationAttemptReached(taxCheckCode)(request.sessionData)) goToNextPage
@@ -112,7 +112,7 @@ class CRNController @Inject() (
             verificationService.updateVerificationAttemptCount(taxMatch, taxCheckCode, Left(crn))(request.sessionData)
           _              = auditTaxCheckResult(crn, taxMatch, updatedSession)
           next          <- journeyService
-                             .updateAndNext(routes.CRNController.companyRegistrationNumber(), updatedSession)
+                             .updateAndNext(routes.CRNController.companyRegistrationNumber, updatedSession)
         } yield next
       case _                                 =>
         EitherT.leftT(

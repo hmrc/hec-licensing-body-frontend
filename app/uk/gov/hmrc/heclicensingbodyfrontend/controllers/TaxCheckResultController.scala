@@ -67,7 +67,7 @@ class TaxCheckResultController @Inject() (
 
 //back link is there only in case of NO match
   val taxCheckNotMatch: Action[AnyContent] = sessionDataAction { implicit request =>
-    val back: Call = journeyService.previous(routes.TaxCheckResultController.taxCheckNotMatch())
+    val back: Call = journeyService.previous(routes.TaxCheckResultController.taxCheckNotMatch)
     request.sessionData.taxCheckMatch match {
       case Some(HECTaxCheckMatchResult(taxCheckMatchResult, _, NoMatch)) =>
         Ok(

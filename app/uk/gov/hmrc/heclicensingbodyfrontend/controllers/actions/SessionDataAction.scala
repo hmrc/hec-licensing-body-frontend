@@ -51,7 +51,7 @@ class SessionDataAction @Inject() (
       .foldF[Result](
         _.doThrow("Could not get session data"),
         {
-          case None          => Redirect(routes.StartController.start())
+          case None          => Redirect(routes.StartController.start)
           case Some(session) =>
             val messagesRequest = new MessagesRequest(request, mcc.messagesApi)
             val language        = Language.fromRequest(messagesRequest).valueOr(sys.error)

@@ -147,7 +147,7 @@ class CRNControllerSpec
 
           inSequence {
             mockGetSession(session)
-            mockJourneyServiceGetPrevious(routes.CRNController.companyRegistrationNumber(), session)(
+            mockJourneyServiceGetPrevious(routes.CRNController.companyRegistrationNumber, session)(
               mockPreviousCall
             )
           }
@@ -159,7 +159,7 @@ class CRNControllerSpec
               doc.select("#back").attr("href") shouldBe mockPreviousCall.url
 
               val button = doc.select("form")
-              button.attr("action") shouldBe routes.CRNController.companyRegistrationNumberSubmit().url
+              button.attr("action") shouldBe routes.CRNController.companyRegistrationNumberSubmit.url
 
               val link = doc.select("p > .govuk-link")
               link.text should startWith(messageFromMessageKey("crn.link"))
@@ -181,7 +181,7 @@ class CRNControllerSpec
 
           inSequence {
             mockGetSession(session)
-            mockJourneyServiceGetPrevious(routes.CRNController.companyRegistrationNumber(), session)(
+            mockJourneyServiceGetPrevious(routes.CRNController.companyRegistrationNumber, session)(
               mockPreviousCall
             )
           }
@@ -193,7 +193,7 @@ class CRNControllerSpec
               doc.select("#back").attr("href") shouldBe mockPreviousCall.url
 
               val button = doc.select("form")
-              button.attr("action") shouldBe routes.CRNController.companyRegistrationNumberSubmit().url
+              button.attr("action") shouldBe routes.CRNController.companyRegistrationNumberSubmit.url
 
               val link = doc.select("p > .govuk-link")
               link.text should startWith(messageFromMessageKey("crn.link"))
@@ -226,7 +226,7 @@ class CRNControllerSpec
           inSequence {
             mockGetSession(currentSession)
             mockIsMaxVerificationAttemptReached(hecTaxCheckCode)(false)
-            mockJourneyServiceGetPrevious(routes.CRNController.companyRegistrationNumber(), currentSession)(
+            mockJourneyServiceGetPrevious(routes.CRNController.companyRegistrationNumber, currentSession)(
               mockPreviousCall
             )
           }
@@ -242,7 +242,7 @@ class CRNControllerSpec
           inSequence {
             mockGetSession(currentSession)
             mockIsMaxVerificationAttemptReached(hecTaxCheckCode)(false)
-            mockJourneyServiceGetPrevious(routes.CRNController.companyRegistrationNumber(), currentSession)(
+            mockJourneyServiceGetPrevious(routes.CRNController.companyRegistrationNumber, currentSession)(
               mockPreviousCall
             )
           }
@@ -258,7 +258,7 @@ class CRNControllerSpec
           inSequence {
             mockGetSession(currentSession)
             mockIsMaxVerificationAttemptReached(hecTaxCheckCode)(false)
-            mockJourneyServiceGetPrevious(routes.CRNController.companyRegistrationNumber(), currentSession)(
+            mockJourneyServiceGetPrevious(routes.CRNController.companyRegistrationNumber, currentSession)(
               mockPreviousCall
             )
           }
@@ -277,7 +277,7 @@ class CRNControllerSpec
               inSequence {
                 mockGetSession(currentSession)
                 mockIsMaxVerificationAttemptReached(hecTaxCheckCode)(false)
-                mockJourneyServiceGetPrevious(routes.CRNController.companyRegistrationNumber(), currentSession)(
+                mockJourneyServiceGetPrevious(routes.CRNController.companyRegistrationNumber, currentSession)(
                   mockPreviousCall
                 )
               }
@@ -308,7 +308,7 @@ class CRNControllerSpec
               inSequence {
                 mockGetSession(session)
                 mockIsMaxVerificationAttemptReached(hecTaxCheckCode)(false)
-                mockJourneyServiceGetPrevious(routes.CRNController.companyRegistrationNumber(), session)(
+                mockJourneyServiceGetPrevious(routes.CRNController.companyRegistrationNumber, session)(
                   mockPreviousCall
                 )
               }
@@ -351,7 +351,7 @@ class CRNControllerSpec
             mockVerificationAttempt(taxCheckMatchResult, hecTaxCheckCode, Left(validCRN(0)))(updatedSession)
             mockSendTaxCheckResultAuditEvent(crn, taxCheckMatchResult, updatedSession, Language.Welsh)
             mockJourneyServiceUpdateAndNext(
-              routes.CRNController.companyRegistrationNumber(),
+              routes.CRNController.companyRegistrationNumber,
               session,
               updatedSession
             )(
@@ -416,7 +416,7 @@ class CRNControllerSpec
               mockVerificationAttempt(taxCheckMatchResult, hecTaxCheckCode, Left(crn))(updatedSession)
               mockSendTaxCheckResultAuditEvent(crn, taxCheckMatchResult, updatedSession, Language.English)
               mockJourneyServiceUpdateAndNext(
-                routes.CRNController.companyRegistrationNumber(),
+                routes.CRNController.companyRegistrationNumber,
                 session,
                 updatedSession
               )(
@@ -442,7 +442,7 @@ class CRNControllerSpec
               mockGetSession(session)
               mockIsMaxVerificationAttemptReached(hecTaxCheckCode)(true)
               mockJourneyServiceUpdateAndNext(
-                routes.CRNController.companyRegistrationNumber(),
+                routes.CRNController.companyRegistrationNumber,
                 session,
                 session
               )(

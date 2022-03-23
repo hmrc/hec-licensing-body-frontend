@@ -47,7 +47,7 @@ class LicenceTypeController @Inject() (
     with Logging {
 
   val licenceType: Action[AnyContent] = sessionDataAction { implicit request =>
-    val back        = journeyService.previous(routes.LicenceTypeController.licenceType())
+    val back        = journeyService.previous(routes.LicenceTypeController.licenceType)
     val licenceType = request.sessionData.userAnswers.licenceType
     val form = {
       val emptyForm = licenceTypeForm(licenceTypes)
@@ -64,7 +64,7 @@ class LicenceTypeController @Inject() (
           Ok(
             licenceTypePage(
               formWithErrors,
-              journeyService.previous(routes.LicenceTypeController.licenceType()),
+              journeyService.previous(routes.LicenceTypeController.licenceType),
               licenceTypeOptions
             )
           ),
@@ -80,7 +80,7 @@ class LicenceTypeController @Inject() (
     val updatedSession: HECSession  = request.sessionData.copy(userAnswers = updatedAnswers)
 
     journeyService
-      .updateAndNext(routes.LicenceTypeController.licenceType(), updatedSession)
+      .updateAndNext(routes.LicenceTypeController.licenceType, updatedSession)
       .fold(
         _.doThrow("Could not update session and proceed"),
         Redirect

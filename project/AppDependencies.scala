@@ -2,12 +2,13 @@ import play.core.PlayVersion
 import sbt._
 
 object AppDependencies {
-  val bootStrapVersion = "5.18.0"
-  val hmrcMongoVersion = "0.59.0"
-  val compile          = Seq(
+  val bootStrapVersion = "5.21.0"
+  val hmrcMongoVersion = "0.62.0"
+
+  val compile = Seq(
     "uk.gov.hmrc"       %% "bootstrap-frontend-play-28" % bootStrapVersion,
     "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-28"         % hmrcMongoVersion,
-    "uk.gov.hmrc"       %% "play-frontend-hmrc"         % "3.4.0-play-28",
+    "uk.gov.hmrc"       %% "play-frontend-hmrc"         % "3.7.0-play-28",
     "org.typelevel"     %% "cats-core"                  % "2.7.0",
     "ai.x"              %% "play-json-extensions"       % "0.42.0",
     "com.github.kxbmap" %% "configs"                    % "0.6.1"

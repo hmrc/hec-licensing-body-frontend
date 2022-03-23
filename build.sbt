@@ -6,7 +6,7 @@ import wartremover.WartRemover.autoImport.wartremoverErrors
 
 val appName = "hec-licensing-body-frontend"
 
-val silencerVersion = "1.7.3"
+val silencerVersion = "1.7.8"
 
 lazy val wartremoverSettings =
   Seq(
@@ -47,11 +47,11 @@ lazy val microservice = Project(appName, file("."))
     SbtDistributablesPlugin
   )
   .disablePlugins(JUnitXmlReportPlugin)
-  .settings(addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.10.3"))
+  .settings(addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.13.2" cross CrossVersion.full))
   .settings(addCompilerPlugin("org.scalamacros" %% "paradise" % "2.1.1" cross CrossVersion.full))
   .settings(
     majorVersion := 1,
-    scalaVersion := "2.12.13",
+    scalaVersion := "2.12.15",
     libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
     pipelineStages in Assets := Seq(gzip),
     // ***************

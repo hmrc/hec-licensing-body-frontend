@@ -80,7 +80,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
     "handling calls to 'firstPage'" must {
 
       "return the correct call" in {
-        journeyService.firstPage shouldBe routes.HECTaxCheckCodeController.hecTaxCheckCode()
+        journeyService.firstPage shouldBe routes.HECTaxCheckCodeController.hecTaxCheckCode
       }
 
     }
@@ -95,7 +95,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
             requestWithSessionData(session)
 
           val result = journeyService.updateAndNext(
-            routes.HECTaxCheckCodeController.hecTaxCheckCodeSubmit(),
+            routes.HECTaxCheckCodeController.hecTaxCheckCodeSubmit,
             session
           )
 
@@ -111,7 +111,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
           mockStoreSession(updatedSession)(Left(Error("")))
 
           val result = journeyService.updateAndNext(
-            routes.HECTaxCheckCodeController.hecTaxCheckCode(),
+            routes.HECTaxCheckCodeController.hecTaxCheckCode,
             updatedSession
           )
           await(result.value) shouldBe a[Left[_, _]]
@@ -130,10 +130,10 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
           mockStoreSession(updatedSession)(Right(()))
 
           val result = journeyService.updateAndNext(
-            routes.HECTaxCheckCodeController.hecTaxCheckCode(),
+            routes.HECTaxCheckCodeController.hecTaxCheckCode,
             updatedSession
           )
-          await(result.value) shouldBe Right(routes.LicenceTypeController.licenceType())
+          await(result.value) shouldBe Right(routes.LicenceTypeController.licenceType)
         }
 
         "the licence Type page" when {
@@ -145,7 +145,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
 
             assertThrows[RuntimeException] {
               journeyService.updateAndNext(
-                routes.LicenceTypeController.licenceType(),
+                routes.LicenceTypeController.licenceType,
                 session
               )
             }
@@ -166,10 +166,10 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
             mockStoreSession(updatedSession)(Right(()))
 
             val result = journeyService.updateAndNext(
-              routes.LicenceTypeController.licenceType(),
+              routes.LicenceTypeController.licenceType,
               updatedSession
             )
-            await(result.value) shouldBe Right(routes.DateOfBirthController.dateOfBirth())
+            await(result.value) shouldBe Right(routes.DateOfBirthController.dateOfBirth)
           }
 
           "the licence Type in the session is other than 'Driver Of Taxis And Private Hires'" in {
@@ -195,10 +195,10 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                 mockStoreSession(updatedSession)(Right(()))
 
                 val result = journeyService.updateAndNext(
-                  routes.LicenceTypeController.licenceType(),
+                  routes.LicenceTypeController.licenceType,
                   updatedSession
                 )
-                await(result.value) shouldBe Right(routes.EntityTypeController.entityType())
+                await(result.value) shouldBe Right(routes.EntityTypeController.entityType)
               }
             }
           }
@@ -224,7 +224,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
             mockStoreSession(updatedSession)(Right(()))
 
             val result = journeyService.updateAndNext(
-              routes.EntityTypeController.entityType(),
+              routes.EntityTypeController.entityType,
               updatedSession
             )
             await(result.value) shouldBe Right(nextCall)
@@ -237,18 +237,18 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
 
             assertThrows[RuntimeException] {
               journeyService.updateAndNext(
-                routes.EntityTypeController.entityType(),
+                routes.EntityTypeController.entityType,
                 session
               )
             }
           }
 
           "the entity type in the session is Individual" in {
-            test(EntityType.Individual, routes.DateOfBirthController.dateOfBirth())
+            test(EntityType.Individual, routes.DateOfBirthController.dateOfBirth)
           }
 
           "the entity type in the session is Company" in {
-            test(EntityType.Company, routes.CRNController.companyRegistrationNumber())
+            test(EntityType.Company, routes.CRNController.companyRegistrationNumber)
           }
         }
 
@@ -265,7 +265,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
             }
 
             val result = journeyService.updateAndNext(
-              routes.DateOfBirthController.dateOfBirth(),
+              routes.DateOfBirthController.dateOfBirth,
               updatedSession
             )
             await(result.value) shouldBe Right(nextCall)
@@ -280,7 +280,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
 
             assertThrows[RuntimeException] {
               journeyService.updateAndNext(
-                routes.DateOfBirthController.dateOfBirth(),
+                routes.DateOfBirthController.dateOfBirth,
                 session
               )
             }
@@ -294,7 +294,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                   userAnswersWithAllAnswers,
                   Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Match))
                 ),
-                routes.TaxCheckResultController.taxCheckMatch(),
+                routes.TaxCheckResultController.taxCheckMatch,
                 false
               )
             }
@@ -311,7 +311,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                     )
                   )
                 ),
-                routes.TaxCheckResultController.tooManyVerificationAttempts(),
+                routes.TaxCheckResultController.tooManyVerificationAttempts,
                 true
               )
             }
@@ -328,7 +328,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                     )
                   )
                 ),
-                routes.TaxCheckResultController.taxCheckMatch(),
+                routes.TaxCheckResultController.taxCheckMatch,
                 false
               )
             }
@@ -343,7 +343,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                   userAnswersWithAllAnswers,
                   Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Expired))
                 ),
-                routes.TaxCheckResultController.taxCheckExpired(),
+                routes.TaxCheckResultController.taxCheckExpired,
                 false
               )
             }
@@ -360,7 +360,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                     )
                   )
                 ),
-                routes.TaxCheckResultController.tooManyVerificationAttempts(),
+                routes.TaxCheckResultController.tooManyVerificationAttempts,
                 true
               )
             }
@@ -377,7 +377,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                     )
                   )
                 ),
-                routes.TaxCheckResultController.taxCheckExpired(),
+                routes.TaxCheckResultController.taxCheckExpired,
                 false
               )
             }
@@ -393,7 +393,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                   Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, NoMatch)),
                   verificationAttempts = Map(hecTaxCheckCode -> TaxCheckVerificationAttempts(1, None))
                 ),
-                routes.TaxCheckResultController.taxCheckNotMatch(),
+                routes.TaxCheckResultController.taxCheckNotMatch,
                 false
               )
             }
@@ -410,7 +410,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                     )
                   )
                 ),
-                routes.TaxCheckResultController.tooManyVerificationAttempts(),
+                routes.TaxCheckResultController.tooManyVerificationAttempts,
                 true
               )
             }
@@ -427,7 +427,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                     )
                   )
                 ),
-                routes.TaxCheckResultController.taxCheckNotMatch(),
+                routes.TaxCheckResultController.taxCheckNotMatch,
                 false
               )
             }
@@ -450,7 +450,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
             }
 
             val result = journeyService.updateAndNext(
-              routes.CRNController.companyRegistrationNumber(),
+              routes.CRNController.companyRegistrationNumber,
               updatedSession
             )
             await(result.value) shouldBe Right(nextCall)
@@ -465,7 +465,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
 
             assertThrows[RuntimeException] {
               journeyService.updateAndNext(
-                routes.CRNController.companyRegistrationNumber(),
+                routes.CRNController.companyRegistrationNumber,
                 session
               )
             }
@@ -479,7 +479,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                   userAnswersForCompany,
                   Some(HECTaxCheckMatchResult(taxCheckMatchCompanyRequest, dateTimeChecked, Match))
                 ),
-                routes.TaxCheckResultController.taxCheckMatch(),
+                routes.TaxCheckResultController.taxCheckMatch,
                 false
               )
             }
@@ -496,7 +496,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                     )
                   )
                 ),
-                routes.TaxCheckResultController.tooManyVerificationAttempts(),
+                routes.TaxCheckResultController.tooManyVerificationAttempts,
                 true
               )
             }
@@ -513,7 +513,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                     )
                   )
                 ),
-                routes.TaxCheckResultController.taxCheckMatch(),
+                routes.TaxCheckResultController.taxCheckMatch,
                 false
               )
             }
@@ -528,7 +528,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                   userAnswersForCompany,
                   Some(HECTaxCheckMatchResult(taxCheckMatchCompanyRequest, dateTimeChecked, Expired))
                 ),
-                routes.TaxCheckResultController.taxCheckExpired(),
+                routes.TaxCheckResultController.taxCheckExpired,
                 false
               )
             }
@@ -545,7 +545,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                     )
                   )
                 ),
-                routes.TaxCheckResultController.tooManyVerificationAttempts(),
+                routes.TaxCheckResultController.tooManyVerificationAttempts,
                 true
               )
             }
@@ -562,7 +562,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                     )
                   )
                 ),
-                routes.TaxCheckResultController.taxCheckExpired(),
+                routes.TaxCheckResultController.taxCheckExpired,
                 false
               )
             }
@@ -577,7 +577,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                   userAnswersForCompany,
                   Some(HECTaxCheckMatchResult(taxCheckMatchCompanyRequest, dateTimeChecked, NoMatch))
                 ),
-                routes.TaxCheckResultController.taxCheckNotMatch(),
+                routes.TaxCheckResultController.taxCheckNotMatch,
                 false
               )
             }
@@ -594,7 +594,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                     )
                   )
                 ),
-                routes.TaxCheckResultController.tooManyVerificationAttempts(),
+                routes.TaxCheckResultController.tooManyVerificationAttempts,
                 true
               )
             }
@@ -611,7 +611,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                     )
                   )
                 ),
-                routes.TaxCheckResultController.taxCheckNotMatch(),
+                routes.TaxCheckResultController.taxCheckNotMatch,
                 false
               )
             }
@@ -630,10 +630,10 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
             requestWithSessionData(session)
 
           val result = journeyService.updateAndNext(
-            routes.HECTaxCheckCodeController.hecTaxCheckCode(),
+            routes.HECTaxCheckCodeController.hecTaxCheckCode,
             session
           )
-          await(result.value) shouldBe Right(routes.LicenceTypeController.licenceType())
+          await(result.value) shouldBe Right(routes.LicenceTypeController.licenceType)
 
         }
 
@@ -651,10 +651,10 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
             requestWithSessionData(session)
 
           val result = journeyService.previous(
-            routes.StartController.start()
+            routes.StartController.start
           )
 
-          result shouldBe routes.StartController.start()
+          result shouldBe routes.StartController.start
         }
 
         "the tax check code page" in {
@@ -663,10 +663,10 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
             requestWithSessionData(session)
 
           val result = journeyService.previous(
-            routes.HECTaxCheckCodeController.hecTaxCheckCode()
+            routes.HECTaxCheckCodeController.hecTaxCheckCode
           )
 
-          result shouldBe routes.StartController.start()
+          result shouldBe routes.StartController.start
         }
 
         "the licence type page" in {
@@ -675,10 +675,10 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
             requestWithSessionData(session)
 
           val result = journeyService.previous(
-            routes.LicenceTypeController.licenceType()
+            routes.LicenceTypeController.licenceType
           )
 
-          result shouldBe routes.HECTaxCheckCodeController.hecTaxCheckCode()
+          result shouldBe routes.HECTaxCheckCodeController.hecTaxCheckCode
         }
 
         "the date of birth page via the licence type page" in {
@@ -696,10 +696,10 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
             requestWithSessionData(session)
 
           val result = journeyService.previous(
-            routes.DateOfBirthController.dateOfBirth()
+            routes.DateOfBirthController.dateOfBirth
           )
 
-          result shouldBe routes.LicenceTypeController.licenceType()
+          result shouldBe routes.LicenceTypeController.licenceType
         }
 
         "the date of birth page via the entity type page" in {
@@ -717,10 +717,10 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
             requestWithSessionData(session)
 
           val result = journeyService.previous(
-            routes.DateOfBirthController.dateOfBirth()
+            routes.DateOfBirthController.dateOfBirth
           )
 
-          result shouldBe routes.EntityTypeController.entityType()
+          result shouldBe routes.EntityTypeController.entityType
         }
 
         "the entity type page" in {
@@ -744,10 +744,10 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                 requestWithSessionData(session)
 
               val result = journeyService.previous(
-                routes.EntityTypeController.entityType()
+                routes.EntityTypeController.entityType
               )
 
-              result shouldBe routes.LicenceTypeController.licenceType()
+              result shouldBe routes.LicenceTypeController.licenceType
             }
           }
         }
@@ -767,10 +767,10 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
             requestWithSessionData(session)
 
           val result = journeyService.previous(
-            routes.CRNController.companyRegistrationNumber()
+            routes.CRNController.companyRegistrationNumber
           )
 
-          result shouldBe routes.EntityTypeController.entityType()
+          result shouldBe routes.EntityTypeController.entityType
         }
 
         "Tax Check Code not match page via date of birth page " in {
@@ -786,10 +786,10 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
           }
 
           val result = journeyService.previous(
-            routes.TaxCheckResultController.taxCheckNotMatch()
+            routes.TaxCheckResultController.taxCheckNotMatch
           )
 
-          result shouldBe routes.DateOfBirthController.dateOfBirth()
+          result shouldBe routes.DateOfBirthController.dateOfBirth
         }
 
         "Tax Check Code not match page via CRN page " in {
@@ -804,10 +804,10 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
           }
 
           val result = journeyService.previous(
-            routes.TaxCheckResultController.taxCheckNotMatch()
+            routes.TaxCheckResultController.taxCheckNotMatch
           )
 
-          result shouldBe routes.CRNController.companyRegistrationNumber()
+          result shouldBe routes.CRNController.companyRegistrationNumber
         }
 
         "Tax Check Code expired page via DOB page" in {
@@ -821,10 +821,10 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
             mockVerificationAttemptReached(hecTaxCheckCode, session)(false)
           }
           val result                                      = journeyService.previous(
-            routes.TaxCheckResultController.taxCheckExpired()
+            routes.TaxCheckResultController.taxCheckExpired
           )
 
-          result shouldBe routes.DateOfBirthController.dateOfBirth()
+          result shouldBe routes.DateOfBirthController.dateOfBirth
         }
 
         "Tax Check Code expired page via CRN page" in {
@@ -838,10 +838,10 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
             mockVerificationAttemptReached(hecTaxCheckCode, session)(false)
           }
           val result                                      = journeyService.previous(
-            routes.TaxCheckResultController.taxCheckExpired()
+            routes.TaxCheckResultController.taxCheckExpired
           )
 
-          result shouldBe routes.CRNController.companyRegistrationNumber()
+          result shouldBe routes.CRNController.companyRegistrationNumber
         }
 
         "Tax Check Code valid page via DOB page" in {
@@ -855,10 +855,10 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
             mockVerificationAttemptReached(hecTaxCheckCode, session)(false)
           }
           val result                                      = journeyService.previous(
-            routes.TaxCheckResultController.taxCheckMatch()
+            routes.TaxCheckResultController.taxCheckMatch
           )
 
-          result shouldBe routes.DateOfBirthController.dateOfBirth()
+          result shouldBe routes.DateOfBirthController.dateOfBirth
         }
 
         "Tax Check Code valid page via CRN page" in {
@@ -872,10 +872,10 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
             mockVerificationAttemptReached(hecTaxCheckCode, session)(false)
           }
           val result                                      = journeyService.previous(
-            routes.TaxCheckResultController.taxCheckMatch()
+            routes.TaxCheckResultController.taxCheckMatch
           )
 
-          result shouldBe routes.CRNController.companyRegistrationNumber()
+          result shouldBe routes.CRNController.companyRegistrationNumber
         }
 
       }

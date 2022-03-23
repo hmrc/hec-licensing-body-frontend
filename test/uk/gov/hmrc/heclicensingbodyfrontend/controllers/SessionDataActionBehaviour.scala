@@ -43,7 +43,7 @@ trait SessionDataActionBehaviour { this: ControllerSpec with SessionSupport =>
       "no session data is found" in {
         mockGetSession(Right(None))
 
-        checkIsRedirect(performAction(), routes.StartController.start())
+        checkIsRedirect(performAction(), routes.StartController.start)
       }
 
     }

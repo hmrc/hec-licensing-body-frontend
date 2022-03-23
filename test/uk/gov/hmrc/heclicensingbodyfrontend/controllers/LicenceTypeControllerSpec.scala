@@ -66,7 +66,7 @@ class LicenceTypeControllerSpec
 
           inSequence {
             mockGetSession(session)
-            mockJourneyServiceGetPrevious(routes.LicenceTypeController.licenceType(), session)(
+            mockJourneyServiceGetPrevious(routes.LicenceTypeController.licenceType, session)(
               mockPreviousCall
             )
           }
@@ -81,7 +81,7 @@ class LicenceTypeControllerSpec
               selectedOptions.isEmpty shouldBe true
 
               val form = doc.select("form")
-              form.attr("action") shouldBe routes.LicenceTypeController.licenceTypeSubmit().url
+              form.attr("action") shouldBe routes.LicenceTypeController.licenceTypeSubmit.url
 
             }
           )
@@ -111,7 +111,7 @@ class LicenceTypeControllerSpec
         "nothing has been submitted" in {
           inSequence {
             mockGetSession(currentSession)
-            mockJourneyServiceGetPrevious(routes.LicenceTypeController.licenceType(), currentSession)(
+            mockJourneyServiceGetPrevious(routes.LicenceTypeController.licenceType, currentSession)(
               mockPreviousCall
             )
           }
@@ -127,7 +127,7 @@ class LicenceTypeControllerSpec
         "an index is submitted which is too large" in {
           inSequence {
             mockGetSession(currentSession)
-            mockJourneyServiceGetPrevious(routes.LicenceTypeController.licenceType(), currentSession)(mockPreviousCall)
+            mockJourneyServiceGetPrevious(routes.LicenceTypeController.licenceType, currentSession)(mockPreviousCall)
           }
 
           checkFormErrorIsDisplayed(
@@ -140,7 +140,7 @@ class LicenceTypeControllerSpec
         "a value is submitted which is not a number" in {
           inSequence {
             mockGetSession(currentSession)
-            mockJourneyServiceGetPrevious(routes.LicenceTypeController.licenceType(), currentSession)(mockPreviousCall)
+            mockJourneyServiceGetPrevious(routes.LicenceTypeController.licenceType, currentSession)(mockPreviousCall)
           }
 
           checkFormErrorIsDisplayed(
@@ -162,7 +162,7 @@ class LicenceTypeControllerSpec
 
           inSequence {
             mockGetSession(session)
-            mockJourneyServiceUpdateAndNext(routes.LicenceTypeController.licenceType(), session, updatedSession)(
+            mockJourneyServiceUpdateAndNext(routes.LicenceTypeController.licenceType, session, updatedSession)(
               Left(Error(new Exception))
             )
           }
@@ -187,7 +187,7 @@ class LicenceTypeControllerSpec
 
             inSequence {
               mockGetSession(session)
-              mockJourneyServiceUpdateAndNext(routes.LicenceTypeController.licenceType(), session, updatedSession)(
+              mockJourneyServiceUpdateAndNext(routes.LicenceTypeController.licenceType, session, updatedSession)(
                 Right(mockNextCall)
               )
             }
@@ -209,7 +209,7 @@ class LicenceTypeControllerSpec
 
             inSequence {
               mockGetSession(session)
-              mockJourneyServiceUpdateAndNext(routes.LicenceTypeController.licenceType(), session, updatedSession)(
+              mockJourneyServiceUpdateAndNext(routes.LicenceTypeController.licenceType, session, updatedSession)(
                 Right(mockNextCall)
               )
             }
