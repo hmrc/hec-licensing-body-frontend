@@ -53,17 +53,17 @@ lazy val microservice = Project(appName, file("."))
     majorVersion := 1,
     scalaVersion := "2.12.15",
     libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
-    pipelineStages in Assets := Seq(gzip),
+    Assets / pipelineStages := Seq(gzip),
     // ***************
     // Use the silencer plugin to suppress warnings
     scalacOptions += "-P:silencer:pathFilters=routes",
-    scalacOptions in Test --= Seq("-Ywarn-value-discard"),
+    Test / scalacOptions --= Seq("-Ywarn-value-discard"),
     libraryDependencies ++= Seq(
       compilerPlugin("com.github.ghik" % "silencer-plugin" % silencerVersion cross CrossVersion.full),
       "com.github.ghik" % "silencer-lib" % silencerVersion % Provided cross CrossVersion.full
     ),
     // ***************
-    sources in (Compile, doc) := Seq.empty
+    Compile / doc / sources := Seq.empty
   )
   .settings(publishingSettings: _*)
   .configs(IntegrationTest)
