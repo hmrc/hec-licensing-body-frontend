@@ -52,7 +52,7 @@ class DateOfBirthController @Inject() (
     with Logging {
 
   val dateOfBirth: Action[AnyContent] = sessionDataAction { implicit request =>
-    val back        = journeyService.previous(routes.DateOfBirthController.dateOfBirth())
+    val back        = journeyService.previous(routes.DateOfBirthController.dateOfBirth)
     val dateOfBirth = request.sessionData.userAnswers.dateOfBirth
     val form = {
       val emptyForm = dateOfBirthForm()
@@ -65,7 +65,7 @@ class DateOfBirthController @Inject() (
     def goToNextPage(dob: DateOfBirth): Future[Result] =
       journeyService
         .updateAndNext(
-          routes.DateOfBirthController.dateOfBirth(),
+          routes.DateOfBirthController.dateOfBirth,
           request.sessionData.copy(userAnswers = request.sessionData.userAnswers.copy(dateOfBirth = Some(dob)))
         )
         .fold(
@@ -78,7 +78,7 @@ class DateOfBirthController @Inject() (
       .fold(
         formWithErrors =>
           Ok(
-            dateOfBirthPage(formWithErrors, journeyService.previous(routes.DateOfBirthController.dateOfBirth()))
+            dateOfBirthPage(formWithErrors, journeyService.previous(routes.DateOfBirthController.dateOfBirth))
           ),
         if (verificationService.maxVerificationAttemptReached(taxCheckCode)(request.sessionData)) goToNextPage
         else handleValidDateOfBirth
@@ -116,7 +116,7 @@ class DateOfBirthController @Inject() (
             )
           _              = auditTaxCheckResult(dateOfBirth, taxMatch, updatedSession)
           next          <- journeyService
-                             .updateAndNext(routes.DateOfBirthController.dateOfBirth(), updatedSession)
+                             .updateAndNext(routes.DateOfBirthController.dateOfBirth, updatedSession)
         } yield next
       case _                                 =>
         EitherT.leftT(

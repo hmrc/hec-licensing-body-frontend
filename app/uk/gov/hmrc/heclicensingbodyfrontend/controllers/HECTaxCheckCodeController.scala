@@ -50,7 +50,7 @@ class HECTaxCheckCodeController @Inject() (
   val hecTaxCheckCode: Action[AnyContent] = sessionDataAction { implicit request =>
     val taxCheckCode = request.sessionData.userAnswers.taxCheckCode
     val form         = taxCheckCode.fold(taxCheckCodeForm)(taxCheckCodeForm.fill)
-    val back         = journeyService.previous(routes.HECTaxCheckCodeController.hecTaxCheckCode())
+    val back         = journeyService.previous(routes.HECTaxCheckCodeController.hecTaxCheckCode)
     Ok(hecTaxCheckCodePage(form, back))
   }
 
@@ -60,7 +60,7 @@ class HECTaxCheckCodeController @Inject() (
       val updatedSession = request.sessionData.copy(userAnswers = updatedAnswers)
 
       journeyService
-        .updateAndNext(routes.HECTaxCheckCodeController.hecTaxCheckCode(), updatedSession)
+        .updateAndNext(routes.HECTaxCheckCodeController.hecTaxCheckCode, updatedSession)
         .fold(
           _.doThrow("Could not store session and find next location"),
           Redirect
@@ -74,7 +74,7 @@ class HECTaxCheckCodeController @Inject() (
           Ok(
             hecTaxCheckCodePage(
               formWithErrors,
-              journeyService.previous(routes.HECTaxCheckCodeController.hecTaxCheckCode())
+              journeyService.previous(routes.HECTaxCheckCodeController.hecTaxCheckCode)
             )
           ),
         handleValidTaxCheckCode

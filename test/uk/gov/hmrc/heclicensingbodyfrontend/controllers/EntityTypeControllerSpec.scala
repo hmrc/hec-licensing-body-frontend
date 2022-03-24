@@ -68,7 +68,7 @@ class EntityTypeControllerSpec
 
           inSequence {
             mockGetSession(session)
-            mockJourneyServiceGetPrevious(routes.EntityTypeController.entityType(), session)(
+            mockJourneyServiceGetPrevious(routes.EntityTypeController.entityType, session)(
               mockPreviousCall
             )
           }
@@ -83,7 +83,7 @@ class EntityTypeControllerSpec
               selectedOptions.isEmpty shouldBe true
 
               val form = doc.select("form")
-              form.attr("action") shouldBe routes.EntityTypeController.entityTypeSubmit().url
+              form.attr("action") shouldBe routes.EntityTypeController.entityTypeSubmit.url
 
             }
           )
@@ -113,7 +113,7 @@ class EntityTypeControllerSpec
         "nothing has been submitted" in {
           inSequence {
             mockGetSession(currentSession)
-            mockJourneyServiceGetPrevious(routes.EntityTypeController.entityType(), currentSession)(
+            mockJourneyServiceGetPrevious(routes.EntityTypeController.entityType, currentSession)(
               mockPreviousCall
             )
           }
@@ -129,7 +129,7 @@ class EntityTypeControllerSpec
         "an invalid index is submitted" in {
           inSequence {
             mockGetSession(currentSession)
-            mockJourneyServiceGetPrevious(routes.EntityTypeController.entityType(), currentSession)(mockPreviousCall)
+            mockJourneyServiceGetPrevious(routes.EntityTypeController.entityType, currentSession)(mockPreviousCall)
           }
           val invalidIndex = entityTypes.length + 1
           checkFormErrorIsDisplayed(
@@ -142,7 +142,7 @@ class EntityTypeControllerSpec
         "a non-numeric value is submitted" in {
           inSequence {
             mockGetSession(currentSession)
-            mockJourneyServiceGetPrevious(routes.EntityTypeController.entityType(), currentSession)(mockPreviousCall)
+            mockJourneyServiceGetPrevious(routes.EntityTypeController.entityType, currentSession)(mockPreviousCall)
           }
 
           checkFormErrorIsDisplayed(
@@ -164,7 +164,7 @@ class EntityTypeControllerSpec
 
           inSequence {
             mockGetSession(session)
-            mockJourneyServiceUpdateAndNext(routes.EntityTypeController.entityType(), session, updatedSession)(
+            mockJourneyServiceUpdateAndNext(routes.EntityTypeController.entityType, session, updatedSession)(
               Left(Error(new Exception))
             )
           }
@@ -189,7 +189,7 @@ class EntityTypeControllerSpec
 
             inSequence {
               mockGetSession(session)
-              mockJourneyServiceUpdateAndNext(routes.EntityTypeController.entityType(), session, updatedSession)(
+              mockJourneyServiceUpdateAndNext(routes.EntityTypeController.entityType, session, updatedSession)(
                 Right(mockNextCall)
               )
             }
@@ -212,7 +212,7 @@ class EntityTypeControllerSpec
 
             inSequence {
               mockGetSession(session)
-              mockJourneyServiceUpdateAndNext(routes.EntityTypeController.entityType(), session, updatedSession)(
+              mockJourneyServiceUpdateAndNext(routes.EntityTypeController.entityType, session, updatedSession)(
                 Right(mockNextCall)
               )
             }

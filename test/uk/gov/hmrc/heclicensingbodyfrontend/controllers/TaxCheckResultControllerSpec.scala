@@ -171,7 +171,7 @@ class TaxCheckResultControllerSpec
     def checkExitSurveyLink(doc: Document) =
       doc.select(".govuk-body > .govuk-link").last().parents().first().html shouldBe messageFromMessageKey(
         "exitSurvey.linkText",
-        routes.ExitSurveyController.exitSurvey().url
+        routes.ExitSurveyController.exitSurvey.url
       )
 
     "handling request to tax check Valid page " must {
@@ -473,7 +473,7 @@ class TaxCheckResultControllerSpec
 
           inSequence {
             mockGetSession(session)
-            mockJourneyServiceGetPrevious(routes.TaxCheckResultController.taxCheckNotMatch(), session)(
+            mockJourneyServiceGetPrevious(routes.TaxCheckResultController.taxCheckNotMatch, session)(
               mockPreviousCall
             )
           }
@@ -487,7 +487,7 @@ class TaxCheckResultControllerSpec
 
           inSequence {
             mockGetSession(session)
-            mockJourneyServiceGetPrevious(routes.TaxCheckResultController.taxCheckNotMatch(), session)(
+            mockJourneyServiceGetPrevious(routes.TaxCheckResultController.taxCheckNotMatch, session)(
               mockPreviousCall
             )
           }
@@ -501,7 +501,7 @@ class TaxCheckResultControllerSpec
 
           inSequence {
             mockGetSession(session)
-            mockJourneyServiceGetPrevious(routes.TaxCheckResultController.taxCheckNotMatch(), session)(
+            mockJourneyServiceGetPrevious(routes.TaxCheckResultController.taxCheckNotMatch, session)(
               mockPreviousCall
             )
           }
@@ -519,7 +519,7 @@ class TaxCheckResultControllerSpec
 
             inSequence {
               mockGetSession(session)
-              mockJourneyServiceGetPrevious(routes.TaxCheckResultController.taxCheckNotMatch(), session)(
+              mockJourneyServiceGetPrevious(routes.TaxCheckResultController.taxCheckNotMatch, session)(
                 mockPreviousCall
               )
             }
@@ -537,7 +537,7 @@ class TaxCheckResultControllerSpec
 
             inSequence {
               mockGetSession(session)
-              mockJourneyServiceGetPrevious(routes.TaxCheckResultController.taxCheckNotMatch(), session)(
+              mockJourneyServiceGetPrevious(routes.TaxCheckResultController.taxCheckNotMatch, session)(
                 mockPreviousCall
               )
             }

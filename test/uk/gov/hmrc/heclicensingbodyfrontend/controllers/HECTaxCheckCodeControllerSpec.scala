@@ -67,8 +67,8 @@ class HECTaxCheckCodeControllerSpec
 
           inSequence {
             mockGetSession(session)
-            mockJourneyServiceGetPrevious(routes.HECTaxCheckCodeController.hecTaxCheckCode(), session)(
-              routes.StartController.start()
+            mockJourneyServiceGetPrevious(routes.HECTaxCheckCodeController.hecTaxCheckCode, session)(
+              routes.StartController.start
             )
           }
 
@@ -79,7 +79,7 @@ class HECTaxCheckCodeControllerSpec
               doc.select("#back").attr("href") shouldBe appConfig.licencingBodyStartUrl
 
               val button = doc.select("form")
-              button.attr("action") shouldBe routes.HECTaxCheckCodeController.hecTaxCheckCodeSubmit().url
+              button.attr("action") shouldBe routes.HECTaxCheckCodeController.hecTaxCheckCodeSubmit.url
 
               val link = doc.select("p > .govuk-link")
               link.text           should include(messageFromMessageKey("taxCheckCode.link"))
@@ -110,7 +110,7 @@ class HECTaxCheckCodeControllerSpec
         "nothing has been submitted" in {
           inSequence {
             mockGetSession(currentSession)
-            mockJourneyServiceGetPrevious(routes.HECTaxCheckCodeController.hecTaxCheckCode(), currentSession)(
+            mockJourneyServiceGetPrevious(routes.HECTaxCheckCodeController.hecTaxCheckCode, currentSession)(
               mockPreviousCall
             )
           }
@@ -125,7 +125,7 @@ class HECTaxCheckCodeControllerSpec
         "the submitted value is too long" in {
           inSequence {
             mockGetSession(currentSession)
-            mockJourneyServiceGetPrevious(routes.HECTaxCheckCodeController.hecTaxCheckCode(), currentSession)(
+            mockJourneyServiceGetPrevious(routes.HECTaxCheckCodeController.hecTaxCheckCode, currentSession)(
               mockPreviousCall
             )
           }
@@ -140,7 +140,7 @@ class HECTaxCheckCodeControllerSpec
         "the submitted value is too short" in {
           inSequence {
             mockGetSession(currentSession)
-            mockJourneyServiceGetPrevious(routes.HECTaxCheckCodeController.hecTaxCheckCode(), currentSession)(
+            mockJourneyServiceGetPrevious(routes.HECTaxCheckCodeController.hecTaxCheckCode, currentSession)(
               mockPreviousCall
             )
           }
@@ -155,7 +155,7 @@ class HECTaxCheckCodeControllerSpec
         "the submitted value contains characters which are not letters or digits" in {
           inSequence {
             mockGetSession(currentSession)
-            mockJourneyServiceGetPrevious(routes.HECTaxCheckCodeController.hecTaxCheckCode(), currentSession)(
+            mockJourneyServiceGetPrevious(routes.HECTaxCheckCodeController.hecTaxCheckCode, currentSession)(
               mockPreviousCall
             )
           }
@@ -174,7 +174,7 @@ class HECTaxCheckCodeControllerSpec
 
               inSequence {
                 mockGetSession(currentSession)
-                mockJourneyServiceGetPrevious(routes.HECTaxCheckCodeController.hecTaxCheckCode(), currentSession)(
+                mockJourneyServiceGetPrevious(routes.HECTaxCheckCodeController.hecTaxCheckCode, currentSession)(
                   mockPreviousCall
                 )
               }
@@ -199,7 +199,7 @@ class HECTaxCheckCodeControllerSpec
           inSequence {
             mockGetSession(currentSession)
             mockJourneyServiceUpdateAndNext(
-              routes.HECTaxCheckCodeController.hecTaxCheckCode(),
+              routes.HECTaxCheckCodeController.hecTaxCheckCode,
               currentSession,
               currentSession.copy(userAnswers = currentSession.userAnswers.copy(taxCheckCode = Some(taxCheckCode)))
             )(Left(Error(new RuntimeException("Oh no!"))))
@@ -218,7 +218,7 @@ class HECTaxCheckCodeControllerSpec
           inSequence {
             mockGetSession(currentSession)
             mockJourneyServiceUpdateAndNext(
-              routes.HECTaxCheckCodeController.hecTaxCheckCode(),
+              routes.HECTaxCheckCodeController.hecTaxCheckCode,
               currentSession,
               currentSession.copy(userAnswers = currentSession.userAnswers.copy(taxCheckCode = Some(taxCheckCode)))
             )(Right(mockNextCall))

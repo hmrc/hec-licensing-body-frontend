@@ -62,15 +62,15 @@ class JourneyServiceImpl @Inject() (
   // values are the destination pages which come after the current page. The destination can sometimes depend
   // on state (e.g. the type of user or the answers users have submitted), hence the value type `HECSession => Call`
   lazy val paths: Map[Call, HECSession => Call] = Map(
-    routes.StartController.start()                     -> (_ => firstPage),
-    routes.HECTaxCheckCodeController.hecTaxCheckCode() -> (_ => routes.LicenceTypeController.licenceType()),
-    routes.LicenceTypeController.licenceType()         -> licenceTypeRoute,
-    routes.EntityTypeController.entityType()           -> entityTypeRoute,
-    routes.DateOfBirthController.dateOfBirth()         -> dateOfBirthOrCRNRoute,
-    routes.CRNController.companyRegistrationNumber()   -> dateOfBirthOrCRNRoute
+    routes.StartController.start                     -> (_ => firstPage),
+    routes.HECTaxCheckCodeController.hecTaxCheckCode -> (_ => routes.LicenceTypeController.licenceType),
+    routes.LicenceTypeController.licenceType         -> licenceTypeRoute,
+    routes.EntityTypeController.entityType           -> entityTypeRoute,
+    routes.DateOfBirthController.dateOfBirth         -> dateOfBirthOrCRNRoute,
+    routes.CRNController.companyRegistrationNumber   -> dateOfBirthOrCRNRoute
   )
 
-  lazy val firstPage: Call = routes.HECTaxCheckCodeController.hecTaxCheckCode()
+  lazy val firstPage: Call = routes.HECTaxCheckCodeController.hecTaxCheckCode
 
   override def updateAndNext(current: Call, updatedSession: HECSession)(implicit
     r: RequestWithSessionData[_],
@@ -99,10 +99,10 @@ class JourneyServiceImpl @Inject() (
         case _                   => None
       }
 
-    if (current === routes.StartController.start())
+    if (current === routes.StartController.start)
       current
     else
-      loop(routes.StartController.start())
+      loop(routes.StartController.start)
         .getOrElse(sys.error(s"Could not find previous for $current"))
   }
 
@@ -112,8 +112,8 @@ class JourneyServiceImpl @Inject() (
         sys.error("Could not find licence type for licence type route")
 
       case Some(licenceType) =>
-        if (licenceTypeForIndividualAndCompany(licenceType)) routes.EntityTypeController.entityType()
-        else routes.DateOfBirthController.dateOfBirth()
+        if (licenceTypeForIndividualAndCompany(licenceType)) routes.EntityTypeController.entityType
+        else routes.DateOfBirthController.dateOfBirth
 
     }
 
@@ -126,10 +126,10 @@ class JourneyServiceImpl @Inject() (
         sys.error("Could not find entity type for entity type route")
 
       case Some(EntityType.Individual) =>
-        routes.DateOfBirthController.dateOfBirth()
+        routes.DateOfBirthController.dateOfBirth
 
       case Some(EntityType.Company) =>
-        routes.CRNController.companyRegistrationNumber()
+        routes.CRNController.companyRegistrationNumber
 
     }
 
@@ -137,14 +137,14 @@ class JourneyServiceImpl @Inject() (
     val taxCode           = session.userAnswers.taxCheckCode.getOrElse(sys.error("taxCheckCode is not in session"))
     val maxAttemptReached = verificationService.maxVerificationAttemptReached(taxCode)(session)
     if (maxAttemptReached) {
-      routes.TaxCheckResultController.tooManyVerificationAttempts()
+      routes.TaxCheckResultController.tooManyVerificationAttempts
     } else {
       session.taxCheckMatch match {
         case Some(taxMatch) =>
           taxMatch match {
-            case HECTaxCheckMatchResult(_, _, Match)   => routes.TaxCheckResultController.taxCheckMatch()
-            case HECTaxCheckMatchResult(_, _, Expired) => routes.TaxCheckResultController.taxCheckExpired()
-            case HECTaxCheckMatchResult(_, _, NoMatch) => routes.TaxCheckResultController.taxCheckNotMatch()
+            case HECTaxCheckMatchResult(_, _, Match)   => routes.TaxCheckResultController.taxCheckMatch
+            case HECTaxCheckMatchResult(_, _, Expired) => routes.TaxCheckResultController.taxCheckExpired
+            case HECTaxCheckMatchResult(_, _, NoMatch) => routes.TaxCheckResultController.taxCheckNotMatch
           }
 
         case None =>

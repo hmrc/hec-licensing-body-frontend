@@ -82,8 +82,8 @@ class HECTaxCheckCodeControllerCYSpec
 
           inSequence {
             mockGetSession(session)
-            mockJourneyServiceGetPrevious(routes.HECTaxCheckCodeController.hecTaxCheckCode(), session)(
-              routes.StartController.start()
+            mockJourneyServiceGetPrevious(routes.HECTaxCheckCodeController.hecTaxCheckCode, session)(
+              routes.StartController.start
             )
           }
 
@@ -94,7 +94,7 @@ class HECTaxCheckCodeControllerCYSpec
               doc.select("#back").attr("href") shouldBe appConfig.licencingBodyStartUrl
 
               val button = doc.select("form")
-              button.attr("action") shouldBe routes.HECTaxCheckCodeController.hecTaxCheckCodeSubmit().url
+              button.attr("action") shouldBe routes.HECTaxCheckCodeController.hecTaxCheckCodeSubmit.url
 
               val link = doc.select("p > .govuk-link")
               link.text           should include(messageFromMessageKey("taxCheckCode.link"))

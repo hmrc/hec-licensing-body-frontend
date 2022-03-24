@@ -45,7 +45,7 @@ class EntityTypeController @Inject() (
     with I18nSupport {
 
   val entityType: Action[AnyContent] = sessionDataAction { implicit request =>
-    val back       = journeyService.previous(routes.EntityTypeController.entityType())
+    val back       = journeyService.previous(routes.EntityTypeController.entityType)
     val entityType = request.sessionData.userAnswers.entityType
     val form = {
       val emptyForm = entityTypeForm(entityTypes)
@@ -60,7 +60,7 @@ class EntityTypeController @Inject() (
       val updatedAnswers = request.sessionData.userAnswers.copy(entityType = Some(entityType))
       journeyService
         .updateAndNext(
-          routes.EntityTypeController.entityType(),
+          routes.EntityTypeController.entityType,
           request.sessionData.copy(userAnswers = updatedAnswers)
         )
         .fold(
@@ -76,7 +76,7 @@ class EntityTypeController @Inject() (
           Ok(
             entityTypePage(
               formWithErrors,
-              journeyService.previous(routes.EntityTypeController.entityType()),
+              journeyService.previous(routes.EntityTypeController.entityType),
               entityTypes
             )
           ),

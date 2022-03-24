@@ -135,7 +135,7 @@ class DateOfBirthControllerSpec
           val session = HECSession(UserAnswers.empty, None)
           inSequence {
             mockGetSession(session)
-            mockJourneyServiceGetPrevious(routes.DateOfBirthController.dateOfBirth(), session)(mockPreviousCall)
+            mockJourneyServiceGetPrevious(routes.DateOfBirthController.dateOfBirth, session)(mockPreviousCall)
           }
 
           checkPageIsDisplayed(
@@ -150,7 +150,7 @@ class DateOfBirthControllerSpec
 
               val form = doc.select("form")
               form
-                .attr("action") shouldBe routes.DateOfBirthController.dateOfBirthSubmit().url
+                .attr("action") shouldBe routes.DateOfBirthController.dateOfBirthSubmit.url
             }
           )
 
@@ -165,7 +165,7 @@ class DateOfBirthControllerSpec
             )
           inSequence {
             mockGetSession(session)
-            mockJourneyServiceGetPrevious(routes.DateOfBirthController.dateOfBirth(), session)(mockPreviousCall)
+            mockJourneyServiceGetPrevious(routes.DateOfBirthController.dateOfBirth, session)(mockPreviousCall)
           }
 
           checkPageIsDisplayed(
@@ -180,7 +180,7 @@ class DateOfBirthControllerSpec
 
               val form = doc.select("form")
               form
-                .attr("action") shouldBe routes.DateOfBirthController.dateOfBirthSubmit().url
+                .attr("action") shouldBe routes.DateOfBirthController.dateOfBirthSubmit.url
             }
           )
 
@@ -211,7 +211,7 @@ class DateOfBirthControllerSpec
           inSequence {
             mockGetSession(session)
             mockIsMaxVerificationAttemptReached(hecTaxCheckCode)(false)
-            mockJourneyServiceGetPrevious(routes.DateOfBirthController.dateOfBirth(), session)(mockPreviousCall)
+            mockJourneyServiceGetPrevious(routes.DateOfBirthController.dateOfBirth, session)(mockPreviousCall)
           }
 
           checkFormErrorIsDisplayed(
@@ -234,7 +234,7 @@ class DateOfBirthControllerSpec
                 inSequence {
                   mockGetSession(session)
                   mockIsMaxVerificationAttemptReached(hecTaxCheckCode)(false)
-                  mockJourneyServiceGetPrevious(routes.DateOfBirthController.dateOfBirth(), session)(
+                  mockJourneyServiceGetPrevious(routes.DateOfBirthController.dateOfBirth, session)(
                     mockPreviousCall
                   )
                 }
@@ -254,7 +254,7 @@ class DateOfBirthControllerSpec
           inSequence {
             mockGetSession(session)
             mockIsMaxVerificationAttemptReached(hecTaxCheckCode)(false)
-            mockJourneyServiceGetPrevious(routes.DateOfBirthController.dateOfBirth(), session)(mockPreviousCall)
+            mockJourneyServiceGetPrevious(routes.DateOfBirthController.dateOfBirth, session)(mockPreviousCall)
           }
 
           checkFormErrorIsDisplayed(
@@ -274,7 +274,7 @@ class DateOfBirthControllerSpec
           inSequence {
             mockGetSession(session)
             mockIsMaxVerificationAttemptReached(hecTaxCheckCode)(false)
-            mockJourneyServiceGetPrevious(routes.DateOfBirthController.dateOfBirth(), session)(mockPreviousCall)
+            mockJourneyServiceGetPrevious(routes.DateOfBirthController.dateOfBirth, session)(mockPreviousCall)
           }
 
           checkFormErrorIsDisplayed(
@@ -313,7 +313,7 @@ class DateOfBirthControllerSpec
             )
             mockVerificationAttempt(taxCheckMatchResult, hecTaxCheckCode, Right(dob))(updatedSession)
             mockSendTaxCheckResultAuditEvent(dob, taxCheckMatchResult, updatedSession, Language.Welsh)
-            mockJourneyServiceUpdateAndNext(routes.DateOfBirthController.dateOfBirth(), session, updatedSession)(
+            mockJourneyServiceUpdateAndNext(routes.DateOfBirthController.dateOfBirth, session, updatedSession)(
               Left(Error(""))
             )
           }
@@ -372,7 +372,7 @@ class DateOfBirthControllerSpec
               )
               mockVerificationAttempt(taxCheckMatchResult, hecTaxCheckCode, Right(dateOfBirth))(updatedSession)
               mockSendTaxCheckResultAuditEvent(dateOfBirth, taxCheckMatchResult, updatedSession, Language.English)
-              mockJourneyServiceUpdateAndNext(routes.DateOfBirthController.dateOfBirth(), session, updatedSession)(
+              mockJourneyServiceUpdateAndNext(routes.DateOfBirthController.dateOfBirth, session, updatedSession)(
                 Right(mockNextCall)
               )
             }
@@ -405,7 +405,7 @@ class DateOfBirthControllerSpec
               inSequence {
                 mockGetSession(session)
                 mockIsMaxVerificationAttemptReached(hecTaxCheckCode)(true)
-                mockJourneyServiceUpdateAndNext(routes.DateOfBirthController.dateOfBirth(), session, updatedSession)(
+                mockJourneyServiceUpdateAndNext(routes.DateOfBirthController.dateOfBirth, session, updatedSession)(
                   Right(mockNextCall)
                 )
               }
