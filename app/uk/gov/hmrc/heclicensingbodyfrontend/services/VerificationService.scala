@@ -19,7 +19,6 @@ package uk.gov.hmrc.heclicensingbodyfrontend.services
 import cats.implicits.catsSyntaxEq
 import com.google.inject.{ImplementedBy, Inject}
 import uk.gov.hmrc.heclicensingbodyfrontend.config.AppConfig
-import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus.NoMatch
 import uk.gov.hmrc.heclicensingbodyfrontend.models._
 import uk.gov.hmrc.heclicensingbodyfrontend.models.ids.CRN
 import uk.gov.hmrc.heclicensingbodyfrontend.util.{Logging, TimeProvider}
@@ -85,7 +84,7 @@ class VerificationServiceImpl @Inject() (timeProvider: TimeProvider)(implicit ap
     ))
     lazy val removeAttemptFromSession  = currentVerificationAttemptMap - taxCheckCode
 
-    val verificationAttempts = if (taxMatch.status === NoMatch) {
+    val verificationAttempts = if (taxMatch.status.matchFailureReason.nonEmpty) {
       //case when user verification attempt == max attempt
       //lock expire time should get added
       if (penultimateAttempt) updateAttemptCountAndLockExpiresTime

@@ -18,7 +18,7 @@ package uk.gov.hmrc.heclicensingbodyfrontend.models
 
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
-import play.api.libs.json.Json
+import play.api.libs.json.{JsObject, JsString, Json}
 import uk.gov.hmrc.heclicensingbodyfrontend.models.AuditEvent.TaxCheckCodeChecked
 import uk.gov.hmrc.heclicensingbodyfrontend.models.AuditEvent.TaxCheckCodeChecked.SubmittedData
 import uk.gov.hmrc.heclicensingbodyfrontend.models.ids.CRN
@@ -32,15 +32,67 @@ class AuditEventSpec extends Matchers with AnyWordSpecLike {
 
     "have the correct JSON" when {
 
+      def failureJson(reason: String, description: String): JsObject =
+        JsObject(
+          Seq(
+            "failureReason"            -> JsString(reason),
+            "failureReasonDescription" -> JsString(description)
+          )
+        )
+
       val taxCheckStatusTestCases =
         List(
-          HECTaxCheckStatus.Match   -> "Success",
-          HECTaxCheckStatus.NoMatch -> "Failed",
-          HECTaxCheckStatus.Expired -> "Expired"
+          (HECTaxCheckStatus.Match, "Success", None),
+          (
+            HECTaxCheckStatus.NoMatch(MatchFailureReason.TaxCheckCodeNotMatched),
+            "Failed",
+            Some(failureJson("TaxCheckCodeNotMatched", "Tax Check Code not matched"))
+          ),
+          (
+            HECTaxCheckStatus.NoMatch(MatchFailureReason.EntityTypeNotMatched),
+            "Failed",
+            Some(failureJson("EntityTypeNotMatched", "Entity Type (Individual or Company) not matched"))
+          ),
+          (
+            HECTaxCheckStatus.NoMatch(MatchFailureReason.DateOfBirthNotMatched),
+            "Failed",
+            Some(failureJson("DateOfBirthNotMatched", "Date of Birth not matched"))
+          ),
+          (
+            HECTaxCheckStatus.NoMatch(MatchFailureReason.CRNNotMatched),
+            "Failed",
+            Some(failureJson("CRNNotMatched", "Company Registration Number not matched"))
+          ),
+          (
+            HECTaxCheckStatus.NoMatch(MatchFailureReason.LicenceTypeNotMatched),
+            "Failed",
+            Some(failureJson("LicenceTypeNotMatched", "Licence Type not matched"))
+          ),
+          (
+            HECTaxCheckStatus.NoMatch(MatchFailureReason.LicenceTypeEntityTypeNotMatched),
+            "Failed",
+            Some(
+              failureJson(
+                "LicenceTypeEntityTypeNotMatched",
+                "Licence Type and Entity Type (Individual or Company) not matched"
+              )
+            )
+          ),
+          (
+            HECTaxCheckStatus.NoMatch(MatchFailureReason.LicenceTypeDateOfBirthNotMatched),
+            "Failed",
+            Some(failureJson("LicenceTypeDateOfBirthNotMatched", "Licence Type and Date of Birth not matched"))
+          ),
+          (
+            HECTaxCheckStatus.NoMatch(MatchFailureReason.LicenceTypeCRNNotMatched),
+            "Failed",
+            Some(failureJson("LicenceTypeCRNNotMatched", "Licence Type and Company Registration Number not matched"))
+          ),
+          (HECTaxCheckStatus.Expired, "Expired", None)
         )
 
       "individual data is given" in {
-        taxCheckStatusTestCases.foreach { case (hecTaxCheckStatus, hecTaxCheckStatusString) =>
+        taxCheckStatusTestCases.foreach { case (hecTaxCheckStatus, hecTaxCheckStatusString, failureJson) =>
           val date  = LocalDate.of(2000, 12, 31)
           val event = TaxCheckCodeChecked(
             hecTaxCheckStatus,
@@ -52,13 +104,15 @@ class AuditEventSpec extends Matchers with AnyWordSpecLike {
               None
             ),
             tooManyAttempts = false,
-            Language.English
+            Language.English,
+            hecTaxCheckStatus.matchFailureReason
           )
 
           event.auditType       shouldBe "TaxCheckCodeChecked"
           event.transactionName shouldBe "tax-check-code-checked"
-          Json.toJson(event)    shouldBe Json.parse(
-            s"""
+          Json.toJson(event)    shouldBe (Json
+            .parse(
+              s"""
                 |{
                 |  "result": "$hecTaxCheckStatusString",
                 |  "submittedData" : {
@@ -71,13 +125,14 @@ class AuditEventSpec extends Matchers with AnyWordSpecLike {
                 |  "languagePreference": "English"
                 |}
                 |""".stripMargin
-          )
+            )
+            .as[JsObject] ++ failureJson.getOrElse(JsObject.empty))
         }
 
       }
 
       "company data is given" in {
-        taxCheckStatusTestCases.foreach { case (hecTaxCheckStatus, hecTaxCheckStatusString) =>
+        taxCheckStatusTestCases.foreach { case (hecTaxCheckStatus, hecTaxCheckStatusString, failureJson) =>
           val crn   = CRN("crn")
           val event = TaxCheckCodeChecked(
             hecTaxCheckStatus,
@@ -89,13 +144,15 @@ class AuditEventSpec extends Matchers with AnyWordSpecLike {
               Some(crn)
             ),
             tooManyAttempts = true,
-            Language.Welsh
+            Language.Welsh,
+            hecTaxCheckStatus.matchFailureReason
           )
 
           event.auditType       shouldBe "TaxCheckCodeChecked"
           event.transactionName shouldBe "tax-check-code-checked"
-          Json.toJson(event)    shouldBe Json.parse(
-            s"""
+          Json.toJson(event)    shouldBe (Json
+            .parse(
+              s"""
               |{
               |  "result": "$hecTaxCheckStatusString",
               |  "submittedData" : {
@@ -108,7 +165,8 @@ class AuditEventSpec extends Matchers with AnyWordSpecLike {
               |  "languagePreference": "Welsh"
               |}
               |""".stripMargin
-          )
+            )
+            .as[JsObject] ++ failureJson.getOrElse(JsObject.empty))
         }
       }
 

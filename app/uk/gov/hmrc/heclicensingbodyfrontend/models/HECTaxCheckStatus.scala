@@ -19,20 +19,31 @@ package uk.gov.hmrc.heclicensingbodyfrontend.models
 import ai.x.play.json.Jsonx
 import ai.x.play.json.SingletonEncoder.simpleName
 import ai.x.play.json.implicits.formatSingleton
-import cats.Eq
-import play.api.libs.json.Format
+import play.api.libs.json.{Format, Json, OFormat}
 
 sealed trait HECTaxCheckStatus extends Product with Serializable
 
 object HECTaxCheckStatus {
+
   case object Match extends HECTaxCheckStatus
 
-  case object NoMatch extends HECTaxCheckStatus
+  final case class NoMatch(failureReason: MatchFailureReason) extends HECTaxCheckStatus
 
   case object Expired extends HECTaxCheckStatus
 
-  implicit val eq: Eq[HECTaxCheckStatus] = Eq.fromUniversalEquals
+  implicit class HECTaxCheckStatusOps(private val s: HECTaxCheckStatus) extends AnyVal {
+
+    def matchFailureReason: Option[MatchFailureReason] = s match {
+      case NoMatch(reason) => Some(reason)
+      case _               => None
+    }
+
+  }
 
   @SuppressWarnings(Array("org.wartremover.warts.All"))
-  implicit val format: Format[HECTaxCheckStatus] = Jsonx.formatSealed[HECTaxCheckStatus]
+  implicit val format: Format[HECTaxCheckStatus] = {
+    implicit val noMatchFormat: OFormat[NoMatch] = Json.format
+    Jsonx.formatSealed[HECTaxCheckStatus]
+  }
+
 }

@@ -26,7 +26,7 @@ import play.api.test.Helpers._
 import uk.gov.hmrc.heclicensingbodyfrontend.connectors.HECConnector
 import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus._
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, Error, HECTaxCheckCode, HECTaxCheckMatchRequest, HECTaxCheckMatchResult}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, Error, HECTaxCheckCode, HECTaxCheckMatchRequest, HECTaxCheckMatchResult, MatchFailureReason}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
 import java.time.{LocalDate, ZoneId, ZonedDateTime}
@@ -56,7 +56,7 @@ class HECTaxMatchServiceSpec extends AnyWordSpec with Matchers with MockFactory 
 
   val taxCheckMatchResult: HECTaxCheckMatchResult   = HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Match)
   val taxCheckNoMatchResult: HECTaxCheckMatchResult =
-    HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, NoMatch)
+    HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, NoMatch(MatchFailureReason.EntityTypeNotMatched))
   val taxCheckExpiredResult: HECTaxCheckMatchResult =
     HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Expired)
 

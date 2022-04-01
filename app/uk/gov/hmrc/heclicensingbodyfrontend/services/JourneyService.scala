@@ -142,9 +142,9 @@ class JourneyServiceImpl @Inject() (
       session.taxCheckMatch match {
         case Some(taxMatch) =>
           taxMatch match {
-            case HECTaxCheckMatchResult(_, _, Match)   => routes.TaxCheckResultController.taxCheckMatch
-            case HECTaxCheckMatchResult(_, _, Expired) => routes.TaxCheckResultController.taxCheckExpired
-            case HECTaxCheckMatchResult(_, _, NoMatch) => routes.TaxCheckResultController.taxCheckNotMatch
+            case HECTaxCheckMatchResult(_, _, Match)      => routes.TaxCheckResultController.taxCheckMatch
+            case HECTaxCheckMatchResult(_, _, Expired)    => routes.TaxCheckResultController.taxCheckExpired
+            case HECTaxCheckMatchResult(_, _, NoMatch(_)) => routes.TaxCheckResultController.taxCheckNotMatch
           }
 
         case None =>
