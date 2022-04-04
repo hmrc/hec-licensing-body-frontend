@@ -193,7 +193,12 @@ class TaxCheckResultControllerSpec
 
         "tax check code is No Match in the session for Match page " in {
 
-          val session = HECSession(answers, Some(HECTaxCheckMatchResult(matchRequest, dateTimeChecked, NoMatch)))
+          val session = HECSession(
+            answers,
+            Some(
+              HECTaxCheckMatchResult(matchRequest, dateTimeChecked, NoMatch((MatchFailureReason.LicenceTypeNotMatched)))
+            )
+          )
 
           inSequence {
             mockGetSession(session)
@@ -346,7 +351,16 @@ class TaxCheckResultControllerSpec
 
         "tax check code is No Match in the session for the Expired page " in {
 
-          val session = HECSession(answers, Some(HECTaxCheckMatchResult(matchRequest, dateTimeChecked, NoMatch)))
+          val session = HECSession(
+            answers,
+            Some(
+              HECTaxCheckMatchResult(
+                matchRequest,
+                dateTimeChecked,
+                NoMatch(MatchFailureReason.LicenceTypeEntityTypeNotMatched)
+              )
+            )
+          )
 
           inSequence {
             mockGetSession(session)
@@ -515,7 +529,16 @@ class TaxCheckResultControllerSpec
         "tax check code is not a match in database" when {
 
           "applicant is an Individual" in {
-            val session = HECSession(answers, Some(HECTaxCheckMatchResult(matchRequest, dateTimeChecked, NoMatch)))
+            val session = HECSession(
+              answers,
+              Some(
+                HECTaxCheckMatchResult(
+                  matchRequest,
+                  dateTimeChecked,
+                  NoMatch(MatchFailureReason.LicenceTypeCRNNotMatched)
+                )
+              )
+            )
 
             inSequence {
               mockGetSession(session)
@@ -533,7 +556,16 @@ class TaxCheckResultControllerSpec
 
           "applicant is a Company" in {
             val session =
-              HECSession(companyAnswers, Some(HECTaxCheckMatchResult(companyMatchRequest, dateTimeChecked, NoMatch)))
+              HECSession(
+                companyAnswers,
+                Some(
+                  HECTaxCheckMatchResult(
+                    companyMatchRequest,
+                    dateTimeChecked,
+                    NoMatch(MatchFailureReason.CRNNotMatched)
+                  )
+                )
+              )
 
             inSequence {
               mockGetSession(session)
@@ -591,7 +623,9 @@ class TaxCheckResultControllerSpec
         "verification attempt is at max but the lock expire date is not in session" in {
           val session = HECSession(
             answers,
-            Some(HECTaxCheckMatchResult(matchRequest, dateTimeChecked, NoMatch)),
+            Some(
+              HECTaxCheckMatchResult(matchRequest, dateTimeChecked, NoMatch((MatchFailureReason.DateOfBirthNotMatched)))
+            ),
             Map(hecTaxCheckCode -> TaxCheckVerificationAttempts(3, None))
           )
 
@@ -612,7 +646,13 @@ class TaxCheckResultControllerSpec
             testTooManyAttemptPage(
               HECSession(
                 answers,
-                Some(HECTaxCheckMatchResult(matchRequest, dateTimeChecked, NoMatch)),
+                Some(
+                  HECTaxCheckMatchResult(
+                    matchRequest,
+                    dateTimeChecked,
+                    NoMatch(MatchFailureReason.EntityTypeNotMatched)
+                  )
+                ),
                 Map(hecTaxCheckCode -> TaxCheckVerificationAttempts(3, Some(zonedDateTimeNow)))
               ),
               "10 September 2021, 10:02am"
@@ -635,7 +675,13 @@ class TaxCheckResultControllerSpec
             testTooManyAttemptPage(
               HECSession(
                 companyAnswers,
-                Some(HECTaxCheckMatchResult(companyMatchRequest, dateTimeChecked, NoMatch)),
+                Some(
+                  HECTaxCheckMatchResult(
+                    companyMatchRequest,
+                    dateTimeChecked,
+                    NoMatch(MatchFailureReason.LicenceTypeCRNNotMatched)
+                  )
+                ),
                 Map(hecTaxCheckCode -> TaxCheckVerificationAttempts(3, Some(zonedDateTimeNow)))
               ),
               "10 September 2021, 10:02am"

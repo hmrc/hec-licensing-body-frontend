@@ -390,7 +390,13 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
               nextPageTest(
                 HECSession(
                   userAnswersWithAllAnswers,
-                  Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, NoMatch)),
+                  Some(
+                    HECTaxCheckMatchResult(
+                      taxCheckMatchRequest,
+                      dateTimeChecked,
+                      NoMatch(MatchFailureReason.EntityTypeNotMatched)
+                    )
+                  ),
                   verificationAttempts = Map(hecTaxCheckCode -> TaxCheckVerificationAttempts(1, None))
                 ),
                 routes.TaxCheckResultController.taxCheckNotMatch,
@@ -402,7 +408,13 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
               nextPageTest(
                 HECSession(
                   userAnswersWithAllAnswers,
-                  Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, NoMatch)),
+                  Some(
+                    HECTaxCheckMatchResult(
+                      taxCheckMatchRequest,
+                      dateTimeChecked,
+                      NoMatch(MatchFailureReason.LicenceTypeNotMatched)
+                    )
+                  ),
                   Map(
                     hecTaxCheckCode -> TaxCheckVerificationAttempts(
                       appConfig.maxVerificationAttempts,
@@ -419,7 +431,13 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
               nextPageTest(
                 HECSession(
                   userAnswersWithAllAnswers,
-                  Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, NoMatch)),
+                  Some(
+                    HECTaxCheckMatchResult(
+                      taxCheckMatchRequest,
+                      dateTimeChecked,
+                      NoMatch((MatchFailureReason.DateOfBirthNotMatched))
+                    )
+                  ),
                   Map(
                     hecTaxCheckCode -> TaxCheckVerificationAttempts(
                       appConfig.maxVerificationAttempts,
@@ -575,7 +593,13 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
               nextPageTest(
                 HECSession(
                   userAnswersForCompany,
-                  Some(HECTaxCheckMatchResult(taxCheckMatchCompanyRequest, dateTimeChecked, NoMatch))
+                  Some(
+                    HECTaxCheckMatchResult(
+                      taxCheckMatchCompanyRequest,
+                      dateTimeChecked,
+                      NoMatch(MatchFailureReason.TaxCheckCodeNotMatched)
+                    )
+                  )
                 ),
                 routes.TaxCheckResultController.taxCheckNotMatch,
                 false
@@ -586,7 +610,13 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
               nextPageTest(
                 HECSession(
                   userAnswersForCompany,
-                  Some(HECTaxCheckMatchResult(taxCheckMatchCompanyRequest, dateTimeChecked, NoMatch)),
+                  Some(
+                    HECTaxCheckMatchResult(
+                      taxCheckMatchCompanyRequest,
+                      dateTimeChecked,
+                      NoMatch(MatchFailureReason.TaxCheckCodeNotMatched)
+                    )
+                  ),
                   Map(
                     hecTaxCheckCode -> TaxCheckVerificationAttempts(
                       appConfig.maxVerificationAttempts,
@@ -603,7 +633,13 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
               nextPageTest(
                 HECSession(
                   userAnswersForCompany,
-                  Some(HECTaxCheckMatchResult(taxCheckMatchCompanyRequest, dateTimeChecked, NoMatch)),
+                  Some(
+                    HECTaxCheckMatchResult(
+                      taxCheckMatchCompanyRequest,
+                      dateTimeChecked,
+                      NoMatch(MatchFailureReason.EntityTypeNotMatched)
+                    )
+                  ),
                   Map(
                     hecTaxCheckCode -> TaxCheckVerificationAttempts(
                       appConfig.maxVerificationAttempts,
@@ -776,7 +812,13 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
         "Tax Check Code not match page via date of birth page " in {
           val session                                     = HECSession(
             userAnswersWithAllAnswers,
-            Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, NoMatch))
+            Some(
+              HECTaxCheckMatchResult(
+                taxCheckMatchRequest,
+                dateTimeChecked,
+                NoMatch(MatchFailureReason.LicenceTypeDateOfBirthNotMatched)
+              )
+            )
           )
           implicit val request: RequestWithSessionData[_] =
             requestWithSessionData(session)
@@ -795,7 +837,13 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
         "Tax Check Code not match page via CRN page " in {
           val session                                     = HECSession(
             userAnswersForCompany,
-            Some(HECTaxCheckMatchResult(taxCheckMatchCompanyRequest, dateTimeChecked, NoMatch))
+            Some(
+              HECTaxCheckMatchResult(
+                taxCheckMatchCompanyRequest,
+                dateTimeChecked,
+                NoMatch(MatchFailureReason.EntityTypeNotMatched)
+              )
+            )
           )
           implicit val request: RequestWithSessionData[_] =
             requestWithSessionData(session)

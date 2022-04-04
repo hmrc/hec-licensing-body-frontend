@@ -29,7 +29,7 @@ import uk.gov.hmrc.heclicensingbodyfrontend.models.EntityType.Individual
 import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus._
 import uk.gov.hmrc.heclicensingbodyfrontend.models.ids.CRN
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, Error, HECSession, HECTaxCheckCode, HECTaxCheckMatchRequest, HECTaxCheckMatchResult, HECTaxCheckStatus, Language, TaxCheckVerificationAttempts, UserAnswers}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, Error, HECSession, HECTaxCheckCode, HECTaxCheckMatchRequest, HECTaxCheckMatchResult, HECTaxCheckStatus, Language, MatchFailureReason, TaxCheckVerificationAttempts, UserAnswers}
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
 import uk.gov.hmrc.heclicensingbodyfrontend.services.{AuditService, AuditServiceSupport, HECTaxMatchService, JourneyService, VerificationService}
 import uk.gov.hmrc.heclicensingbodyfrontend.util.TimeUtils
@@ -116,7 +116,8 @@ class DateOfBirthControllerSpec
         None
       ),
       session.verificationAttempts.get(taxCheckCode).exists(_.lockExpiresAt.nonEmpty),
-      language
+      language,
+      matchResult.status.matchFailureReason
     )
 
     mockSendAuditEvent(auditEvent)
@@ -419,7 +420,7 @@ class DateOfBirthControllerSpec
 
             "verification attempt counter restarts from 1 in case of no match" in {
               testVerificationAttempt(
-                NoMatch,
+                NoMatch(MatchFailureReason.DateOfBirthNotMatched),
                 Map(
                   hecTaxCheckCode  -> TaxCheckVerificationAttempts(3, Some(lockExpiresAt.minusHours(1))),
                   hecTaxCheckCode2 -> TaxCheckVerificationAttempts(2, None)

@@ -241,7 +241,7 @@ class VerificationServiceSpec extends ControllerSpec {
           "Tax Check No Match found, add new map in the session with value 1" in {
             testVerificationAttemptLowerThanMaxAttempt(
               dobVerifier,
-              NoMatch,
+              NoMatch(MatchFailureReason.DateOfBirthNotMatched),
               Map.empty,
               Map(hecTaxCode1 -> TaxCheckVerificationAttempts(1, None))
             )
@@ -261,7 +261,7 @@ class VerificationServiceSpec extends ControllerSpec {
           "Tax Check No Match found, new map in the session with value 1" in {
             testVerificationAttemptLowerThanMaxAttempt(
               crnVerifier,
-              NoMatch,
+              NoMatch((MatchFailureReason.CRNNotMatched)),
               Map.empty,
               Map(hecTaxCode1 -> TaxCheckVerificationAttempts(1, None))
             )
@@ -287,7 +287,7 @@ class VerificationServiceSpec extends ControllerSpec {
             "difference between the max attempt and the tax check code attempt is more than 1, increment only the count " in {
               testVerificationAttemptLowerThanMaxAttempt(
                 dobVerifier,
-                NoMatch,
+                NoMatch(MatchFailureReason.EntityTypeNotMatched),
                 Map(
                   hecTaxCode1 -> TaxCheckVerificationAttempts(1, None),
                   hecTaxCode2 -> TaxCheckVerificationAttempts(2, None)
@@ -302,7 +302,7 @@ class VerificationServiceSpec extends ControllerSpec {
             "the verification attempt is just one step away from the max attempt, both count and lock expire time is updated " in {
               testVerificationAttempt(
                 dobVerifier,
-                NoMatch,
+                NoMatch(MatchFailureReason.TaxCheckCodeNotMatched),
                 Map(
                   hecTaxCode1 -> TaxCheckVerificationAttempts(2, None),
                   hecTaxCode2 -> TaxCheckVerificationAttempts(2, None)
@@ -351,7 +351,7 @@ class VerificationServiceSpec extends ControllerSpec {
             "difference between the max attempt and the tax check code attempt is more than 1, increment only the count" in {
               testVerificationAttemptLowerThanMaxAttempt(
                 crnVerifier,
-                NoMatch,
+                NoMatch(MatchFailureReason.CRNNotMatched),
                 Map(
                   hecTaxCode1 -> TaxCheckVerificationAttempts(1, None),
                   hecTaxCode2 -> TaxCheckVerificationAttempts(2, None)
@@ -366,7 +366,7 @@ class VerificationServiceSpec extends ControllerSpec {
             "difference between the max attempt and the tax check code attempt is 1, increment both the count and lock expire time" in {
               testVerificationAttempt(
                 crnVerifier,
-                NoMatch,
+                NoMatch(MatchFailureReason.LicenceTypeCRNNotMatched),
                 Map(
                   hecTaxCode1 -> TaxCheckVerificationAttempts(2, None),
                   hecTaxCode2 -> TaxCheckVerificationAttempts(2, None)

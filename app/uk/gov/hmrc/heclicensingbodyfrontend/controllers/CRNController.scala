@@ -141,7 +141,8 @@ class CRNController @Inject() (
         Some(crn)
       ),
       session.verificationAttempts.get(taxCheckCode).exists(_.lockExpiresAt.nonEmpty),
-      r.language
+      r.language,
+      matchResult.status.matchFailureReason
     )
 
     auditService.sendEvent(auditEvent)
