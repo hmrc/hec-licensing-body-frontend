@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.models
 
-import play.api.libs.json.{JsString, Json, OWrites, Writes}
+import play.api.libs.json.{Json, OWrites}
 import uk.gov.hmrc.heclicensingbodyfrontend.models.AuditEvent.TaxCheckCodeChecked.SubmittedData
 import uk.gov.hmrc.heclicensingbodyfrontend.models.ids.CRN
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
@@ -32,7 +32,7 @@ sealed trait AuditEvent {
 object AuditEvent {
 
   final case class TaxCheckCodeChecked private (
-    result: HECTaxCheckStatus,
+    result: String,
     submittedData: SubmittedData,
     tooManyAttempts: Boolean,
     languagePreference: Language,
@@ -54,27 +54,48 @@ object AuditEvent {
       tooManyAttempts: Boolean,
       languagePreference: Language,
       failureReason: Option[MatchFailureReason]
-    ): TaxCheckCodeChecked = {
-      val failureReasonDescription = failureReason.map {
-        case MatchFailureReason.TaxCheckCodeNotMatched           => "Tax Check Code not matched"
-        case MatchFailureReason.EntityTypeNotMatched             => "Entity Type (Individual or Company) not matched"
-        case MatchFailureReason.DateOfBirthNotMatched            => "Date of Birth not matched"
-        case MatchFailureReason.CRNNotMatched                    => "Company Registration Number not matched"
-        case MatchFailureReason.LicenceTypeNotMatched            => "Licence Type not matched"
-        case MatchFailureReason.LicenceTypeEntityTypeNotMatched  =>
-          "Licence Type and Entity Type (Individual or Company) not matched"
-        case MatchFailureReason.LicenceTypeDateOfBirthNotMatched => "Licence Type and Date of Birth not matched"
-        case MatchFailureReason.LicenceTypeCRNNotMatched         => "Licence Type and Company Registration Number not matched"
-      }
-
+    ): TaxCheckCodeChecked =
       TaxCheckCodeChecked(
-        result,
+        taxCheckStatusToString(result),
         submittedData,
         tooManyAttempts,
         languagePreference,
         failureReason,
-        failureReasonDescription
+        failureReason.map(failureReasonToDescription)
       )
+
+    def blocked(
+      submittedData: SubmittedData,
+      languagePreference: Language
+    ): TaxCheckCodeChecked =
+      TaxCheckCodeChecked(
+        "Blocked",
+        submittedData,
+        tooManyAttempts = true,
+        languagePreference,
+        None,
+        None
+      )
+
+    private def taxCheckStatusToString(taxCheckStatus: HECTaxCheckStatus): String =
+      taxCheckStatus match {
+        case HECTaxCheckStatus.Match      => "Success"
+        case HECTaxCheckStatus.NoMatch(_) => "Failed"
+        case HECTaxCheckStatus.Expired    => "Expired"
+
+      }
+
+    private def failureReasonToDescription(failureReason: MatchFailureReason): String = failureReason match {
+      case MatchFailureReason.TaxCheckCodeNotMatched           => "Tax Check Code not matched"
+      case MatchFailureReason.EntityTypeNotMatched             => "Entity Type (Individual or Company) not matched"
+      case MatchFailureReason.DateOfBirthNotMatched            => "Date of Birth not matched"
+      case MatchFailureReason.CRNNotMatched                    => "Company Registration Number not matched"
+      case MatchFailureReason.LicenceTypeNotMatched            => "Licence Type not matched"
+      case MatchFailureReason.LicenceTypeEntityTypeNotMatched  =>
+        "Licence Type and Entity Type (Individual or Company) not matched"
+      case MatchFailureReason.LicenceTypeDateOfBirthNotMatched => "Licence Type and Date of Birth not matched"
+      case MatchFailureReason.LicenceTypeCRNNotMatched         => "Licence Type and Company Registration Number not matched"
+
     }
 
     final case class SubmittedData(
@@ -87,15 +108,8 @@ object AuditEvent {
 
     implicit val submittedDataWrites: OWrites[SubmittedData] = Json.writes
 
-    implicit val taxCheckCodeCheckedWrites: OWrites[TaxCheckCodeChecked] = {
-      implicit val hecTaxCheckStatusWrites: Writes[HECTaxCheckStatus] = Writes {
-        case HECTaxCheckStatus.Match      => JsString("Success")
-        case HECTaxCheckStatus.NoMatch(_) => JsString("Failed")
-        case HECTaxCheckStatus.Expired    => JsString("Expired")
-      }
+    implicit val taxCheckCodeCheckedWrites: OWrites[TaxCheckCodeChecked] = Json.writes
 
-      Json.writes
-    }
   }
 
 }

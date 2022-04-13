@@ -123,6 +123,25 @@ class DateOfBirthControllerSpec
     mockSendAuditEvent(auditEvent)
   }
 
+  def mockSendBlockedTaxCheckAuditEvent(
+    dob: DateOfBirth,
+    taxCheckCode: HECTaxCheckCode,
+    licenceType: LicenceType,
+    language: Language
+  ) = {
+    val auditEvent = TaxCheckCodeChecked.blocked(
+      TaxCheckCodeChecked.SubmittedData(
+        taxCheckCode,
+        Individual,
+        licenceType,
+        Some(dob),
+        None
+      ),
+      language
+    )
+    mockSendAuditEvent(auditEvent)
+  }
+
   "DateOfBirthControllerSpec" when {
 
     "handling requests to date Of birth page" must {
@@ -206,12 +225,15 @@ class DateOfBirthControllerSpec
 
       "show a form error" when {
 
-        val session = HECSession(UserAnswers.empty.copy(taxCheckCode = Some(hecTaxCheckCode)), None)
+        val session = HECSession(
+          UserAnswers.empty
+            .copy(taxCheckCode = Some(hecTaxCheckCode), licenceType = Some(LicenceType.ScrapMetalMobileCollector)),
+          None
+        )
 
         "nothing is submitted" in {
           inSequence {
             mockGetSession(session)
-            mockIsMaxVerificationAttemptReached(hecTaxCheckCode)(false)
             mockJourneyServiceGetPrevious(routes.DateOfBirthController.dateOfBirth, session)(mockPreviousCall)
           }
 
@@ -234,7 +256,6 @@ class DateOfBirthControllerSpec
                 ).collect { case (key, Some(value)) => key -> value }
                 inSequence {
                   mockGetSession(session)
-                  mockIsMaxVerificationAttemptReached(hecTaxCheckCode)(false)
                   mockJourneyServiceGetPrevious(routes.DateOfBirthController.dateOfBirth, session)(
                     mockPreviousCall
                   )
@@ -254,7 +275,6 @@ class DateOfBirthControllerSpec
           val date = TimeUtils.today().plusDays(2)
           inSequence {
             mockGetSession(session)
-            mockIsMaxVerificationAttemptReached(hecTaxCheckCode)(false)
             mockJourneyServiceGetPrevious(routes.DateOfBirthController.dateOfBirth, session)(mockPreviousCall)
           }
 
@@ -274,7 +294,6 @@ class DateOfBirthControllerSpec
 
           inSequence {
             mockGetSession(session)
-            mockIsMaxVerificationAttemptReached(hecTaxCheckCode)(false)
             mockJourneyServiceGetPrevious(routes.DateOfBirthController.dateOfBirth, session)(mockPreviousCall)
           }
 
@@ -337,6 +356,21 @@ class DateOfBirthControllerSpec
 
         }
 
+        "there is no licence type in the session" in {
+
+          val answers = UserAnswers.empty.copy(
+            taxCheckCode = Some(hecTaxCheckCode),
+            licenceType = None
+          )
+          val session = HECSession(answers, None)
+
+          inSequence {
+            mockGetSession(session)
+          }
+          assertThrows[RuntimeException](await(performAction(formData(date): _*)(Language.English)))
+
+        }
+
       }
 
       "redirect to the next page" when {
@@ -385,12 +419,13 @@ class DateOfBirthControllerSpec
           "the verification attempt has reached maximum attempt and lock is not expired" when {
 
             "session remains same irrespective of status" in {
-              val answers = UserAnswers.empty.copy(
+              val licenceType = LicenceType.DriverOfTaxisAndPrivateHires
+              val answers     = UserAnswers.empty.copy(
                 taxCheckCode = Some(hecTaxCheckCode),
-                licenceType = Some(LicenceType.DriverOfTaxisAndPrivateHires),
+                licenceType = Some(licenceType),
                 dateOfBirth = Some(DateOfBirth(date))
               )
-              val session = HECSession(
+              val session     = HECSession(
                 answers,
                 None,
                 verificationAttempts = Map(
@@ -406,6 +441,7 @@ class DateOfBirthControllerSpec
               inSequence {
                 mockGetSession(session)
                 mockIsMaxVerificationAttemptReached(hecTaxCheckCode)(true)
+                mockSendBlockedTaxCheckAuditEvent(DateOfBirth(date), hecTaxCheckCode, licenceType, Language.English)
                 mockJourneyServiceUpdateAndNext(routes.DateOfBirthController.dateOfBirth, session, updatedSession)(
                   Right(mockNextCall)
                 )

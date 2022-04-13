@@ -29,6 +29,7 @@ import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.{RequestWithSess
 import uk.gov.hmrc.heclicensingbodyfrontend.models.AuditEvent.TaxCheckCodeChecked
 import uk.gov.hmrc.heclicensingbodyfrontend.models.EntityType.Company
 import uk.gov.hmrc.heclicensingbodyfrontend.models.ids.CRN
+import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECSession, HECTaxCheckCode, HECTaxCheckMatchRequest, HECTaxCheckMatchResult}
 import uk.gov.hmrc.heclicensingbodyfrontend.services.{AuditService, HECTaxMatchService, JourneyService, VerificationService}
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging
@@ -64,17 +65,23 @@ class CRNController @Inject() (
   }
 
   val companyRegistrationNumberSubmit: Action[AnyContent] = sessionDataAction.async { implicit request =>
-    def goToNextPage(crn: CRN): Future[Result] = journeyService
-      .updateAndNext(
-        routes.CRNController.companyRegistrationNumber,
-        request.sessionData.copy(userAnswers = request.sessionData.userAnswers.copy(crn = Some(crn)))
-      )
-      .fold(
-        _.doThrow("Could not update session and proceed"),
-        Redirect
-      )
+    val taxCheckCode =
+      request.sessionData.userAnswers.taxCheckCode.getOrElse(sys.error("Could not find tax check code"))
+    val licenceType  =
+      request.sessionData.userAnswers.licenceType.getOrElse(sys.error("Could not find licence type"))
 
-    def formAction(taxCheckCode: HECTaxCheckCode): Future[Result] = crnForm
+    def updateAndGoToNextPage(crn: CRN): Future[Result] =
+      journeyService
+        .updateAndNext(
+          routes.CRNController.companyRegistrationNumber,
+          request.sessionData.copy(userAnswers = request.sessionData.userAnswers.copy(crn = Some(crn)))
+        )
+        .fold(
+          _.doThrow("Could not update session and proceed"),
+          Redirect
+        )
+
+    crnForm
       .bindFromRequest()
       .fold(
         formWithErrors =>
@@ -84,66 +91,64 @@ class CRNController @Inject() (
               journeyService.previous(routes.CRNController.companyRegistrationNumber)
             )
           ),
-        if (verificationService.maxVerificationAttemptReached(taxCheckCode)(request.sessionData)) goToNextPage
-        else handleValidCrn
+        crn =>
+          if (verificationService.maxVerificationAttemptReached(taxCheckCode)(request.sessionData)) {
+            auditTaxCheckResult(crn, taxCheckCode, licenceType, None, request.sessionData)
+            updateAndGoToNextPage(crn)
+          } else handleValidCrn(crn, taxCheckCode, licenceType)
       )
 
-    request.sessionData.userAnswers.taxCheckCode match {
-      case Some(taxCheckCode) => formAction(taxCheckCode)
-      case None               => sys.error("tax check code is not present in session")
-    }
   }
 
-  private def handleValidCrn(crn: CRN)(implicit request: RequestWithSessionData[_]): Future[Result] =
-    getTaxMatchResult(crn)
+  private def handleValidCrn(crn: CRN, taxCheckCode: HECTaxCheckCode, licenceType: LicenceType)(implicit
+    request: RequestWithSessionData[_]
+  ): Future[Result] =
+    getTaxMatchResult(crn, taxCheckCode, licenceType)
       .fold(
-        _.doThrow("Couldn't get tax check code"),
+        _.doThrow("Couldn't match tax check"),
         Redirect
       )
 
-  private def getTaxMatchResult(crn: CRN)(implicit request: RequestWithSessionData[_]): EitherT[Future, Error, Call] = {
-    val hecTaxCheckCode = request.sessionData.userAnswers.taxCheckCode
-    val licenceType     = request.sessionData.userAnswers.licenceType
-    (hecTaxCheckCode, licenceType) match {
-      case (Some(taxCheckCode), Some(lType)) =>
-        for {
-          taxMatch      <- taxMatchService.matchTaxCheck(HECTaxCheckMatchRequest(taxCheckCode, lType, Left(crn)))
-          updatedSession =
-            verificationService.updateVerificationAttemptCount(taxMatch, taxCheckCode, Left(crn))(request.sessionData)
-          _              = auditTaxCheckResult(crn, taxMatch, updatedSession)
-          next          <- journeyService
-                             .updateAndNext(routes.CRNController.companyRegistrationNumber, updatedSession)
-        } yield next
-      case _                                 =>
-        EitherT.leftT(
-          Error(
-            Left(
-              "Insufficient data to proceed and submit, one or both of : HECTaxCheckCode or LicenceType are missing."
-            )
-          )
-        )
-    }
-  }
+  private def getTaxMatchResult(crn: CRN, taxCheckCode: HECTaxCheckCode, licenceType: LicenceType)(implicit
+    request: RequestWithSessionData[_]
+  ): EitherT[Future, Error, Call] =
+    for {
+      taxMatch      <- taxMatchService.matchTaxCheck(HECTaxCheckMatchRequest(taxCheckCode, licenceType, Left(crn)))
+      updatedSession =
+        verificationService.updateVerificationAttemptCount(taxMatch, taxCheckCode, Left(crn))(request.sessionData)
+      _              = auditTaxCheckResult(crn, taxCheckCode, licenceType, Some(taxMatch), updatedSession)
+      next          <- journeyService
+                         .updateAndNext(routes.CRNController.companyRegistrationNumber, updatedSession)
+    } yield next
 
   private def auditTaxCheckResult(
     crn: CRN,
-    matchResult: HECTaxCheckMatchResult,
+    taxCheckCode: HECTaxCheckCode,
+    licenceType: LicenceType,
+    matchResult: Option[HECTaxCheckMatchResult],
     session: HECSession
   )(implicit hc: HeaderCarrier, r: RequestWithSessionData[_]): Unit = {
-    val taxCheckCode = matchResult.matchRequest.taxCheckCode
-    val auditEvent   = TaxCheckCodeChecked(
-      matchResult.status,
+    val submittedData =
       TaxCheckCodeChecked.SubmittedData(
         taxCheckCode,
         Company,
-        matchResult.matchRequest.licenceType,
+        licenceType,
         None,
         Some(crn)
-      ),
-      session.verificationAttempts.get(taxCheckCode).exists(_.lockExpiresAt.nonEmpty),
-      r.language,
-      matchResult.status.matchFailureReason
-    )
+      )
+
+    val auditEvent =
+      matchResult.fold(
+        TaxCheckCodeChecked.blocked(submittedData, r.language)
+      ) { m =>
+        TaxCheckCodeChecked(
+          m.status,
+          submittedData,
+          session.verificationAttempts.get(taxCheckCode).exists(_.lockExpiresAt.nonEmpty),
+          r.language,
+          m.status.matchFailureReason
+        )
+      }
 
     auditService.sendEvent(auditEvent)
   }
