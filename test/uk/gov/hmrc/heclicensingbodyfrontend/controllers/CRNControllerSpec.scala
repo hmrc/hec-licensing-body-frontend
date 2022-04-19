@@ -126,6 +126,25 @@ class CRNControllerSpec
     mockSendAuditEvent(auditEvent)
   }
 
+  def mockSendBlockedTaxCheckAuditEvent(
+    crn: CRN,
+    taxCheckCode: HECTaxCheckCode,
+    licenceType: LicenceType,
+    language: Language
+  ) = {
+    val auditEvent = TaxCheckCodeChecked.blocked(
+      TaxCheckCodeChecked.SubmittedData(
+        taxCheckCode,
+        Company,
+        licenceType,
+        None,
+        Some(crn)
+      ),
+      language
+    )
+    mockSendAuditEvent(auditEvent)
+  }
+
   "CRNControllerSpec" when {
 
     "handling requests to display the company registration number  page" must {
@@ -219,14 +238,17 @@ class CRNControllerSpec
 
       behave like sessionDataActionBehaviour(() => performAction()(Language.English))
 
-      val currentSession = HECSession(UserAnswers.empty.copy(taxCheckCode = Some(hecTaxCheckCode)), None)
+      val currentSession = HECSession(
+        UserAnswers.empty
+          .copy(taxCheckCode = Some(hecTaxCheckCode), licenceType = Some(LicenceType.ScrapMetalDealerSite)),
+        None
+      )
 
       "show a form error" when {
 
         "nothing has been submitted" in {
           inSequence {
             mockGetSession(currentSession)
-            mockIsMaxVerificationAttemptReached(hecTaxCheckCode)(false)
             mockJourneyServiceGetPrevious(routes.CRNController.companyRegistrationNumber, currentSession)(
               mockPreviousCall
             )
@@ -242,7 +264,6 @@ class CRNControllerSpec
         "the submitted value is too long" in {
           inSequence {
             mockGetSession(currentSession)
-            mockIsMaxVerificationAttemptReached(hecTaxCheckCode)(false)
             mockJourneyServiceGetPrevious(routes.CRNController.companyRegistrationNumber, currentSession)(
               mockPreviousCall
             )
@@ -258,7 +279,6 @@ class CRNControllerSpec
         "the submitted value is too short" in {
           inSequence {
             mockGetSession(currentSession)
-            mockIsMaxVerificationAttemptReached(hecTaxCheckCode)(false)
             mockJourneyServiceGetPrevious(routes.CRNController.companyRegistrationNumber, currentSession)(
               mockPreviousCall
             )
@@ -277,7 +297,6 @@ class CRNControllerSpec
             withClue(s"For CRN $crn: ") {
               inSequence {
                 mockGetSession(currentSession)
-                mockIsMaxVerificationAttemptReached(hecTaxCheckCode)(false)
                 mockJourneyServiceGetPrevious(routes.CRNController.companyRegistrationNumber, currentSession)(
                   mockPreviousCall
                 )
@@ -308,7 +327,6 @@ class CRNControllerSpec
               )
               inSequence {
                 mockGetSession(session)
-                mockIsMaxVerificationAttemptReached(hecTaxCheckCode)(false)
                 mockJourneyServiceGetPrevious(routes.CRNController.companyRegistrationNumber, session)(
                   mockPreviousCall
                 )
@@ -377,6 +395,20 @@ class CRNControllerSpec
           assertThrows[RuntimeException](await(performAction("crn" -> validCRN(0).value)(Language.English)))
         }
 
+        "there is no licence type in the session" in {
+
+          val answers = UserAnswers.empty.copy(
+            taxCheckCode = Some(hecTaxCheckCode),
+            licenceType = None
+          )
+          val session = HECSession(answers, None)
+
+          inSequence {
+            mockGetSession(session)
+          }
+          assertThrows[RuntimeException](await(performAction("crn" -> validCRN(0).value)(Language.English)))
+        }
+
       }
 
       "redirect to the next page" when {
@@ -432,16 +464,23 @@ class CRNControllerSpec
             initialAttemptMap: Map[HECTaxCheckCode, TaxCheckVerificationAttempts],
             crn: CRN
           ) = {
-            val answers = UserAnswers.empty.copy(
+            val licenceType = LicenceType.OperatorOfPrivateHireVehicles
+            val answers     = UserAnswers.empty.copy(
               taxCheckCode = Some(hecTaxCheckCode),
-              licenceType = Some(LicenceType.OperatorOfPrivateHireVehicles),
+              licenceType = Some(licenceType),
               crn = Some(crn)
             )
-            val session = HECSession(answers, None, verificationAttempts = initialAttemptMap)
+            val session     = HECSession(answers, None, verificationAttempts = initialAttemptMap)
 
             inSequence {
               mockGetSession(session)
               mockIsMaxVerificationAttemptReached(hecTaxCheckCode)(true)
+              mockSendBlockedTaxCheckAuditEvent(
+                crn,
+                hecTaxCheckCode,
+                licenceType,
+                Language.English
+              )
               mockJourneyServiceUpdateAndNext(
                 routes.CRNController.companyRegistrationNumber,
                 session,
