@@ -27,7 +27,7 @@ import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.RequestWithSessi
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.routes
 import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus._
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{EntityType, Error, HECSession, HECTaxCheckMatchResult}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{EntityType, Error, HECSession, HECTaxCheckMatchResult, InconsistentSessionState}
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -63,7 +63,7 @@ class JourneyServiceImpl @Inject() (
   // on state (e.g. the type of user or the answers users have submitted), hence the value type `HECSession => Call`
   lazy val paths: Map[Call, HECSession => Call] = Map(
     routes.StartController.start                     -> (_ => firstPage),
-    routes.HECTaxCheckCodeController.hecTaxCheckCode -> (_ => routes.LicenceTypeController.licenceType),
+    routes.HECTaxCheckCodeController.hecTaxCheckCode -> taxCheckCodeRoute,
     routes.LicenceTypeController.licenceType         -> licenceTypeRoute,
     routes.EntityTypeController.entityType           -> entityTypeRoute,
     routes.DateOfBirthController.dateOfBirth         -> dateOfBirthOrCRNRoute,
@@ -103,13 +103,22 @@ class JourneyServiceImpl @Inject() (
       current
     else
       loop(routes.StartController.start)
-        .getOrElse(sys.error(s"Could not find previous for $current"))
+        .getOrElse(InconsistentSessionState(s"Could not find previous for $current").doThrow)
   }
+
+  private def taxCheckCodeRoute(session: HECSession): Call =
+    session.userAnswers.taxCheckCode match {
+      case None =>
+        InconsistentSessionState("Could not find tax check code for tax check code route").doThrow
+
+      case Some(_) =>
+        routes.LicenceTypeController.licenceType
+    }
 
   private def licenceTypeRoute(session: HECSession): Call =
     session.userAnswers.licenceType match {
       case None =>
-        sys.error("Could not find licence type for licence type route")
+        InconsistentSessionState("Could not find licence type for licence type route").doThrow
 
       case Some(licenceType) =>
         if (licenceTypeForIndividualAndCompany(licenceType)) routes.EntityTypeController.entityType
@@ -123,7 +132,7 @@ class JourneyServiceImpl @Inject() (
   private def entityTypeRoute(session: HECSession): Call =
     session.userAnswers.entityType match {
       case None =>
-        sys.error("Could not find entity type for entity type route")
+        InconsistentSessionState("Could not find entity type for entity type route").doThrow
 
       case Some(EntityType.Individual) =>
         routes.DateOfBirthController.dateOfBirth
@@ -134,7 +143,8 @@ class JourneyServiceImpl @Inject() (
     }
 
   private def dateOfBirthOrCRNRoute(session: HECSession): Call = {
-    val taxCode           = session.userAnswers.taxCheckCode.getOrElse(sys.error("taxCheckCode is not in session"))
+    val taxCode           =
+      session.userAnswers.taxCheckCode.getOrElse(InconsistentSessionState("taxCheckCode is not in session").doThrow)
     val maxAttemptReached = verificationService.maxVerificationAttemptReached(taxCode)(session)
     if (maxAttemptReached) {
       routes.TaxCheckResultController.tooManyVerificationAttempts
@@ -149,9 +159,10 @@ class JourneyServiceImpl @Inject() (
 
         case None =>
           session.taxCheckMatch.map(_.matchRequest.verifier) match {
-            case Some(Left(_))  => sys.error("Could not find tax match result for crn route")
-            case Some(Right(_)) => sys.error("Could not find tax match result for date of birth route")
-            case None           => sys.error("Neither date of birth nor crn in session")
+            case Some(Left(_))  => InconsistentSessionState("Could not find tax match result for crn route").doThrow
+            case Some(Right(_)) =>
+              InconsistentSessionState("Could not find tax match result for date of birth route").doThrow
+            case None           => InconsistentSessionState("Neither date of birth nor crn in session").doThrow
           }
 
       }

@@ -20,7 +20,7 @@ import com.google.inject.Singleton
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.SessionDataAction
-import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckMatchResult
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{HECTaxCheckMatchResult, InconsistentSessionState}
 import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus._
 import uk.gov.hmrc.heclicensingbodyfrontend.services.JourneyService
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging
@@ -48,7 +48,7 @@ class TaxCheckResultController @Inject() (
       case Some(HECTaxCheckMatchResult(taxCheckMatchResult, dateTime, Match)) =>
         Ok(taxCheckValidPage(taxCheckMatchResult, dateTime))
       case _                                                                  =>
-        sys.error("Tax check match Result not found for 'Match' page")
+        InconsistentSessionState("Tax check match Result not found for 'Match' page").doThrow
 
     }
   }
@@ -60,8 +60,7 @@ class TaxCheckResultController @Inject() (
       case Some(HECTaxCheckMatchResult(taxCheckMatchResult, dateTime, Expired)) =>
         Ok(taxCheckExpiredPage(taxCheckMatchResult, dateTime))
       case _                                                                    =>
-        sys.error("Tax check match Result not found for 'Expired' page")
-
+        InconsistentSessionState("Tax check match Result not found for 'Expired' page").doThrow
     }
   }
 
@@ -77,7 +76,7 @@ class TaxCheckResultController @Inject() (
           )
         )
       case _                                                                =>
-        sys.error("Tax check match Result not found for 'No Match' page")
+        InconsistentSessionState("Tax check match Result not found for 'No Match' page").doThrow
     }
   }
 
@@ -92,11 +91,11 @@ class TaxCheckResultController @Inject() (
         lockAttemptExpiresAtOpt match {
           case Some(lockAttemptExpiresAt) => Ok(tooManyAttemptsPage(userAnswers, lockAttemptExpiresAt))
           case None                       =>
-            sys.error("Verification attempt lock expire time is not found in session ")
+            InconsistentSessionState("Verification attempt lock expire time is not found in session").doThrow
         }
 
       case None =>
-        sys.error("Tax check code  is not found in session ")
+        InconsistentSessionState("Tax check code  is not found in session").doThrow
     }
   }
 

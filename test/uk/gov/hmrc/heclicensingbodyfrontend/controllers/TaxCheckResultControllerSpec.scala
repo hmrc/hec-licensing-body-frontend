@@ -187,7 +187,7 @@ class TaxCheckResultControllerSpec
           inSequence {
             mockGetSession(session)
           }
-          assertThrows[RuntimeException](await(performAction()))
+          assertThrows[InconsistentSessionState](await(performAction()))
 
         }
 
@@ -203,7 +203,7 @@ class TaxCheckResultControllerSpec
           inSequence {
             mockGetSession(session)
           }
-          assertThrows[RuntimeException](await(performAction()))
+          assertThrows[InconsistentSessionState](await(performAction()))
 
         }
 
@@ -215,7 +215,7 @@ class TaxCheckResultControllerSpec
             mockGetSession(session)
           }
 
-          assertThrows[RuntimeException](await(performAction()))
+          assertThrows[InconsistentSessionState](await(performAction()))
 
         }
 
@@ -334,7 +334,7 @@ class TaxCheckResultControllerSpec
           inSequence {
             mockGetSession(session)
           }
-          assertThrows[RuntimeException](await(performAction()))
+          assertThrows[InconsistentSessionState](await(performAction()))
 
         }
 
@@ -345,7 +345,7 @@ class TaxCheckResultControllerSpec
           inSequence {
             mockGetSession(session)
           }
-          assertThrows[RuntimeException](await(performAction()))
+          assertThrows[InconsistentSessionState](await(performAction()))
 
         }
 
@@ -365,7 +365,7 @@ class TaxCheckResultControllerSpec
           inSequence {
             mockGetSession(session)
           }
-          assertThrows[RuntimeException](await(performAction()))
+          assertThrows[InconsistentSessionState](await(performAction()))
 
         }
       }
@@ -491,7 +491,7 @@ class TaxCheckResultControllerSpec
               mockPreviousCall
             )
           }
-          assertThrows[RuntimeException](await(performAction()))
+          assertThrows[InconsistentSessionState](await(performAction()))
 
         }
 
@@ -505,7 +505,7 @@ class TaxCheckResultControllerSpec
               mockPreviousCall
             )
           }
-          assertThrows[RuntimeException](await(performAction()))
+          assertThrows[InconsistentSessionState](await(performAction()))
 
         }
 
@@ -519,7 +519,7 @@ class TaxCheckResultControllerSpec
               mockPreviousCall
             )
           }
-          assertThrows[RuntimeException](await(performAction()))
+          assertThrows[InconsistentSessionState](await(performAction()))
 
         }
       }
@@ -616,7 +616,7 @@ class TaxCheckResultControllerSpec
           inSequence {
             mockGetSession(session)
           }
-          assertThrows[RuntimeException](await(performAction()))
+          assertThrows[InconsistentSessionState](await(performAction()))
 
         }
 
@@ -632,7 +632,7 @@ class TaxCheckResultControllerSpec
           inSequence {
             mockGetSession(session)
           }
-          assertThrows[RuntimeException](await(performAction()))
+          assertThrows[InconsistentSessionState](await(performAction()))
 
         }
 
