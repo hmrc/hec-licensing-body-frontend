@@ -29,7 +29,7 @@ import uk.gov.hmrc.heclicensingbodyfrontend.models.EntityType.Individual
 import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus._
 import uk.gov.hmrc.heclicensingbodyfrontend.models.ids.CRN
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, Error, HECSession, HECTaxCheckCode, HECTaxCheckMatchRequest, HECTaxCheckMatchResult, HECTaxCheckStatus, Language, MatchFailureReason, TaxCheckVerificationAttempts, UserAnswers}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, Error, HECSession, HECTaxCheckCode, HECTaxCheckMatchRequest, HECTaxCheckMatchResult, HECTaxCheckStatus, InconsistentSessionState, Language, MatchFailureReason, TaxCheckVerificationAttempts, UserAnswers}
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
 import uk.gov.hmrc.heclicensingbodyfrontend.services.{AuditService, AuditServiceSupport, HECTaxMatchService, JourneyService, VerificationService}
 import uk.gov.hmrc.heclicensingbodyfrontend.util.TimeUtils
@@ -352,7 +352,7 @@ class DateOfBirthControllerSpec
           inSequence {
             mockGetSession(session)
           }
-          assertThrows[RuntimeException](await(performAction(formData(date): _*)(Language.English)))
+          assertThrows[InconsistentSessionState](await(performAction(formData(date): _*)(Language.English)))
 
         }
 
@@ -367,7 +367,7 @@ class DateOfBirthControllerSpec
           inSequence {
             mockGetSession(session)
           }
-          assertThrows[RuntimeException](await(performAction(formData(date): _*)(Language.English)))
+          assertThrows[InconsistentSessionState](await(performAction(formData(date): _*)(Language.English)))
 
         }
 

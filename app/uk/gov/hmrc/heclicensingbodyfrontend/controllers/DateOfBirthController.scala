@@ -28,7 +28,7 @@ import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.{RequestWithSess
 import uk.gov.hmrc.heclicensingbodyfrontend.models.AuditEvent.TaxCheckCodeChecked
 import uk.gov.hmrc.heclicensingbodyfrontend.models.EntityType.Individual
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, Error, HECSession, HECTaxCheckCode, HECTaxCheckMatchRequest, HECTaxCheckMatchResult}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, Error, HECSession, HECTaxCheckCode, HECTaxCheckMatchRequest, HECTaxCheckMatchResult, InconsistentSessionState}
 import uk.gov.hmrc.heclicensingbodyfrontend.services.{AuditService, HECTaxMatchService, JourneyService, VerificationService}
 import uk.gov.hmrc.heclicensingbodyfrontend.util.{Logging, TimeUtils}
 import uk.gov.hmrc.heclicensingbodyfrontend.views.html
@@ -64,9 +64,11 @@ class DateOfBirthController @Inject() (
 
   val dateOfBirthSubmit: Action[AnyContent] = sessionDataAction.async { implicit request =>
     val taxCheckCode =
-      request.sessionData.userAnswers.taxCheckCode.getOrElse(sys.error("Could not find tax check code"))
+      request.sessionData.userAnswers.taxCheckCode
+        .getOrElse(InconsistentSessionState("Could not find tax check code").doThrow)
     val licenceType  =
-      request.sessionData.userAnswers.licenceType.getOrElse(sys.error("Could not find licence type"))
+      request.sessionData.userAnswers.licenceType
+        .getOrElse(InconsistentSessionState("Could not find licence type").doThrow)
 
     def updateAndGoToNextPage(dob: DateOfBirth): Future[Result] =
       journeyService

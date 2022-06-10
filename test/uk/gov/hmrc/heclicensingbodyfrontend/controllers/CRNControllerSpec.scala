@@ -30,7 +30,7 @@ import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus._
 import uk.gov.hmrc.heclicensingbodyfrontend.models.ids.CRN
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType.OperatorOfPrivateHireVehicles
-import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, Error, HECSession, HECTaxCheckCode, HECTaxCheckMatchRequest, HECTaxCheckMatchResult, HECTaxCheckStatus, Language, MatchFailureReason, TaxCheckVerificationAttempts, UserAnswers}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.{DateOfBirth, Error, HECSession, HECTaxCheckCode, HECTaxCheckMatchRequest, HECTaxCheckMatchResult, HECTaxCheckStatus, InconsistentSessionState, Language, MatchFailureReason, TaxCheckVerificationAttempts, UserAnswers}
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
 import uk.gov.hmrc.heclicensingbodyfrontend.services.{AuditService, AuditServiceSupport, HECTaxMatchService, JourneyService, VerificationService}
 import uk.gov.hmrc.heclicensingbodyfrontend.util.StringUtils.StringOps
@@ -392,7 +392,7 @@ class CRNControllerSpec
           inSequence {
             mockGetSession(session)
           }
-          assertThrows[RuntimeException](await(performAction("crn" -> validCRN(0).value)(Language.English)))
+          assertThrows[InconsistentSessionState](await(performAction("crn" -> validCRN(0).value)(Language.English)))
         }
 
         "there is no licence type in the session" in {
@@ -406,7 +406,7 @@ class CRNControllerSpec
           inSequence {
             mockGetSession(session)
           }
-          assertThrows[RuntimeException](await(performAction("crn" -> validCRN(0).value)(Language.English)))
+          assertThrows[InconsistentSessionState](await(performAction("crn" -> validCRN(0).value)(Language.English)))
         }
 
       }

@@ -121,19 +121,38 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
 
       "try to return the correct next page" when afterWord("the current page is") {
 
-        "the tax check code page" in {
-          val currentSession                              = HECSession(UserAnswers.empty, None)
-          val updatedSession                              = HECSession(UserAnswers.empty.copy(taxCheckCode = Some(HECTaxCheckCode(""))), None)
-          implicit val request: RequestWithSessionData[_] =
-            requestWithSessionData(currentSession)
+        "the tax check code page" when {
 
-          mockStoreSession(updatedSession)(Right(()))
+          "there is a tax check code in session" in {
+            val currentSession                              = HECSession(UserAnswers.empty, None)
+            val updatedSession                              = HECSession(UserAnswers.empty.copy(taxCheckCode = Some(HECTaxCheckCode(""))), None)
+            implicit val request: RequestWithSessionData[_] =
+              requestWithSessionData(currentSession)
 
-          val result = journeyService.updateAndNext(
-            routes.HECTaxCheckCodeController.hecTaxCheckCode,
-            updatedSession
-          )
-          await(result.value) shouldBe Right(routes.LicenceTypeController.licenceType)
+            mockStoreSession(updatedSession)(Right(()))
+
+            val result = journeyService.updateAndNext(
+              routes.HECTaxCheckCodeController.hecTaxCheckCode,
+              updatedSession
+            )
+            await(result.value) shouldBe Right(routes.LicenceTypeController.licenceType)
+          }
+
+          "there is a no tax check code in session" in {
+            val session                                     = HECSession(UserAnswers.empty, None)
+            implicit val request: RequestWithSessionData[_] = requestWithSessionData(session)
+
+            assertThrows[InconsistentSessionState](
+              await(
+                journeyService
+                  .updateAndNext(
+                    routes.HECTaxCheckCodeController.hecTaxCheckCode,
+                    session
+                  )
+                  .value
+              )
+            )
+          }
         }
 
         "the licence Type page" when {
@@ -143,7 +162,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
             implicit val request: RequestWithSessionData[_] =
               requestWithSessionData(session)
 
-            assertThrows[RuntimeException] {
+            assertThrows[InconsistentSessionState] {
               journeyService.updateAndNext(
                 routes.LicenceTypeController.licenceType,
                 session
@@ -235,7 +254,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
             implicit val request: RequestWithSessionData[_] =
               requestWithSessionData(session)
 
-            assertThrows[RuntimeException] {
+            assertThrows[InconsistentSessionState] {
               journeyService.updateAndNext(
                 routes.EntityTypeController.entityType,
                 session
@@ -254,13 +273,13 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
 
         "date of birth page " when {
 
-          def nextPageTest(updatedHecSession: HECSession, nextCall: Call, maxVerificationhasReached: Boolean) = {
+          def nextPageTest(updatedHecSession: HECSession, nextCall: Call, maxVerificationAttemptsReached: Boolean) = {
             val currentSession                              = HECSession(UserAnswers.empty, None)
             val updatedSession                              = updatedHecSession
             implicit val request: RequestWithSessionData[_] =
               requestWithSessionData(currentSession)
             inSequence {
-              mockVerificationAttemptReached(hecTaxCheckCode, updatedHecSession)(maxVerificationhasReached)
+              mockVerificationAttemptReached(hecTaxCheckCode, updatedHecSession)(maxVerificationAttemptsReached)
               mockStoreSession(updatedSession)(Right(()))
             }
 
@@ -278,7 +297,9 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
             implicit val request: RequestWithSessionData[_] =
               requestWithSessionData(session)
 
-            assertThrows[RuntimeException] {
+            mockVerificationAttemptReached(hecTaxCheckCode, session)(false)
+
+            assertThrows[InconsistentSessionState] {
               journeyService.updateAndNext(
                 routes.DateOfBirthController.dateOfBirth,
                 session
@@ -481,7 +502,9 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
             implicit val request: RequestWithSessionData[_] =
               requestWithSessionData(session)
 
-            assertThrows[RuntimeException] {
+            mockVerificationAttemptReached(hecTaxCheckCode, session)(false)
+
+            assertThrows[InconsistentSessionState] {
               journeyService.updateAndNext(
                 routes.CRNController.companyRegistrationNumber,
                 session
@@ -706,7 +729,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
         }
 
         "the licence type page" in {
-          val session                                     = HECSession(UserAnswers.empty, None)
+          val session                                     = HECSession(UserAnswers.empty.copy(taxCheckCode = Some(HECTaxCheckCode(""))), None)
           implicit val request: RequestWithSessionData[_] =
             requestWithSessionData(session)
 
