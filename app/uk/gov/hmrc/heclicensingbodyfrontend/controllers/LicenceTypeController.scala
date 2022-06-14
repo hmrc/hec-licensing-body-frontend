@@ -53,7 +53,8 @@ class LicenceTypeController @Inject() (
       val emptyForm = licenceTypeForm(licenceTypes)
       licenceType.fold(emptyForm)(emptyForm.fill)
     }
-    Ok(licenceTypePage(form, back, licenceTypeOptions))
+    val options     = if (request.sessionData.isScotNIPrivateBeta.contains(true)) List.empty else licenceTypeOptions
+    Ok(licenceTypePage(form, back, options))
   }
 
   val licenceTypeSubmit: Action[AnyContent] = sessionDataAction.async { implicit request =>

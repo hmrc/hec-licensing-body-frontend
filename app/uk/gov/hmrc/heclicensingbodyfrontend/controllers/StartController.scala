@@ -18,14 +18,14 @@ package uk.gov.hmrc.heclicensingbodyfrontend.controllers
 
 import cats.instances.future._
 import com.google.inject.{Inject, Singleton}
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Request, Result}
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{HECSession, UserAnswers}
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
 import uk.gov.hmrc.heclicensingbodyfrontend.services.JourneyService
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class StartController @Inject() (
@@ -36,22 +36,30 @@ class StartController @Inject() (
     extends FrontendController(mcc)
     with Logging {
 
+  val scotNIPrivateBetaStart: Action[AnyContent] =
+    Action.async { implicit request =>
+      doStart(isScotNIPrivateBeta = true)
+    }
+
   val start: Action[AnyContent] =
     Action.async { implicit request =>
-      val newSessionStore = for {
-        hecSession <- sessionStore.get()
-        newSession  = hecSession match {
-                        case Some(session) => session.copy(UserAnswers.empty, None, session.verificationAttempts)
-                        case None          => HECSession(UserAnswers.empty, None)
-                      }
-        _          <- sessionStore.store(newSession)
-      } yield ()
-      newSessionStore
-        .fold(
-          _.doThrow("Could not store session"),
-          _ => Redirect(journeyService.firstPage)
-        )
-
+      doStart(isScotNIPrivateBeta = false)
     }
+
+  private def doStart(isScotNIPrivateBeta: Boolean)(implicit r: Request[_]): Future[Result] = {
+    val newSessionStore = for {
+      hecSession <- sessionStore.get()
+      newSession  = hecSession match {
+                      case Some(session) => session.copy(UserAnswers.empty, None, session.verificationAttempts)
+                      case None          => HECSession(UserAnswers.empty, None, Map.empty, Some(isScotNIPrivateBeta))
+                    }
+      _          <- sessionStore.store(newSession)
+    } yield ()
+    newSessionStore
+      .fold(
+        _.doThrow("Could not store session"),
+        _ => Redirect(journeyService.firstPage)
+      )
+  }
 
 }

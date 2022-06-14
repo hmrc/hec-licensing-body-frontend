@@ -48,12 +48,14 @@ class StartControllerSpec extends ControllerSpec with SessionSupport with Journe
 
   val controller: StartController = instanceOf[StartController]
 
+  def fakeRequestWithLang(languageCode: String) = FakeRequest().withCookies(Cookie("PLAY_LANG", languageCode))
+
   "StartController" when {
 
     "handling requests to start" must {
 
       def performAction(languageCode: String) =
-        controller.start(FakeRequest().withCookies(Cookie("PLAY_LANG", languageCode)))
+        controller.start(fakeRequestWithLang(languageCode))
 
       val hecTaxCheckCode = HECTaxCheckCode("XNFFGBDD6")
 
@@ -61,30 +63,36 @@ class StartControllerSpec extends ControllerSpec with SessionSupport with Journe
         HECSession(
           UserAnswers.empty.copy(taxCheckCode = Some(hecTaxCheckCode)),
           None,
-          Map(hecTaxCheckCode -> TaxCheckVerificationAttempts(2, None))
+          Map(hecTaxCheckCode -> TaxCheckVerificationAttempts(2, None)),
+          isScotNIPrivateBeta = Some(false)
         )
 
-      val newSession = HECSession(UserAnswers.empty, None)
+      val newSession = HECSession(UserAnswers.empty, None, Map.empty, isScotNIPrivateBeta = Some(false))
 
       "show an error page" when {
 
         "there is an error getting an existing  session" in {
-
           mockGetSession(Left(Error("")))
+
           assertThrows[RuntimeException](await(performAction("en")))
         }
 
         "there is an error storing a new session" in {
+          inSequence {
+            mockGetSession(Right(None))
+            mockStoreSession(newSession)(Left(Error("")))
+          }
 
-          mockGetSession(Right(None))
-          mockStoreSession(newSession)(Left(Error("")))
           assertThrows[RuntimeException](await(performAction("en")))
 
         }
 
         "the language is not recognised" in {
-          mockGetSession(Right(None))
-          mockStoreSession(newSession)(Right(()))
+          inSequence {
+            mockGetSession(Right(None))
+            mockStoreSession(newSession)(Right(()))
+          }
+
           assertThrows[RuntimeException](await(performAction("fr")))
         }
 
@@ -96,7 +104,6 @@ class StartControllerSpec extends ControllerSpec with SessionSupport with Journe
           val firstPage = Call("", "/first")
 
           inSequence {
-
             mockGetSession(Right(None))
             mockStoreSession(newSession)(Right(()))
             mockFirstPge(firstPage)
@@ -109,15 +116,32 @@ class StartControllerSpec extends ControllerSpec with SessionSupport with Journe
           val firstPage = Call("", "/first")
 
           inSequence {
-
-            mockGetSession(currentSession)
-            mockStoreSession(newSession.copy(verificationAttempts = currentSession.verificationAttempts))(Right(()))
+            mockGetSession(currentSession.copy(isScotNIPrivateBeta = None))
+            mockStoreSession(
+              newSession.copy(verificationAttempts = currentSession.verificationAttempts, isScotNIPrivateBeta = None)
+            )(Right(()))
             mockFirstPge(firstPage)
           }
 
           checkIsRedirect(performAction("cy"), firstPage)
         }
 
+      }
+
+    }
+
+    "handling requests to the scotNI private beta start endpoint" must {
+
+      "write the isScotNIPrivateBeta flag to true if no session exists yet" in {
+        val firstPage = Call("", "/first")
+
+        inSequence {
+          mockGetSession(Right(None))
+          mockStoreSession(HECSession(UserAnswers.empty, None, Map.empty, isScotNIPrivateBeta = Some(true)))(Right(()))
+          mockFirstPge(firstPage)
+        }
+
+        checkIsRedirect(controller.scotNIPrivateBetaStart(fakeRequestWithLang("en")), firstPage)
       }
 
     }

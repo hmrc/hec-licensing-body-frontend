@@ -31,7 +31,8 @@ object TaxCheckVerificationAttempts {
 final case class HECSession(
   userAnswers: UserAnswers,
   taxCheckMatch: Option[HECTaxCheckMatchResult],
-  verificationAttempts: Map[HECTaxCheckCode, TaxCheckVerificationAttempts] = Map.empty
+  verificationAttempts: Map[HECTaxCheckCode, TaxCheckVerificationAttempts] = Map.empty,
+  isScotNIPrivateBeta: Option[Boolean] = None
 )
 
 object HECSession {
