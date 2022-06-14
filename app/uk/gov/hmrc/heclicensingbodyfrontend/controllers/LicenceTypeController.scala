@@ -17,6 +17,7 @@
 package uk.gov.hmrc.heclicensingbodyfrontend.controllers
 
 import cats.instances.future._
+import cats.syntax.eq._
 import com.google.inject.{Inject, Singleton}
 import play.api.data.Form
 import play.api.data.Forms.{mapping, of}
@@ -25,7 +26,7 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.LicenceTypeController.{licenceTypeForm, licenceTypeOptions, licenceTypes}
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.{RequestWithSessionData, SessionDataAction}
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
-import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType.{DriverOfTaxisAndPrivateHires, OperatorOfPrivateHireVehicles, ScrapMetalDealerSite, ScrapMetalMobileCollector}
+import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType.{BookingOffice, DriverOfTaxisAndPrivateHires, OperatorOfPrivateHireVehicles, ScrapMetalDealerSite, ScrapMetalMobileCollector}
 import uk.gov.hmrc.heclicensingbodyfrontend.models.views.LicenceTypeOption
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{HECSession, UserAnswers}
 import uk.gov.hmrc.heclicensingbodyfrontend.services.JourneyService
@@ -50,15 +51,15 @@ class LicenceTypeController @Inject() (
     val back        = journeyService.previous(routes.LicenceTypeController.licenceType)
     val licenceType = request.sessionData.userAnswers.licenceType
     val form = {
-      val emptyForm = licenceTypeForm(licenceTypes)
+      val emptyForm = licenceTypeForm(licenceTypes(request.sessionData.isScotNIPrivateBeta))
       licenceType.fold(emptyForm)(emptyForm.fill)
     }
-    val options     = if (request.sessionData.isScotNIPrivateBeta.contains(true)) List.empty else licenceTypeOptions
+    val options     = licenceTypeOptions(request.sessionData.isScotNIPrivateBeta)
     Ok(licenceTypePage(form, back, options))
   }
 
   val licenceTypeSubmit: Action[AnyContent] = sessionDataAction.async { implicit request =>
-    licenceTypeForm(licenceTypes)
+    licenceTypeForm(licenceTypes(request.sessionData.isScotNIPrivateBeta))
       .bindFromRequest()
       .fold(
         formWithErrors =>
@@ -66,7 +67,7 @@ class LicenceTypeController @Inject() (
             licenceTypePage(
               formWithErrors,
               journeyService.previous(routes.LicenceTypeController.licenceType),
-              licenceTypeOptions
+              licenceTypeOptions(request.sessionData.isScotNIPrivateBeta)
             )
           ),
         handleValidLicenceType
@@ -92,14 +93,19 @@ class LicenceTypeController @Inject() (
 
 object LicenceTypeController {
 
-  val licenceTypes: List[LicenceType] = List(
-    DriverOfTaxisAndPrivateHires,
-    OperatorOfPrivateHireVehicles,
-    ScrapMetalMobileCollector,
-    ScrapMetalDealerSite
-  )
+  def licenceTypes(isScotNIPrivateBeta: Option[Boolean]): List[LicenceType] = {
+    val licences = List(
+      DriverOfTaxisAndPrivateHires,
+      OperatorOfPrivateHireVehicles,
+      BookingOffice,
+      ScrapMetalMobileCollector,
+      ScrapMetalDealerSite
+    )
+    if (isScotNIPrivateBeta.contains(true)) licences else licences.filterNot(_ === BookingOffice)
+  }
 
-  val licenceTypeOptions: List[LicenceTypeOption] = licenceTypes.map(LicenceTypeOption.licenceTypeOption)
+  def licenceTypeOptions(isScotNIPrivateBeta: Option[Boolean]): List[LicenceTypeOption] =
+    licenceTypes(isScotNIPrivateBeta).map(LicenceTypeOption.licenceTypeOption(_, isScotNIPrivateBeta))
 
   def licenceTypeForm(options: List[LicenceType]): Form[LicenceType] =
     Form(

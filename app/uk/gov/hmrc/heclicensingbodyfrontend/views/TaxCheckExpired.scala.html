@@ -27,7 +27,7 @@
 
 @this(layout: Layout, govukPanel : GovukPanel, detailsEntered: DetailsEntered)
 
-@(hecTaxCheckMatchRequest:HECTaxCheckMatchRequest, dateTimeChecked: ZonedDateTime)(implicit request: Request[_], messages: Messages)
+@(hecTaxCheckMatchRequest:HECTaxCheckMatchRequest, dateTimeChecked: ZonedDateTime, isScotNIPrivateBeta: Option[Boolean])(implicit request: Request[_], messages: Messages)
 @key = @{"taxCheckExpired"}
 @title = @{messages(s"$key.title")}
 
@@ -39,7 +39,7 @@
         content = HtmlContent(s"""${messages(s"$key.subtitle")}<br><strong>${TimeUtils.govDateTimeDisplayFormat(dateTimeChecked)}</strong>""")
     ))
 
-    @detailsEntered(hecTaxCheckMatchRequest)
+    @detailsEntered(hecTaxCheckMatchRequest, isScotNIPrivateBeta)
 
     <p class="js-visible govuk-body govuk-!-display-none-print">@Html(messages(s"$key.print"))</p>
     <h2 class="govuk-heading-m">@messages(s"$key.whatNext.heading")</h2>

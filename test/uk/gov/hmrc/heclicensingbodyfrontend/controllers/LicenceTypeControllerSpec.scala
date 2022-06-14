@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.controllers
 
+import org.jsoup.nodes.Document
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.mvc.Result
@@ -28,6 +29,7 @@ import uk.gov.hmrc.heclicensingbodyfrontend.services.JourneyService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.collection.JavaConverters._
 
 class LicenceTypeControllerSpec
     extends ControllerSpec
@@ -54,14 +56,74 @@ class LicenceTypeControllerSpec
 
       "show the page" when {
 
-        "session data is found" in {
+        def checkLicenceTypeOptions(doc: Document, expectedLabelsWithHintText: List[(String, Option[String])]) = {
+          val radios = doc.select(".govuk-radios__item")
+
+          val labelsWithHintText = radios.iterator().asScala.toList.map { element =>
+            val label    = element.select(".govuk-label").text()
+            val hintText = Option(element.select(".govuk-hint").text).filter(_.nonEmpty)
+            label -> hintText
+          }
+
+          labelsWithHintText shouldBe expectedLabelsWithHintText
+        }
+
+        "session data is found and it is not a scotNI private beta session" in {
+          List(Some(false), None).foreach { isScotNIPrivateBeta =>
+            val taxCheckCode = HECTaxCheckCode("ABC DEF 123")
+            val session      =
+              HECSession(
+                UserAnswers.empty.copy(
+                  taxCheckCode = Some(taxCheckCode)
+                ),
+                None,
+                isScotNIPrivateBeta = isScotNIPrivateBeta
+              )
+
+            inSequence {
+              mockGetSession(session)
+              mockJourneyServiceGetPrevious(routes.LicenceTypeController.licenceType, session)(
+                mockPreviousCall
+              )
+            }
+
+            checkPageIsDisplayed(
+              performAction(),
+              messageFromMessageKey("licenceType.title"),
+              { doc =>
+                doc.select("#back").attr("href") shouldBe mockPreviousCall.url
+
+                val selectedOptions = doc.select(".govuk-radios__input[checked]")
+                selectedOptions.isEmpty shouldBe true
+
+                checkLicenceTypeOptions(
+                  doc,
+                  List(
+                    "licenceType.driverOfTaxis"                 -> Some("licenceType.driverOfTaxis.hint"),
+                    "licenceType.operatorOfPrivateHireVehicles" -> None,
+                    "licenceType.scrapMetalCollector"           -> None,
+                    "licenceType.scrapMetalDealer"              -> None
+                  ).map { case (label, hint) => messageFromMessageKey(label) -> hint.map(messageFromMessageKey(_)) }
+                )
+
+                val form = doc.select("form")
+                form.attr("action") shouldBe routes.LicenceTypeController.licenceTypeSubmit.url
+
+              }
+            )
+          }
+
+        }
+
+        "session data is found and it is a scotNI private beta session" in {
           val taxCheckCode = HECTaxCheckCode("ABC DEF 123")
           val session      =
             HECSession(
               UserAnswers.empty.copy(
                 taxCheckCode = Some(taxCheckCode)
               ),
-              None
+              None,
+              isScotNIPrivateBeta = Some(true)
             )
 
           inSequence {
@@ -79,6 +141,17 @@ class LicenceTypeControllerSpec
 
               val selectedOptions = doc.select(".govuk-radios__input[checked]")
               selectedOptions.isEmpty shouldBe true
+
+              checkLicenceTypeOptions(
+                doc,
+                List(
+                  "licenceType.driverOfTaxis"                 -> Some("licenceType.driverOfTaxis.hint.scotNI"),
+                  "licenceType.operatorOfPrivateHireVehicles" -> Some("licenceType.operatorOfPrivateHireVehicles.hint"),
+                  "licenceType.bookingOffice"                 -> Some("licenceType.bookingOffice.hint"),
+                  "licenceType.scrapMetalCollector.scotNI"    -> Some("licenceType.scrapMetalCollector.hint"),
+                  "licenceType.scrapMetalDealer"              -> Some("licenceType.scrapMetalDealer.hint")
+                ).map { case (label, hint) => messageFromMessageKey(label) -> hint.map(messageFromMessageKey(_)) }
+              )
 
               val form = doc.select("form")
               form.attr("action") shouldBe routes.LicenceTypeController.licenceTypeSubmit.url

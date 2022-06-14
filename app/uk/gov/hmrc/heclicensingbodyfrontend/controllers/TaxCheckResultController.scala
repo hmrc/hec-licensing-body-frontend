@@ -46,7 +46,7 @@ class TaxCheckResultController @Inject() (
   val taxCheckMatch: Action[AnyContent] = sessionDataAction { implicit request =>
     request.sessionData.taxCheckMatch match {
       case Some(HECTaxCheckMatchResult(taxCheckMatchResult, dateTime, Match)) =>
-        Ok(taxCheckValidPage(taxCheckMatchResult, dateTime))
+        Ok(taxCheckValidPage(taxCheckMatchResult, dateTime, request.sessionData.isScotNIPrivateBeta))
       case _                                                                  =>
         InconsistentSessionState("Tax check match Result not found for 'Match' page").doThrow
 
@@ -58,7 +58,7 @@ class TaxCheckResultController @Inject() (
   val taxCheckExpired: Action[AnyContent] = sessionDataAction { implicit request =>
     request.sessionData.taxCheckMatch match {
       case Some(HECTaxCheckMatchResult(taxCheckMatchResult, dateTime, Expired)) =>
-        Ok(taxCheckExpiredPage(taxCheckMatchResult, dateTime))
+        Ok(taxCheckExpiredPage(taxCheckMatchResult, dateTime, request.sessionData.isScotNIPrivateBeta))
       case _                                                                    =>
         InconsistentSessionState("Tax check match Result not found for 'Expired' page").doThrow
     }
@@ -72,7 +72,8 @@ class TaxCheckResultController @Inject() (
         Ok(
           taxCheckNoMatchPage(
             taxCheckMatchResult,
-            back
+            back,
+            request.sessionData.isScotNIPrivateBeta
           )
         )
       case _                                                                =>
@@ -89,7 +90,8 @@ class TaxCheckResultController @Inject() (
           .flatMap(_.lockExpiresAt)
 
         lockAttemptExpiresAtOpt match {
-          case Some(lockAttemptExpiresAt) => Ok(tooManyAttemptsPage(userAnswers, lockAttemptExpiresAt))
+          case Some(lockAttemptExpiresAt) =>
+            Ok(tooManyAttemptsPage(userAnswers, lockAttemptExpiresAt, request.sessionData.isScotNIPrivateBeta))
           case None                       =>
             InconsistentSessionState("Verification attempt lock expire time is not found in session").doThrow
         }

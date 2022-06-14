@@ -24,7 +24,7 @@
 
 @this(govukSummaryList : GovukSummaryList)
 
-@(userAnswers: UserAnswers)(implicit messages: Messages)
+@(userAnswers: UserAnswers, isScotNIPrivateBeta: Option[Boolean])(implicit messages: Messages)
 
 @key = @{"detailsEntered"}
 @taxCheckCodeRow = @{
@@ -46,7 +46,9 @@
         content = Text(messages(s"$key.licenceTypeKey"))
       ),
       value = Value(
-        content = Text(messages(s"licenceType.${LicenceTypeOption.licenceTypeOption(licenceType).messageKey}"))
+        content = Text(messages(
+            s"licenceType.${LicenceTypeOption.licenceTypeOption(licenceType, isScotNIPrivateBeta).messageKey}"
+        ))
       )
     )
   }
