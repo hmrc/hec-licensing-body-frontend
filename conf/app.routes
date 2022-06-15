@@ -3,6 +3,7 @@
 GET        /assets/*file                        controllers.Assets.versioned(path = "/public", file: controllers.Assets.Asset)
 
 GET        /start                               uk.gov.hmrc.heclicensingbodyfrontend.controllers.StartController.start
+GET        /private-beta/start                  uk.gov.hmrc.heclicensingbodyfrontend.controllers.StartController.scotNIPrivateBetaStart
 
 GET        /enter-tax-check-code                uk.gov.hmrc.heclicensingbodyfrontend.controllers.HECTaxCheckCodeController.hecTaxCheckCode
 POST       /enter-tax-check-code                uk.gov.hmrc.heclicensingbodyfrontend.controllers.HECTaxCheckCodeController.hecTaxCheckCodeSubmit
