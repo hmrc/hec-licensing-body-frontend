@@ -24,7 +24,7 @@
 
 @this(govukSummaryList : GovukSummaryList)
 
-@(hecTaxCheckMatchRequest: HECTaxCheckMatchRequest)(implicit messages: Messages)
+@(hecTaxCheckMatchRequest: HECTaxCheckMatchRequest, isScotNIPrivateBeta: Option[Boolean])(implicit messages: Messages)
 
 @key = @{"detailsEntered"}
 @verifierRow = @{
@@ -65,7 +65,9 @@
         content = Text(messages(s"$key.licenceTypeKey"))
       ),
       value = Value(
-        content = Text(messages(s"licenceType.${LicenceTypeOption.licenceTypeOption(hecTaxCheckMatchRequest.licenceType).messageKey}"))
+        content = Text(messages(
+            s"licenceType.${LicenceTypeOption.licenceTypeOption(hecTaxCheckMatchRequest.licenceType, isScotNIPrivateBeta).messageKey}"
+        ))
       )
     ),
     verifierRow

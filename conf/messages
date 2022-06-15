@@ -26,9 +26,16 @@ taxCheckCode.error.invalidAlphanumericChars = The tax check code must not includ
 licenceType.title = What type of licence is being applied for?
 licenceType.driverOfTaxis = Driver of taxis and private hires
 licenceType.driverOfTaxis.hint = Includes hackney carriage and dual licences.
+licenceType.driverOfTaxis.hint.scotNI = Includes dual licences and hackney carriage licences.
 licenceType.operatorOfPrivateHireVehicles = Operator of private hire vehicles
+licenceType.operatorOfPrivateHireVehicles.hint = (England and Wales only)
+licenceType.bookingOffice = Booking office
+licenceType.bookingOffice.hint = (Scotland only)
 licenceType.scrapMetalCollector = Scrap metal mobile collector
+licenceType.scrapMetalCollector.scotNI = Mobile or itinerant scrap metal collector
+licenceType.scrapMetalCollector.hint = (England, Wales and Scotland only)
 licenceType.scrapMetalDealer = Scrap metal dealer site
+licenceType.scrapMetalDealer.hint = (England, Wales and Scotland only)
 licenceType.error.required = Select the type of licence that is being applied for
 licenceType.error.invalid = Select the type of licence that is being applied for
 

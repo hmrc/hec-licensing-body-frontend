@@ -23,7 +23,7 @@
 
 @this(layout: Layout, detailsEntered: DetailsEntered)
 
-@(hecTaxCheckMatchRequest:HECTaxCheckMatchRequest, back: Call)(implicit request: Request[_], messages: Messages)
+@(hecTaxCheckMatchRequest:HECTaxCheckMatchRequest, back: Call, isScotNIPrivateBeta: Option[Boolean])(implicit request: Request[_], messages: Messages)
 @key = @{"taxCheckNoMatch"}
 @title = @{messages(s"$key.title")}
 
@@ -31,7 +31,7 @@
 
     <h1 class="govuk-heading-xl">@title</h1>
 
-    @detailsEntered(hecTaxCheckMatchRequest)
+    @detailsEntered(hecTaxCheckMatchRequest, isScotNIPrivateBeta)
 
     <p class="govuk-body">@messages(s"$key.whatNext.p1")</p>
 
