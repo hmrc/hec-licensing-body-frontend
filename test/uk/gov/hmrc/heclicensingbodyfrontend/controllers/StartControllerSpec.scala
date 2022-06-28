@@ -63,11 +63,10 @@ class StartControllerSpec extends ControllerSpec with SessionSupport with Journe
         HECSession(
           UserAnswers.empty.copy(taxCheckCode = Some(hecTaxCheckCode)),
           None,
-          Map(hecTaxCheckCode -> TaxCheckVerificationAttempts(2, None)),
-          isScotNIPrivateBeta = Some(false)
+          Map(hecTaxCheckCode -> TaxCheckVerificationAttempts(2, None))
         )
 
-      val newSession = HECSession(UserAnswers.empty, None, Map.empty, isScotNIPrivateBeta = Some(false))
+      val newSession = HECSession(UserAnswers.empty, None, Map.empty)
 
       "show an error page" when {
 
@@ -116,32 +115,14 @@ class StartControllerSpec extends ControllerSpec with SessionSupport with Journe
           val firstPage = Call("", "/first")
 
           inSequence {
-            mockGetSession(currentSession.copy(isScotNIPrivateBeta = None))
-            mockStoreSession(
-              newSession.copy(verificationAttempts = currentSession.verificationAttempts, isScotNIPrivateBeta = None)
-            )(Right(()))
+            mockGetSession(currentSession)
+            mockStoreSession(newSession.copy(verificationAttempts = currentSession.verificationAttempts))(Right(()))
             mockFirstPge(firstPage)
           }
 
           checkIsRedirect(performAction("cy"), firstPage)
         }
 
-      }
-
-    }
-
-    "handling requests to the scotNI private beta start endpoint" must {
-
-      "write the isScotNIPrivateBeta flag to true if no session exists yet" in {
-        val firstPage = Call("", "/first")
-
-        inSequence {
-          mockGetSession(Right(None))
-          mockStoreSession(HECSession(UserAnswers.empty, None, Map.empty, isScotNIPrivateBeta = Some(true)))(Right(()))
-          mockFirstPge(firstPage)
-        }
-
-        checkIsRedirect(controller.scotNIPrivateBetaStart(fakeRequestWithLang("en")), firstPage)
       }
 
     }

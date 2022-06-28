@@ -68,62 +68,14 @@ class LicenceTypeControllerSpec
           labelsWithHintText shouldBe expectedLabelsWithHintText
         }
 
-        "session data is found and it is not a scotNI private beta session" in {
-          List(Some(false), None).foreach { isScotNIPrivateBeta =>
-            val taxCheckCode = HECTaxCheckCode("ABC DEF 123")
-            val session      =
-              HECSession(
-                UserAnswers.empty.copy(
-                  taxCheckCode = Some(taxCheckCode)
-                ),
-                None,
-                isScotNIPrivateBeta = isScotNIPrivateBeta
-              )
-
-            inSequence {
-              mockGetSession(session)
-              mockJourneyServiceGetPrevious(routes.LicenceTypeController.licenceType, session)(
-                mockPreviousCall
-              )
-            }
-
-            checkPageIsDisplayed(
-              performAction(),
-              messageFromMessageKey("licenceType.title"),
-              { doc =>
-                doc.select("#back").attr("href") shouldBe mockPreviousCall.url
-
-                val selectedOptions = doc.select(".govuk-radios__input[checked]")
-                selectedOptions.isEmpty shouldBe true
-
-                checkLicenceTypeOptions(
-                  doc,
-                  List(
-                    "licenceType.driverOfTaxis"                 -> Some("licenceType.driverOfTaxis.hint"),
-                    "licenceType.operatorOfPrivateHireVehicles" -> None,
-                    "licenceType.scrapMetalCollector"           -> None,
-                    "licenceType.scrapMetalDealer"              -> None
-                  ).map { case (label, hint) => messageFromMessageKey(label) -> hint.map(messageFromMessageKey(_)) }
-                )
-
-                val form = doc.select("form")
-                form.attr("action") shouldBe routes.LicenceTypeController.licenceTypeSubmit.url
-
-              }
-            )
-          }
-
-        }
-
-        "session data is found and it is a scotNI private beta session" in {
+        "session data is found" in {
           val taxCheckCode = HECTaxCheckCode("ABC DEF 123")
           val session      =
             HECSession(
               UserAnswers.empty.copy(
                 taxCheckCode = Some(taxCheckCode)
               ),
-              None,
-              isScotNIPrivateBeta = Some(true)
+              None
             )
 
           inSequence {
@@ -145,10 +97,10 @@ class LicenceTypeControllerSpec
               checkLicenceTypeOptions(
                 doc,
                 List(
-                  "licenceType.driverOfTaxis"                 -> Some("licenceType.driverOfTaxis.hint.scotNI"),
+                  "licenceType.driverOfTaxis"                 -> Some("licenceType.driverOfTaxis.hint"),
                   "licenceType.operatorOfPrivateHireVehicles" -> Some("licenceType.operatorOfPrivateHireVehicles.hint"),
                   "licenceType.bookingOffice"                 -> Some("licenceType.bookingOffice.hint"),
-                  "licenceType.scrapMetalCollector.scotNI"    -> Some("licenceType.scrapMetalCollector.hint"),
+                  "licenceType.scrapMetalCollector"           -> Some("licenceType.scrapMetalCollector.hint"),
                   "licenceType.scrapMetalDealer"              -> Some("licenceType.scrapMetalDealer.hint")
                 ).map { case (label, hint) => messageFromMessageKey(label) -> hint.map(messageFromMessageKey(_)) }
               )
@@ -276,7 +228,7 @@ class LicenceTypeControllerSpec
               None,
               None
             )
-            val updatedAnswers = answers.copy(licenceType = Some(LicenceType.ScrapMetalMobileCollector))
+            val updatedAnswers = answers.copy(licenceType = Some(LicenceType.BookingOffice))
             val session        = HECSession(answers, None)
             val updatedSession = session.copy(userAnswers = updatedAnswers)
 

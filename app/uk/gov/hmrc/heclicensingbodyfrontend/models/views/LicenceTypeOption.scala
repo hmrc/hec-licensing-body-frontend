@@ -22,34 +22,16 @@ import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
 final case class LicenceTypeOption(messageKey: String, hintKey: Option[String])
 
 object LicenceTypeOption {
-  def licenceTypeOption(licenceType: LicenceType, isScotNIPrivateBeta: Option[Boolean]): LicenceTypeOption = {
-    val isScotNI: Boolean = isScotNIPrivateBeta.getOrElse(false)
 
-    licenceType match {
-      case LicenceType.DriverOfTaxisAndPrivateHires =>
-        val key  = "driverOfTaxis"
-        val hint = if (isScotNI) s"$key.hint.scotNI" else s"$key.hint"
-        LicenceTypeOption(key, Some(hint))
-
-      case LicenceType.OperatorOfPrivateHireVehicles =>
-        val key  = "operatorOfPrivateHireVehicles"
-        val hint = if (isScotNI) Some(s"$key.hint") else None
-        LicenceTypeOption(key, hint)
-
-      case LicenceType.BookingOffice =>
-        val key = "bookingOffice"
-        LicenceTypeOption(key, Some(s"$key.hint"))
-
-      case LicenceType.ScrapMetalMobileCollector =>
-        val key = "scrapMetalCollector"
-        if (isScotNI) LicenceTypeOption(s"$key.scotNI", Some(s"$key.hint"))
-        else LicenceTypeOption(key, None)
-
-      case LicenceType.ScrapMetalDealerSite =>
-        val key  = "scrapMetalDealer"
-        val hint = if (isScotNI) Some(s"$key.hint") else None
-        LicenceTypeOption(key, hint)
+  def licenceTypeOption(licenceType: LicenceType): LicenceTypeOption = {
+    val key = licenceType match {
+      case LicenceType.DriverOfTaxisAndPrivateHires  => "driverOfTaxis"
+      case LicenceType.OperatorOfPrivateHireVehicles => "operatorOfPrivateHireVehicles"
+      case LicenceType.BookingOffice                 => "bookingOffice"
+      case LicenceType.ScrapMetalMobileCollector     => "scrapMetalCollector"
+      case LicenceType.ScrapMetalDealerSite          => "scrapMetalDealer"
     }
+    LicenceTypeOption(key, Some(s"$key.hint"))
   }
 
   implicit val eq: Eq[LicenceTypeOption] = Eq.fromUniversalEquals

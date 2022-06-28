@@ -17,7 +17,6 @@
 package uk.gov.hmrc.heclicensingbodyfrontend.controllers
 
 import cats.instances.future._
-import cats.syntax.eq._
 import com.google.inject.{Inject, Singleton}
 import play.api.data.Form
 import play.api.data.Forms.{mapping, of}
@@ -51,15 +50,14 @@ class LicenceTypeController @Inject() (
     val back        = journeyService.previous(routes.LicenceTypeController.licenceType)
     val licenceType = request.sessionData.userAnswers.licenceType
     val form = {
-      val emptyForm = licenceTypeForm(licenceTypes(request.sessionData.isScotNIPrivateBeta))
+      val emptyForm = licenceTypeForm(licenceTypes)
       licenceType.fold(emptyForm)(emptyForm.fill)
     }
-    val options     = licenceTypeOptions(request.sessionData.isScotNIPrivateBeta)
-    Ok(licenceTypePage(form, back, options))
+    Ok(licenceTypePage(form, back, licenceTypeOptions))
   }
 
   val licenceTypeSubmit: Action[AnyContent] = sessionDataAction.async { implicit request =>
-    licenceTypeForm(licenceTypes(request.sessionData.isScotNIPrivateBeta))
+    licenceTypeForm(licenceTypes)
       .bindFromRequest()
       .fold(
         formWithErrors =>
@@ -67,7 +65,7 @@ class LicenceTypeController @Inject() (
             licenceTypePage(
               formWithErrors,
               journeyService.previous(routes.LicenceTypeController.licenceType),
-              licenceTypeOptions(request.sessionData.isScotNIPrivateBeta)
+              licenceTypeOptions
             )
           ),
         handleValidLicenceType
@@ -93,19 +91,16 @@ class LicenceTypeController @Inject() (
 
 object LicenceTypeController {
 
-  def licenceTypes(isScotNIPrivateBeta: Option[Boolean]): List[LicenceType] = {
-    val licences = List(
+  val licenceTypes: List[LicenceType] =
+    List(
       DriverOfTaxisAndPrivateHires,
       OperatorOfPrivateHireVehicles,
       BookingOffice,
       ScrapMetalMobileCollector,
       ScrapMetalDealerSite
     )
-    if (isScotNIPrivateBeta.contains(true)) licences else licences.filterNot(_ === BookingOffice)
-  }
 
-  def licenceTypeOptions(isScotNIPrivateBeta: Option[Boolean]): List[LicenceTypeOption] =
-    licenceTypes(isScotNIPrivateBeta).map(LicenceTypeOption.licenceTypeOption(_, isScotNIPrivateBeta))
+  val licenceTypeOptions: List[LicenceTypeOption] = licenceTypes.map(LicenceTypeOption.licenceTypeOption)
 
   def licenceTypeForm(options: List[LicenceType]): Form[LicenceType] =
     Form(
