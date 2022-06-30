@@ -127,7 +127,7 @@ taxCheckExpired.viewAnother.link = Confirm another applicant’s tax check code
 
 #CRN
 crn.title = What is the applicant’s company registration number?
-crn.hint = Companies House sent this to the applicant when they set up their company. This is also called a company number. For example, SN898989 or 12345678.
+crn.hint = Companies House sent this to the applicant when they set up their company. This is also called a company number. For example, SC898989 or 12345678.
 crn.link = Search for a company registration number
 crn.error.required = Enter the applicant’s company registration number
 crn.error.nonAlphanumericChars = The applicant’s company registration number must only include letters A to Z and numbers 0 to 9
