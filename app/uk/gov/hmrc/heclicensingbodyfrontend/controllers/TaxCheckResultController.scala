@@ -46,7 +46,7 @@ class TaxCheckResultController @Inject() (
   val taxCheckMatch: Action[AnyContent] = sessionDataAction { implicit request =>
     request.sessionData.taxCheckMatch match {
       case Some(HECTaxCheckMatchResult(taxCheckMatchResult, dateTime, Match)) =>
-        Ok(taxCheckValidPage(taxCheckMatchResult, dateTime, request.sessionData.isScotNIPrivateBeta))
+        Ok(taxCheckValidPage(taxCheckMatchResult, dateTime))
       case _                                                                  =>
         InconsistentSessionState("Tax check match Result not found for 'Match' page").doThrow
 
@@ -58,7 +58,7 @@ class TaxCheckResultController @Inject() (
   val taxCheckExpired: Action[AnyContent] = sessionDataAction { implicit request =>
     request.sessionData.taxCheckMatch match {
       case Some(HECTaxCheckMatchResult(taxCheckMatchResult, dateTime, Expired)) =>
-        Ok(taxCheckExpiredPage(taxCheckMatchResult, dateTime, request.sessionData.isScotNIPrivateBeta))
+        Ok(taxCheckExpiredPage(taxCheckMatchResult, dateTime))
       case _                                                                    =>
         InconsistentSessionState("Tax check match Result not found for 'Expired' page").doThrow
     }
@@ -72,8 +72,7 @@ class TaxCheckResultController @Inject() (
         Ok(
           taxCheckNoMatchPage(
             taxCheckMatchResult,
-            back,
-            request.sessionData.isScotNIPrivateBeta
+            back
           )
         )
       case _                                                                =>
@@ -91,7 +90,7 @@ class TaxCheckResultController @Inject() (
 
         lockAttemptExpiresAtOpt match {
           case Some(lockAttemptExpiresAt) =>
-            Ok(tooManyAttemptsPage(userAnswers, lockAttemptExpiresAt, request.sessionData.isScotNIPrivateBeta))
+            Ok(tooManyAttemptsPage(userAnswers, lockAttemptExpiresAt))
           case None                       =>
             InconsistentSessionState("Verification attempt lock expire time is not found in session").doThrow
         }
