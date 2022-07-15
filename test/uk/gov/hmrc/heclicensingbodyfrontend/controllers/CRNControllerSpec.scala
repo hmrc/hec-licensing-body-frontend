@@ -233,7 +233,10 @@ class CRNControllerSpec
 
       def performAction(data: (String, String)*)(language: Language): Future[Result] =
         controller.companyRegistrationNumberSubmit(
-          FakeRequest().withFormUrlEncodedBody(data: _*).withCookies(Cookie("PLAY_LANG", language.code))
+          FakeRequest()
+            .withMethod(POST)
+            .withFormUrlEncodedBody(data: _*)
+            .withCookies(Cookie("PLAY_LANG", language.code))
         )
 
       behave like sessionDataActionBehaviour(() => performAction()(Language.English))

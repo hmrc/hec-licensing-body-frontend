@@ -119,7 +119,7 @@ class LicenceTypeControllerSpec
     "handling submits on the Licence Type page" must {
 
       def performAction(data: (String, String)*): Future[Result] =
-        controller.licenceTypeSubmit(FakeRequest().withFormUrlEncodedBody(data: _*))
+        controller.licenceTypeSubmit(FakeRequest().withMethod(POST).withFormUrlEncodedBody(data: _*))
 
       behave like sessionDataActionBehaviour(() => performAction())
 
