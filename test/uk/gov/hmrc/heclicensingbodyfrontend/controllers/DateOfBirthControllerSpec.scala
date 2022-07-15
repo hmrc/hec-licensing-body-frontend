@@ -214,7 +214,10 @@ class DateOfBirthControllerSpec
 
       def performAction(data: (String, String)*)(language: Language): Future[Result] =
         controller.dateOfBirthSubmit(
-          FakeRequest().withFormUrlEncodedBody(data: _*).withCookies(Cookie("PLAY_LANG", language.code))
+          FakeRequest()
+            .withMethod(POST)
+            .withFormUrlEncodedBody(data: _*)
+            .withCookies(Cookie("PLAY_LANG", language.code))
         )
 
       def formData(date: LocalDate): List[(String, String)] = List(

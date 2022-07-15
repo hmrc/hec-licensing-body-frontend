@@ -99,7 +99,7 @@ class HECTaxCheckCodeControllerSpec
     "handling submits on the tax check code page" must {
 
       def performAction(data: (String, String)*): Future[Result] =
-        controller.hecTaxCheckCodeSubmit(FakeRequest().withFormUrlEncodedBody(data: _*))
+        controller.hecTaxCheckCodeSubmit(FakeRequest().withMethod(POST).withFormUrlEncodedBody(data: _*))
 
       behave like sessionDataActionBehaviour(() => performAction())
 
