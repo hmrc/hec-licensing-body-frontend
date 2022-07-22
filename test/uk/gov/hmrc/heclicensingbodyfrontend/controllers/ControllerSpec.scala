@@ -33,6 +33,7 @@ import play.api.test.Helpers._
 import play.api._
 
 import scala.concurrent.Future
+import scala.collection.JavaConverters._
 import scala.reflect.ClassTag
 
 trait ControllerSpec extends AnyWordSpec with Matchers with BeforeAndAfterAll with MockFactory {
@@ -130,6 +131,19 @@ trait ControllerSpec extends AnyWordSpec with Matchers with BeforeAndAfterAll wi
       },
       expectedStatus
     )
+
+  def testRadioButtonOptions(
+    doc: Document,
+    expectedRadioLabels: List[String],
+    expectedRadioHintTexts: List[Option[String]]
+  ): Unit = {
+    val radios = doc.select(".govuk-radios__item").iterator().asScala.toList
+    val labels = radios.map(_.select(".govuk-label").text())
+    val hints  = radios.map(r => Option(r.select(".govuk-hint").text()).filter(_.nonEmpty))
+
+    labels shouldBe expectedRadioLabels
+    hints  shouldBe expectedRadioHintTexts
+  }
 
 }
 
