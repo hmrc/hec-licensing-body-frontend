@@ -79,6 +79,15 @@ class EntityTypeControllerSpec
             { doc =>
               doc.select("#back").attr("href") shouldBe mockPreviousCall.url
 
+              testRadioButtonOptions(
+                doc,
+                List(
+                  messageFromMessageKey("entityType.Individual"),
+                  messageFromMessageKey("entityType.Company")
+                ),
+                List(None, None)
+              )
+
               val selectedOptions = doc.select(".govuk-radios__input[checked]")
               selectedOptions.isEmpty shouldBe true
 

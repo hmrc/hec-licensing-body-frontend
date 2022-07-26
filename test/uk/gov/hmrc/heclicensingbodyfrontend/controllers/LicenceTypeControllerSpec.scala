@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.controllers
 
-import org.jsoup.nodes.Document
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.mvc.Result
@@ -29,7 +28,6 @@ import uk.gov.hmrc.heclicensingbodyfrontend.services.JourneyService
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.collection.JavaConverters._
 
 class LicenceTypeControllerSpec
     extends ControllerSpec
@@ -55,18 +53,6 @@ class LicenceTypeControllerSpec
       behave like sessionDataActionBehaviour(performAction)
 
       "show the page" when {
-
-        def checkLicenceTypeOptions(doc: Document, expectedLabelsWithHintText: List[(String, Option[String])]) = {
-          val radios = doc.select(".govuk-radios__item")
-
-          val labelsWithHintText = radios.iterator().asScala.toList.map { element =>
-            val label    = element.select(".govuk-label").text()
-            val hintText = Option(element.select(".govuk-hint").text).filter(_.nonEmpty)
-            label -> hintText
-          }
-
-          labelsWithHintText shouldBe expectedLabelsWithHintText
-        }
 
         "session data is found" in {
           val taxCheckCode = HECTaxCheckCode("ABC DEF 123")
@@ -94,15 +80,22 @@ class LicenceTypeControllerSpec
               val selectedOptions = doc.select(".govuk-radios__input[checked]")
               selectedOptions.isEmpty shouldBe true
 
-              checkLicenceTypeOptions(
+              testRadioButtonOptions(
                 doc,
                 List(
-                  "licenceType.driverOfTaxis"                 -> Some("licenceType.driverOfTaxis.hint"),
-                  "licenceType.operatorOfPrivateHireVehicles" -> Some("licenceType.operatorOfPrivateHireVehicles.hint"),
-                  "licenceType.bookingOffice"                 -> Some("licenceType.bookingOffice.hint"),
-                  "licenceType.scrapMetalCollector"           -> Some("licenceType.scrapMetalCollector.hint"),
-                  "licenceType.scrapMetalDealer"              -> Some("licenceType.scrapMetalDealer.hint")
-                ).map { case (label, hint) => messageFromMessageKey(label) -> hint.map(messageFromMessageKey(_)) }
+                  "licenceType.driverOfTaxis",
+                  "licenceType.operatorOfPrivateHireVehicles",
+                  "licenceType.bookingOffice",
+                  "licenceType.scrapMetalCollector",
+                  "licenceType.scrapMetalDealer"
+                ).map(messageFromMessageKey(_)),
+                List(
+                  "licenceType.driverOfTaxis.hint",
+                  "licenceType.operatorOfPrivateHireVehicles.hint",
+                  "licenceType.bookingOffice.hint",
+                  "licenceType.scrapMetalCollector.hint",
+                  "licenceType.scrapMetalDealer.hint"
+                ).map(key => Some(messageFromMessageKey(key)))
               )
 
               val form = doc.select("form")
