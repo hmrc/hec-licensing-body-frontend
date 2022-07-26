@@ -177,6 +177,7 @@ class CRNControllerSpec
             messageFromMessageKey("crn.title"),
             { doc =>
               doc.select("#back").attr("href") shouldBe mockPreviousCall.url
+              doc.select(".govuk-hint").text() shouldBe messageFromMessageKey("crn.hint")
 
               val button = doc.select("form")
               button.attr("action") shouldBe routes.CRNController.companyRegistrationNumberSubmit.url
@@ -211,6 +212,7 @@ class CRNControllerSpec
             messageFromMessageKey("crn.title"),
             { doc =>
               doc.select("#back").attr("href") shouldBe mockPreviousCall.url
+              doc.select(".govuk-hint").text() shouldBe messageFromMessageKey("crn.hint")
 
               val button = doc.select("form")
               button.attr("action") shouldBe routes.CRNController.companyRegistrationNumberSubmit.url

@@ -77,6 +77,7 @@ class HECTaxCheckCodeControllerSpec
             messageFromMessageKey("taxCheckCode.title"),
             { doc =>
               doc.select("#back").attr("href") shouldBe appConfig.licencingBodyStartUrl
+              doc.select(".govuk-hint").text() shouldBe messageFromMessageKey("taxCheckCode.hint")
 
               val button = doc.select("form")
               button.attr("action") shouldBe routes.HECTaxCheckCodeController.hecTaxCheckCodeSubmit.url
