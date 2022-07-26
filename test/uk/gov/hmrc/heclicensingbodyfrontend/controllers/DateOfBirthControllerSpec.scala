@@ -194,6 +194,12 @@ class DateOfBirthControllerSpec
             { doc =>
               doc.select("#back").attr("href") shouldBe mockPreviousCall.url
 
+              doc.select(".govuk-hint").text() shouldBe messageFromMessageKey("dateOfBirth.hint")
+              val dateOfBirthLabels = doc.select(".govuk-date-input__label")
+              dateOfBirthLabels.select("[for=\"dateOfBirth-day\"]").text()   shouldBe "Day"
+              dateOfBirthLabels.select("[for=\"dateOfBirth-month\"]").text() shouldBe "Month"
+              dateOfBirthLabels.select("[for=\"dateOfBirth-year\"]").text()  shouldBe "Year"
+
               doc.select("#dateOfBirth-day").attr("value")   shouldBe date.getDayOfMonth.toString
               doc.select("#dateOfBirth-month").attr("value") shouldBe date.getMonthValue.toString
               doc.select("#dateOfBirth-year").attr("value")  shouldBe date.getYear.toString
