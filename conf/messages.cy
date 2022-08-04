@@ -88,7 +88,7 @@ taxCheckNoMatch.title=Ni allem baru’r manylion hyn
 taxCheckNoMatch.whatNext.p1=Bydd angen i chi wirio bod gennych y manylion cywir gan yr ymgeisydd, megis:
 taxCheckNoMatch.bullet1=cod gwirio treth 9 cymeriad dilys
 taxCheckNoMatch.bullet2=y math o drwydded
-taxCheckNoMatch.bullet3=dyddiad geni neu rif cofrestru?r cwmni
+taxCheckNoMatch.bullet3=dyddiad geni neu rif cofrestru’r cwmni
 taxCheckNoMatch.viewAnother.link=Rhowch gynnig arall arni
 taxCheckExpired.title=Cod Gwirio Treth wedi dod i ben
 taxCheckExpired.subtitle=Gwiriwyd ar
@@ -109,7 +109,7 @@ tooManyAttempts.whatNext.p1=Bydd angen i chi aros hyd at {0} cyn rhoi cynnig ara
 tooManyAttempts.whatNext.p2=Cyn i chi roi cynnig ar y manylion hyn eto, gwnewch yn siŵr bod gennych y manylion cywir:
 tooManyAttempts.bullet1=cod gwirio treth 9 cymeriad
 tooManyAttempts.bullet2=y math o drwydded
-tooManyAttempts.bullet3=dyddiad geni neu rif cofrestru?r cwmni
+tooManyAttempts.bullet3=dyddiad geni neu rif cofrestru’r cwmni
 tooManyAttempts.viewAnother.heading=Yr ymgeisydd nesaf
 tooManyAttempts.viewAnother.link=Cadarnhau cod gwirio treth ymgeisydd arall
 
