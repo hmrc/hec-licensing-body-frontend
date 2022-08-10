@@ -31,9 +31,6 @@ class AppConfig @Inject() (config: Configuration, contactFrontendConfig: Contact
   val contactFormServiceIdentifier: String =
     contactFrontendConfig.serviceId.getOrElse(sys.error("Could not find config for contact frontend service id"))
 
-  val welshLanguageSupportEnabled: Boolean =
-    config.getOptional[Boolean]("features.welsh-language-support").getOrElse(false)
-
   val betaFeedbackUrl: String = s"$contactFrontendUrl/contact/beta-feedback?service=$contactFormServiceIdentifier"
 
   val taxCheckGuidanceUrl: String = config.get[String]("external-url.tax-check-guidance")

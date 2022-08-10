@@ -16,8 +16,6 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.controllers
 
-import com.typesafe.config.ConfigFactory
-import play.api.Configuration
 import play.api.i18n.Lang
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
@@ -48,17 +46,6 @@ class HECTaxCheckCodeControllerCYSpec
 
   val appConfig = instanceOf[AppConfig]
 
-  override def additionalConfig: Configuration = super.additionalConfig.withFallback(
-    Configuration(
-      ConfigFactory.parseString(
-        s"""
-           | features.welsh-language-support = true
-           | play.i18n.langs = ["en", "cy"]
-           |""".stripMargin
-      )
-    )
-  )
-
   "HECTaxCheckCodeController" when {
 
     "handling requests to display the tax check code page and welsh toggle is enabled" must {
@@ -68,7 +55,7 @@ class HECTaxCheckCodeControllerCYSpec
 
       behave like sessionDataActionBehaviour(performAction)
 
-      "show the page" when {
+      "show the page in Welsh" when {
 
         "session data is found" in {
           val taxCheckCode = HECTaxCheckCode("ABC DEF 123")
