@@ -29,7 +29,6 @@
 @this(
         appConfig: AppConfig,
         govukLayout: GovukLayout,
-        govukPhaseBanner : GovukPhaseBanner,
         govukBackLink: GovukBackLink,
         hmrcHead: HmrcHead,
         hmrcStandardHeader: HmrcStandardHeader,
@@ -64,12 +63,6 @@
 }
 @beforeContent = {
   <div class="govuk-!-display-none-print">
-    @govukPhaseBanner(PhaseBanner(
-        tag = Some(Tag(
-            content = Text("beta")
-        )),
-        content = HtmlContent(messages("phaseBanner.beta.text", appConfig.betaFeedbackUrl))
-    ))
     @hmrcLanguageSelectHelper()
     @backUrl.map(back => govukBackLink(BackLink(href = back, attributes = Map("id" -> "back"), content = Text(messages("button.back")))))
   </div>
