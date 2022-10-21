@@ -1,35 +1,8 @@
 import scoverage.ScoverageKeys
 import uk.gov.hmrc.DefaultBuildSettings.integrationTestSettings
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
-import wartremover.Wart
-import wartremover.WartRemover.autoImport.wartremoverErrors
 
 val appName = "hec-licensing-body-frontend"
-
-val silencerVersion = "1.7.8"
-
-lazy val wartremoverSettings =
-  Seq(
-    (Compile / compile / wartremoverErrors) ++= Warts.allBut(
-      Wart.DefaultArguments,
-      Wart.ImplicitConversion,
-      Wart.ImplicitParameter,
-      Wart.Nothing,
-      Wart.Overloading,
-      Wart.ToString
-    ),
-    wartremover.WartRemover.autoImport.wartremoverExcluded ++=
-      (Compile / routes).value ++
-        (baseDirectory.value ** "*.sc").get ++
-        Seq(sourceManaged.value / "main" / "sbt-buildinfo" / "BuildInfo.scala"),
-    (Test / compile / wartremoverErrors) --= Seq(
-      Wart.Any,
-      Wart.GlobalExecutionContext,
-      Wart.NonUnitStatements,
-      Wart.Null,
-      Wart.PublicInference
-    )
-  )
 
 lazy val scoverageSettings =
   Seq(
@@ -48,20 +21,14 @@ lazy val microservice = Project(appName, file("."))
   )
   .disablePlugins(JUnitXmlReportPlugin)
   .settings(addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.13.2" cross CrossVersion.full))
-  .settings(addCompilerPlugin("org.scalamacros" %% "paradise" % "2.1.1" cross CrossVersion.full))
   .settings(
     majorVersion := 1,
-    scalaVersion := "2.12.15",
+    scalaVersion := "2.13.10",
     libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
+    libraryDependencySchemes ++= Seq("org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always),
     Assets / pipelineStages := Seq(gzip),
-    // ***************
-    // Use the silencer plugin to suppress warnings
-    scalacOptions += "-P:silencer:pathFilters=routes",
-    Test / scalacOptions --= Seq("-Ywarn-value-discard"),
-    libraryDependencies ++= Seq(
-      compilerPlugin("com.github.ghik" % "silencer-plugin" % silencerVersion cross CrossVersion.full),
-      "com.github.ghik" % "silencer-lib" % silencerVersion % Provided cross CrossVersion.full
-    ),
+    scalacOptions +=  "-Wconf:src=routes/.*:s",
+    scalacOptions += "-Wconf:cat=unused-imports&src=html/.*:s",
     // ***************
     Compile / doc / sources := Seq.empty
   )
@@ -71,7 +38,8 @@ lazy val microservice = Project(appName, file("."))
   .settings(resolvers += Resolver.jcenterRepo)
   .settings(routesImport := Seq.empty)
   .settings(TwirlKeys.templateImports := Seq.empty)
-  .settings(wartremoverSettings: _*)
   .settings(scoverageSettings: _*)
   .settings(scalafmtOnCompile := true)
   .settings(PlayKeys.playDefaultPort := 10107)
+
+
