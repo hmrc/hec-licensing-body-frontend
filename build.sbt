@@ -27,11 +27,12 @@ lazy val microservice = Project(appName, file("."))
     libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
     libraryDependencySchemes ++= Seq("org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always),
     Assets / pipelineStages := Seq(gzip),
-    scalacOptions +=  "-Wconf:src=routes/.*:s",
+    //scalacOptions +=  "-Wconf:src=routes/.*:s",
     scalacOptions += "-Wconf:cat=unused-imports&src=html/.*:s",
     // ***************
     Compile / doc / sources := Seq.empty
   )
+
   .settings(publishingSettings: _*)
   .configs(IntegrationTest)
   .settings(integrationTestSettings(): _*)
@@ -41,5 +42,6 @@ lazy val microservice = Project(appName, file("."))
   .settings(scoverageSettings: _*)
   .settings(scalafmtOnCompile := true)
   .settings(PlayKeys.playDefaultPort := 10107)
+
 
 
