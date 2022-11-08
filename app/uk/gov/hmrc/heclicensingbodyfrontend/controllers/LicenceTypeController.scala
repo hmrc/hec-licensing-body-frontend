@@ -49,7 +49,7 @@ class LicenceTypeController @Inject() (
   val licenceType: Action[AnyContent] = sessionDataAction { implicit request =>
     val back        = journeyService.previous(routes.LicenceTypeController.licenceType)
     val licenceType = request.sessionData.userAnswers.licenceType
-    val form = {
+    val form        = {
       val emptyForm = licenceTypeForm(licenceTypes)
       licenceType.fold(emptyForm)(emptyForm.fill)
     }

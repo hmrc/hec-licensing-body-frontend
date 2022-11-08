@@ -48,6 +48,6 @@ object HECSession {
   implicit val writes: Writes[Map[HECTaxCheckCode, TaxCheckVerificationAttempts]] =
     mapWrites[TaxCheckVerificationAttempts].contramap(_.map { case (k, v) => k.value -> v })
 
-  implicit val format: OFormat[HECSession]                                        = Json.format
+  implicit val format: OFormat[HECSession] = Json.format
 
 }
