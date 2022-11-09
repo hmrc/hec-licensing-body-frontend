@@ -159,12 +159,12 @@ class CRNController @Inject() (
 
 object CRNController {
 
-  //This regex checks first two characters as alphanumeric but the next 5/6 chars should be number
+  // This regex checks first two characters as alphanumeric but the next 5/6 chars should be number
   private val crnRegex = "^[A-Z0-9]{2}[0-9]{5,6}"
 
-  //Checking CRN constraint based on rules on following priority
-  //Should have only alphanumeric characters
-  //Should be in correct format - first two chars alphanumeric and rest 5/6 chars as number
+  // Checking CRN constraint based on rules on following priority
+  // Should have only alphanumeric characters
+  // Should be in correct format - first two chars alphanumeric and rest 5/6 chars as number
   // and Should have only either 7 or 8 characters
   private val crnConstraint: Constraint[CRN] =
     Constraint(code =>
@@ -173,7 +173,7 @@ object CRNController {
       else Invalid("error.crnInvalid")
     )
 
-  //CRN Form instance
+  // CRN Form instance
   val crnForm: Form[CRN] =
     Form(
       mapping(
