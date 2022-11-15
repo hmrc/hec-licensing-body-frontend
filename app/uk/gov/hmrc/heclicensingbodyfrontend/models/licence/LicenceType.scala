@@ -38,7 +38,6 @@ object LicenceType {
 
   implicit val eq: Eq[LicenceType] = Eq.fromUniversalEquals
 
-  @SuppressWarnings(Array("org.wartremover.warts.All"))
   implicit val format: Format[LicenceType] = Jsonx.formatSealed[LicenceType]
 
 }

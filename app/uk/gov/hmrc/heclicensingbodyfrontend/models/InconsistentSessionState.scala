@@ -18,7 +18,6 @@ package uk.gov.hmrc.heclicensingbodyfrontend.models
 
 final case class InconsistentSessionState(message: String) extends Exception(message) {
 
-  @SuppressWarnings(Array("org.wartremover.warts.Throw"))
   def doThrow: Nothing = throw this
 
 }

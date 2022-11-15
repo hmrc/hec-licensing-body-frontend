@@ -40,7 +40,6 @@ object HECTaxCheckStatus {
 
   }
 
-  @SuppressWarnings(Array("org.wartremover.warts.All"))
   implicit val format: Format[HECTaxCheckStatus] = {
     implicit val noMatchFormat: OFormat[NoMatch] = Json.format
     Jsonx.formatSealed[HECTaxCheckStatus]
