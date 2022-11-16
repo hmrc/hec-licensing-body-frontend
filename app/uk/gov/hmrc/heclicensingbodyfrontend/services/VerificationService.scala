@@ -85,10 +85,10 @@ class VerificationServiceImpl @Inject() (timeProvider: TimeProvider)(implicit ap
     lazy val removeAttemptFromSession  = currentVerificationAttemptMap - taxCheckCode
 
     val verificationAttempts = if (taxMatch.status.matchFailureReason.nonEmpty) {
-      //case when user verification attempt == max attempt
-      //lock expire time should get added
+      // case when user verification attempt == max attempt
+      // lock expire time should get added
       if (penultimateAttempt) updateAttemptCountAndLockExpiresTime
-      //case when user is already blocked but lock has expired,
+      // case when user is already blocked but lock has expired,
       // then user verification attempt count should be reset to 1 and lock time should get cleared
       else if (maxAttempt)
         resetAttemptCount

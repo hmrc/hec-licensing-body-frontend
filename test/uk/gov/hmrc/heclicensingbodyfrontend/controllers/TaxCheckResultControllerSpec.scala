@@ -196,7 +196,7 @@ class TaxCheckResultControllerSpec
           val session = HECSession(
             answers,
             Some(
-              HECTaxCheckMatchResult(matchRequest, dateTimeChecked, NoMatch((MatchFailureReason.LicenceTypeNotMatched)))
+              HECTaxCheckMatchResult(matchRequest, dateTimeChecked, NoMatch(MatchFailureReason.LicenceTypeNotMatched))
             )
           )
 
@@ -550,7 +550,7 @@ class TaxCheckResultControllerSpec
             checkPageIsDisplayed(
               performAction(),
               messageFromMessageKey("taxCheckNoMatch.title"),
-              (doc => checkDetailsEnteredRows(doc, matchRequest))
+              doc => checkDetailsEnteredRows(doc, matchRequest)
             )
           }
 
@@ -577,7 +577,7 @@ class TaxCheckResultControllerSpec
             checkPageIsDisplayed(
               performAction(),
               messageFromMessageKey("taxCheckNoMatch.title"),
-              (doc => checkDetailsEnteredRows(doc, companyMatchRequest))
+              doc => checkDetailsEnteredRows(doc, companyMatchRequest)
             )
           }
 
@@ -624,7 +624,7 @@ class TaxCheckResultControllerSpec
           val session = HECSession(
             answers,
             Some(
-              HECTaxCheckMatchResult(matchRequest, dateTimeChecked, NoMatch((MatchFailureReason.DateOfBirthNotMatched)))
+              HECTaxCheckMatchResult(matchRequest, dateTimeChecked, NoMatch(MatchFailureReason.DateOfBirthNotMatched))
             ),
             Map(hecTaxCheckCode -> TaxCheckVerificationAttempts(3, None))
           )

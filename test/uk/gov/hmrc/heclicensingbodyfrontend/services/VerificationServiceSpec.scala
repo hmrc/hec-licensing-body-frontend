@@ -178,7 +178,7 @@ class VerificationServiceSpec extends ControllerSpec {
         taxCheckCode: HECTaxCheckCode,
         verificationAttempts: Map[HECTaxCheckCode, TaxCheckVerificationAttempts],
         taxCheckMatch: Option[HECTaxCheckMatchResult]
-      )                                                                                   = HECSession(
+      ) = HECSession(
         UserAnswers.empty.copy(
           taxCheckCode = Some(taxCheckCode),
           licenceType = Some(LicenceType.OperatorOfPrivateHireVehicles)
@@ -261,7 +261,7 @@ class VerificationServiceSpec extends ControllerSpec {
           "Tax Check No Match found, new map in the session with value 1" in {
             testVerificationAttemptLowerThanMaxAttempt(
               crnVerifier,
-              NoMatch((MatchFailureReason.CRNNotMatched)),
+              NoMatch(MatchFailureReason.CRNNotMatched),
               Map.empty,
               Map(hecTaxCode1 -> TaxCheckVerificationAttempts(1, None))
             )

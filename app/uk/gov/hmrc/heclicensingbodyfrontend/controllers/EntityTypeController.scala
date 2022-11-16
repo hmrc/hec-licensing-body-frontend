@@ -47,7 +47,7 @@ class EntityTypeController @Inject() (
   val entityType: Action[AnyContent] = sessionDataAction { implicit request =>
     val back       = journeyService.previous(routes.EntityTypeController.entityType)
     val entityType = request.sessionData.userAnswers.entityType
-    val form = {
+    val form       = {
       val emptyForm = entityTypeForm(entityTypes)
       entityType.fold(emptyForm)(emptyForm.fill)
     }

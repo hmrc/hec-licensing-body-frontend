@@ -456,7 +456,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                     HECTaxCheckMatchResult(
                       taxCheckMatchRequest,
                       dateTimeChecked,
-                      NoMatch((MatchFailureReason.DateOfBirthNotMatched))
+                      NoMatch(MatchFailureReason.DateOfBirthNotMatched)
                     )
                   ),
                   Map(

@@ -125,8 +125,8 @@ object TimeUtils {
 
   def govDisplayFormat(date: LocalDate)(implicit messages: Messages): String =
     s"""${date.getDayOfMonth()} ${messages(
-      s"date.${date.getMonthValue()}"
-    )} ${date.getYear()}"""
+        s"date.${date.getMonthValue()}"
+      )} ${date.getYear()}"""
 
   private def getAmPm(date: ZonedDateTime) = if (date.getHour >= 12) "afterNoon" else "beforeNoon"
 

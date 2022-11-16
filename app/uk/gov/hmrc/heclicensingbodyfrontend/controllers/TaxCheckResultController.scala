@@ -42,7 +42,7 @@ class TaxCheckResultController @Inject() (
     with I18nSupport
     with Logging {
 
-  //If there is a tax code match, then there is no back link in there
+  // If there is a tax code match, then there is no back link in there
   val taxCheckMatch: Action[AnyContent] = sessionDataAction { implicit request =>
     request.sessionData.taxCheckMatch match {
       case Some(HECTaxCheckMatchResult(taxCheckMatchResult, dateTime, Match)) =>
@@ -53,7 +53,7 @@ class TaxCheckResultController @Inject() (
     }
   }
 
-  //If tax check code comes as Expired, then user click on View another tax check code button and
+  // If tax check code comes as Expired, then user click on View another tax check code button and
   // it takes back to start of the LB journey, so no back link
   val taxCheckExpired: Action[AnyContent] = sessionDataAction { implicit request =>
     request.sessionData.taxCheckMatch match {
@@ -64,7 +64,7 @@ class TaxCheckResultController @Inject() (
     }
   }
 
-  //back link is there only in case of NO match
+  // back link is there only in case of NO match
   val taxCheckNotMatch: Action[AnyContent] = sessionDataAction { implicit request =>
     val back: Call = journeyService.previous(routes.TaxCheckResultController.taxCheckNotMatch)
     request.sessionData.taxCheckMatch match {

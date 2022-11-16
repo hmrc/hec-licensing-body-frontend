@@ -55,7 +55,7 @@ class DateOfBirthController @Inject() (
   val dateOfBirth: Action[AnyContent] = sessionDataAction { implicit request =>
     val back        = journeyService.previous(routes.DateOfBirthController.dateOfBirth)
     val dateOfBirth = request.sessionData.userAnswers.dateOfBirth
-    val form = {
+    val form        = {
       val emptyForm = dateOfBirthForm()
       dateOfBirth.fold(emptyForm)(emptyForm.fill)
     }
