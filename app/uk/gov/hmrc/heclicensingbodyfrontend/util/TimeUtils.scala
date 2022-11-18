@@ -89,16 +89,16 @@ object TimeUtils {
       ): Either[Seq[FormError], LocalDate] =
         for {
           dateFieldStrings <- dateFieldStringValues(data)
-          month ← toValidInt(dateFieldStrings._2, Some(12), monthKey).leftMap(Seq(_))
-          year ← toValidInt(dateFieldStrings._3, None, yearKey).leftMap(Seq(_))
-          date ← toValidInt(dateFieldStrings._1, Some(31), dayKey)
-                   .leftMap(Seq(_))
-                   .flatMap(day =>
-                     Either
-                       .fromTry(Try(LocalDate.of(year, month, day)))
-                       .leftMap(_ => Seq(FormError(dayKey, "error.invalid")))
-                   )
-          _ ←
+          month            <- toValidInt(dateFieldStrings._2, Some(12), monthKey).leftMap(Seq(_))
+          year             <- toValidInt(dateFieldStrings._3, None, yearKey).leftMap(Seq(_))
+          date             <- toValidInt(dateFieldStrings._1, Some(31), dayKey)
+                                .leftMap(Seq(_))
+                                .flatMap(day =>
+                                  Either
+                                    .fromTry(Try(LocalDate.of(year, month, day)))
+                                    .leftMap(_ => Seq(FormError(dayKey, "error.invalid")))
+                                )
+          _                <-
             if (dateFieldStrings._3.length =!= 4)
               Left(Seq(FormError(yearKey, "error.yearLength")))
             else if (maximumDateInclusive.exists(_.isBefore(date)))

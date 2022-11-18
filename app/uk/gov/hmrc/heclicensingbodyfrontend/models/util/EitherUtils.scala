@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.models.util
 
+import ai.x.play.json.implicits.formatSingleton
 import play.api.libs.json._
 
 import java.util.Locale
@@ -40,8 +41,8 @@ object EitherUtils {
 
       override def writes(o: Either[A, B]): JsValue =
         o.fold(
-          a ⇒ JsObject(Seq(leftFieldName → Json.toJson(a))),
-          b ⇒ JsObject(Seq(rightFieldName → Json.toJson(b)))
+          a => JsObject(Seq(leftFieldName → Json.toJson(a))),
+          b => JsObject(Seq(rightFieldName → Json.toJson(b)))
         )
     }
 }

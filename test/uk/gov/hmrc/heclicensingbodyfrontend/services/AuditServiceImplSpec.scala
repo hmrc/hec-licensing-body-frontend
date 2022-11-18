@@ -37,16 +37,17 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 class AuditServiceImplSpec extends Matchers with AnyWordSpecLike with MockFactory {
 
-  val mockAuditConnector = mock[AuditConnector]
+  val mockAuditConnector: AuditConnector = mock[AuditConnector]
 
   def mockSendExtendedEvent(expectedEvent: ExtendedDataEvent)(result: Future[AuditResult]) =
     (mockAuditConnector
       .sendExtendedEvent(_: ExtendedDataEvent)(_: HeaderCarrier, _: ExecutionContext))
-      .expects(where { case (actualEvent, _, _) =>
-        actualEvent.auditType === expectedEvent.auditType
-        actualEvent.auditSource === expectedEvent.auditSource
-        actualEvent.detail === expectedEvent.detail
-        actualEvent.tags === expectedEvent.tags
+      .expects(where[ExtendedDataEvent, HeaderCarrier, ExecutionContext] {
+        case (actualEvent: ExtendedDataEvent, _: HeaderCarrier, _: ExecutionContext) =>
+          actualEvent.auditType === expectedEvent.auditType
+          actualEvent.auditSource === expectedEvent.auditSource
+          actualEvent.detail === expectedEvent.detail
+          actualEvent.tags === expectedEvent.tags
 
       })
       .returning(result)
