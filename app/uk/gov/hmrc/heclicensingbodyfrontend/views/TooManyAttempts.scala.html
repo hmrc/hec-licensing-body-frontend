@@ -17,6 +17,7 @@
 @import play.api.i18n.Messages
 @import uk.gov.hmrc.heclicensingbodyfrontend.models.UserAnswers
 @import play.api.mvc.Request
+@import play.twirl.api.Html
 @import uk.gov.hmrc.heclicensingbodyfrontend.views.html.components._
 @import uk.gov.hmrc.heclicensingbodyfrontend.controllers.routes
 @import java.time.ZonedDateTime
@@ -47,6 +48,7 @@
   <h2 class="govuk-heading-m">@messages(s"$key.viewAnother.heading")</h2>
   <p class="govuk-body govuk-!-margin-bottom-9">
     <a class="govuk-link" role="button" data-module="govuk-link" href="@{routes.StartController.start}">@messages(s"$key.viewAnother.link")</a>
+    <p class="govuk-body">@Html(messages("exitSurvey.linkText", routes.ExitSurveyController.exitSurvey.url))</p>
   </p>
 
 }
