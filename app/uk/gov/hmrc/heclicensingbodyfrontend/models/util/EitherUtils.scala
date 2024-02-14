@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.models.util
 
-import ai.x.play.json.implicits.formatSingleton
 import play.api.libs.json._
 
 import java.util.Locale

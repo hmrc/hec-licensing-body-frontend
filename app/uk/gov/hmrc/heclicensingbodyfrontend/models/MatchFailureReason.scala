@@ -16,10 +16,7 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.models
 
-import ai.x.play.json.Jsonx
-import ai.x.play.json.SingletonEncoder.simpleName
-import ai.x.play.json.implicits.formatSingleton
-import play.api.libs.json.Format
+import play.api.libs.json._
 
 sealed trait MatchFailureReason extends Product with Serializable
 
@@ -42,6 +39,20 @@ object MatchFailureReason {
   case object LicenceTypeCRNNotMatched extends MatchFailureReason
 
   @SuppressWarnings(Array("org.wartremover.warts.Throw", "org.wartremover.warts.Equals"))
-  implicit val format: Format[MatchFailureReason] = Jsonx.formatSealed[MatchFailureReason]
+  implicit val format: Format[MatchFailureReason] = new Format[MatchFailureReason] {
+    override def writes(o: MatchFailureReason): JsValue = JsString(o.toString)
+
+    override def reads(json: JsValue): JsResult[MatchFailureReason] = json match {
+      case JsString("TaxCheckCodeNotMatched")           => JsSuccess(TaxCheckCodeNotMatched)
+      case JsString("EntityTypeNotMatched")             => JsSuccess(EntityTypeNotMatched)
+      case JsString("DateOfBirthNotMatched")            => JsSuccess(DateOfBirthNotMatched)
+      case JsString("CRNNotMatched")                    => JsSuccess(CRNNotMatched)
+      case JsString("LicenceTypeNotMatched")            => JsSuccess(LicenceTypeNotMatched)
+      case JsString("LicenceTypeEntityTypeNotMatched")  => JsSuccess(LicenceTypeEntityTypeNotMatched)
+      case JsString("LicenceTypeDateOfBirthNotMatched") => JsSuccess(LicenceTypeDateOfBirthNotMatched)
+      case JsString("LicenceTypeCRNNotMatched")         => JsSuccess(LicenceTypeCRNNotMatched)
+      case _                                            => JsError(s"Unknown match failure reason: ${json.toString()}")
+    }
+  }
 
 }
