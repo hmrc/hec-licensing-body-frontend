@@ -39,6 +39,7 @@ object HECTaxCheckStatus {
 
   @SuppressWarnings(Array("org.wartremover.warts.All"))
   implicit val format: Format[HECTaxCheckStatus] = new Format[HECTaxCheckStatus] {
+    implicit val noMatchFormat: OFormat[NoMatch]       = Json.format[NoMatch]
     override def writes(o: HECTaxCheckStatus): JsValue = JsString(o.toString)
 
     override def reads(json: JsValue): JsResult[HECTaxCheckStatus] = json match {
