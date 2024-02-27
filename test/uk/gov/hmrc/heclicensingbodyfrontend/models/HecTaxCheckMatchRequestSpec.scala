@@ -29,7 +29,7 @@ import java.time.{LocalDate, ZoneId, ZonedDateTime}
 
 class HecTaxCheckMatchRequestSpec extends AnyWordSpec with Matchers {
 
-val json = """{
+  val json = """{
              |  "userAnswers": {
              |    "taxCheckCode": "266RLRTK6",
              |    "licenceType": "DriverOfTaxisAndPrivateHires",

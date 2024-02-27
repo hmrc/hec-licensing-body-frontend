@@ -39,13 +39,17 @@ object HECTaxCheckStatus {
 
   @SuppressWarnings(Array("org.wartremover.warts.All"))
   implicit val format: Format[HECTaxCheckStatus] = new Format[HECTaxCheckStatus] {
-    implicit val noMatchFormat: OFormat[NoMatch]       = Json.format[NoMatch]
-    override def writes(o: HECTaxCheckStatus): JsValue = JsString(o.toString)
-
     override def reads(json: JsValue): JsResult[HECTaxCheckStatus] = json match {
       case JsString("Match")   => JsSuccess(Match)
       case JsString("Expired") => JsSuccess(Expired)
-      case _                   => JsError(s"Unknown HEC tax check status ${json.toString()}")
+      case _: JsObject         => (json \ "failureReason").validate[MatchFailureReason].map(NoMatch)
+      case _                   => JsError(s"Failure reason")
+    }
+
+    override def writes(o: HECTaxCheckStatus): JsValue = o match {
+      case Match                  => JsString("Match")
+      case Expired                => JsString("Expired")
+      case NoMatch(failureReason) => Json.obj("failureReason" -> failureReason)
     }
   }
 
