@@ -72,9 +72,9 @@ trait ControllerSpec extends AnyWordSpec with Matchers with BeforeAndAfterAll wi
     super.afterAll()
   }
 
-  implicit lazy val messagesApi = instanceOf[MessagesApi]
+  implicit lazy val messagesApi: MessagesApi = instanceOf[MessagesApi]
 
-  implicit lazy val messages = MessagesImpl(lang, messagesApi)
+  implicit lazy val messages: MessagesImpl = MessagesImpl(lang, messagesApi)
 
   def instanceOf[A : ClassTag]: A = fakeApplication.injector.instanceOf[A]
 

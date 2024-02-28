@@ -1,5 +1,4 @@
 import scoverage.ScoverageKeys
-import uk.gov.hmrc.DefaultBuildSettings.integrationTestSettings
 
 val appName = "hec-licensing-body-frontend"
 
@@ -33,9 +32,6 @@ lazy val microservice = Project(appName, file("."))
     // ***************
     Compile / doc / sources := Seq.empty
   )
-
-  .configs(IntegrationTest)
-  .settings(integrationTestSettings(): _*)
   .settings(resolvers += Resolver.jcenterRepo)
   .settings(routesImport := Seq.empty)
   .settings(TwirlKeys.templateImports := Seq.empty)
