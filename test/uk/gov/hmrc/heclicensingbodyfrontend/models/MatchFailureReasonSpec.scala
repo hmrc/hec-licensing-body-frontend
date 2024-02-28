@@ -27,15 +27,21 @@ class MatchFailureReasonSpec extends AnyWordSpec with Matchers {
     "write to JSON" when {
 
       s"the match failure reason is ${MatchFailureReason.TaxCheckCodeNotMatched}" in {
-        Json.toJson[MatchFailureReason](MatchFailureReason.TaxCheckCodeNotMatched) shouldBe JsString("TaxCheckCodeNotMatched")
+        Json.toJson[MatchFailureReason](MatchFailureReason.TaxCheckCodeNotMatched) shouldBe JsString(
+          "TaxCheckCodeNotMatched"
+        )
       }
 
       s"the match failure reason is ${MatchFailureReason.EntityTypeNotMatched}" in {
-        Json.toJson[MatchFailureReason](MatchFailureReason.EntityTypeNotMatched) shouldBe JsString("EntityTypeNotMatched")
+        Json.toJson[MatchFailureReason](MatchFailureReason.EntityTypeNotMatched) shouldBe JsString(
+          "EntityTypeNotMatched"
+        )
       }
 
       s"the match failure reason is ${MatchFailureReason.DateOfBirthNotMatched}" in {
-        Json.toJson[MatchFailureReason](MatchFailureReason.DateOfBirthNotMatched) shouldBe JsString("DateOfBirthNotMatched")
+        Json.toJson[MatchFailureReason](MatchFailureReason.DateOfBirthNotMatched) shouldBe JsString(
+          "DateOfBirthNotMatched"
+        )
       }
 
       s"the match failure reason is ${MatchFailureReason.CRNNotMatched}" in {
@@ -43,19 +49,27 @@ class MatchFailureReasonSpec extends AnyWordSpec with Matchers {
       }
 
       s"the match failure reason is ${MatchFailureReason.LicenceTypeNotMatched}" in {
-        Json.toJson[MatchFailureReason](MatchFailureReason.LicenceTypeNotMatched) shouldBe JsString("LicenceTypeNotMatched")
+        Json.toJson[MatchFailureReason](MatchFailureReason.LicenceTypeNotMatched) shouldBe JsString(
+          "LicenceTypeNotMatched"
+        )
       }
 
       s"the match failure reason is ${MatchFailureReason.LicenceTypeEntityTypeNotMatched}" in {
-        Json.toJson[MatchFailureReason](MatchFailureReason.LicenceTypeEntityTypeNotMatched) shouldBe JsString("LicenceTypeEntityTypeNotMatched")
+        Json.toJson[MatchFailureReason](MatchFailureReason.LicenceTypeEntityTypeNotMatched) shouldBe JsString(
+          "LicenceTypeEntityTypeNotMatched"
+        )
       }
 
       s"the match failure reason is ${MatchFailureReason.LicenceTypeDateOfBirthNotMatched}" in {
-        Json.toJson[MatchFailureReason](MatchFailureReason.LicenceTypeDateOfBirthNotMatched) shouldBe JsString("LicenceTypeDateOfBirthNotMatched")
+        Json.toJson[MatchFailureReason](MatchFailureReason.LicenceTypeDateOfBirthNotMatched) shouldBe JsString(
+          "LicenceTypeDateOfBirthNotMatched"
+        )
       }
 
       s"the match failure reason is ${MatchFailureReason.LicenceTypeCRNNotMatched}" in {
-        Json.toJson[MatchFailureReason](MatchFailureReason.LicenceTypeCRNNotMatched) shouldBe JsString("LicenceTypeCRNNotMatched")
+        Json.toJson[MatchFailureReason](MatchFailureReason.LicenceTypeCRNNotMatched) shouldBe JsString(
+          "LicenceTypeCRNNotMatched"
+        )
       }
     }
 
@@ -82,11 +96,13 @@ class MatchFailureReasonSpec extends AnyWordSpec with Matchers {
       }
 
       s"the match failure reason is ${MatchFailureReason.LicenceTypeEntityTypeNotMatched}" in {
-        JsString("LicenceTypeEntityTypeNotMatched").as[MatchFailureReason] shouldBe MatchFailureReason.LicenceTypeEntityTypeNotMatched
+        JsString("LicenceTypeEntityTypeNotMatched")
+          .as[MatchFailureReason] shouldBe MatchFailureReason.LicenceTypeEntityTypeNotMatched
       }
 
       s"the match failure reason is ${MatchFailureReason.LicenceTypeDateOfBirthNotMatched}" in {
-        JsString("LicenceTypeDateOfBirthNotMatched").as[MatchFailureReason] shouldBe MatchFailureReason.LicenceTypeDateOfBirthNotMatched
+        JsString("LicenceTypeDateOfBirthNotMatched")
+          .as[MatchFailureReason] shouldBe MatchFailureReason.LicenceTypeDateOfBirthNotMatched
       }
 
       s"the match failure reason is ${MatchFailureReason.LicenceTypeCRNNotMatched}" in {
