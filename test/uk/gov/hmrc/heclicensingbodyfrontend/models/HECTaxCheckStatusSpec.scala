@@ -18,6 +18,7 @@ package uk.gov.hmrc.heclicensingbodyfrontend.models
 
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import play.api.libs.json.{JsError, JsString}
 
 class HECTaxCheckStatusSpec extends AnyWordSpec with Matchers {
 
@@ -52,6 +53,15 @@ class HECTaxCheckStatusSpec extends AnyWordSpec with Matchers {
 
       }
 
+    }
+
+    "fail to read from JSON" when {
+
+      val js = JsString("aaaaaaa")
+
+      "the HEC tax check status is not recognised" in {
+        js.validate[HECTaxCheckStatus] shouldBe JsError(s"Unknown failure reason ${js.toString()}")
+      }
     }
 
   }

@@ -18,7 +18,7 @@ package uk.gov.hmrc.heclicensingbodyfrontend.models
 
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import play.api.libs.json.{JsString, Json}
+import play.api.libs.json.{JsError, JsString, Json}
 
 class MatchFailureReasonSpec extends AnyWordSpec with Matchers {
 
@@ -107,6 +107,15 @@ class MatchFailureReasonSpec extends AnyWordSpec with Matchers {
 
       s"the match failure reason is ${MatchFailureReason.LicenceTypeCRNNotMatched}" in {
         JsString("LicenceTypeCRNNotMatched").as[MatchFailureReason] shouldBe MatchFailureReason.LicenceTypeCRNNotMatched
+      }
+    }
+
+    "fail to read from JSON" when {
+
+      val js = JsString("aaaaaaa")
+
+      "the match failure reason is not recognised" in {
+        js.validate[MatchFailureReason] shouldBe JsError(s"Unknown match failure reason: ${js.toString()}")
       }
     }
   }

@@ -43,7 +43,7 @@ object HECTaxCheckStatus {
       case JsString("Match")   => JsSuccess(Match)
       case JsString("Expired") => JsSuccess(Expired)
       case _: JsObject         => (json \ "failureReason").validate[MatchFailureReason].map(NoMatch)
-      case _                   => JsError(s"Failure reason")
+      case _                   => JsError(s"Unknown failure reason ${json.toString()}")
     }
 
     override def writes(o: HECTaxCheckStatus): JsValue = o match {
