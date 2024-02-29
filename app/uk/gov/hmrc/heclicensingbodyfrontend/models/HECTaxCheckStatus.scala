@@ -16,10 +16,7 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.models
 
-import ai.x.play.json.Jsonx
-import ai.x.play.json.SingletonEncoder.simpleName
-import ai.x.play.json.implicits.formatSingleton
-import play.api.libs.json.{Format, Json, OFormat}
+import play.api.libs.json._
 
 sealed trait HECTaxCheckStatus extends Product with Serializable
 
@@ -41,9 +38,19 @@ object HECTaxCheckStatus {
   }
 
   @SuppressWarnings(Array("org.wartremover.warts.All"))
-  implicit val format: Format[HECTaxCheckStatus] = {
-    implicit val noMatchFormat: OFormat[NoMatch] = Json.format
-    Jsonx.formatSealed[HECTaxCheckStatus]
+  implicit val format: Format[HECTaxCheckStatus] = new Format[HECTaxCheckStatus] {
+    override def reads(json: JsValue): JsResult[HECTaxCheckStatus] = json match {
+      case JsString("Match")   => JsSuccess(Match)
+      case JsString("Expired") => JsSuccess(Expired)
+      case _: JsObject         => (json \ "failureReason").validate[MatchFailureReason].map(NoMatch)
+      case _                   => JsError(s"Unknown failure reason ${json.toString()}")
+    }
+
+    override def writes(o: HECTaxCheckStatus): JsValue = o match {
+      case Match                  => JsString("Match")
+      case Expired                => JsString("Expired")
+      case NoMatch(failureReason) => Json.obj("failureReason" -> failureReason)
+    }
   }
 
 }

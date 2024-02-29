@@ -70,8 +70,8 @@ class DateOfBirthControllerSpec
   val taxCheckMatchRequest =
     HECTaxCheckMatchRequest(hecTaxCheckCode, LicenceType.DriverOfTaxisAndPrivateHires, Right(DateOfBirth(date)))
 
-  implicit val appConfig = instanceOf[AppConfig]
-  val lockExpiresAt      = ZonedDateTime.now().plusHours(appConfig.verificationAttemptsLockTimeHours)
+  implicit val appConfig: AppConfig = instanceOf[AppConfig]
+  val lockExpiresAt                 = ZonedDateTime.now().plusHours(appConfig.verificationAttemptsLockTimeHours)
 
   def mockMatchTaxCheck(taxCheckMatchRequest: HECTaxCheckMatchRequest)(result: Either[Error, HECTaxCheckMatchResult]) =
     (taxCheckService

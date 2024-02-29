@@ -1,5 +1,4 @@
 import scoverage.ScoverageKeys
-import uk.gov.hmrc.DefaultBuildSettings.integrationTestSettings
 
 val appName = "hec-licensing-body-frontend"
 
@@ -22,7 +21,7 @@ lazy val microservice = Project(appName, file("."))
   .settings(addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.13.2" cross CrossVersion.full))
   .settings(
     majorVersion := 1,
-    scalaVersion := "2.13.10",
+    scalaVersion := "2.13.12",
     libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
     libraryDependencySchemes ++= Seq("org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always),
     Assets / pipelineStages := Seq(gzip),
@@ -33,9 +32,6 @@ lazy val microservice = Project(appName, file("."))
     // ***************
     Compile / doc / sources := Seq.empty
   )
-
-  .configs(IntegrationTest)
-  .settings(integrationTestSettings(): _*)
   .settings(resolvers += Resolver.jcenterRepo)
   .settings(routesImport := Seq.empty)
   .settings(TwirlKeys.templateImports := Seq.empty)

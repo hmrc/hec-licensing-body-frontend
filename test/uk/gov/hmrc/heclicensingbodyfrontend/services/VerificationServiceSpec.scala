@@ -44,11 +44,11 @@ class VerificationServiceSpec extends ControllerSpec {
 
   val mockTimeProvider = mock[TimeProvider]
 
-  override val overrideBindings =
+  override val overrideBindings     =
     List[GuiceableModule](
       bind[TimeProvider].toInstance(mockTimeProvider)
     )
-  implicit val appConfig        = instanceOf[AppConfig]
+  implicit val appConfig: AppConfig = instanceOf[AppConfig]
 
   val verificationService = new VerificationServiceImpl(mockTimeProvider)
 
