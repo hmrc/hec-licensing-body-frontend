@@ -17,12 +17,11 @@
 @import play.api.i18n.Messages
 @import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckMatchRequest
 @import play.api.mvc.{Call, Request}
-@import play.twirl.api.Html
 @import uk.gov.hmrc.heclicensingbodyfrontend.views.html.components._
 @import uk.gov.hmrc.heclicensingbodyfrontend.controllers.routes
 
 
-@this(layout: Layout, detailsEntered: DetailsEntered)
+@this(layout: Layout, detailsEntered: DetailsEntered, feedbackSection: FeedbackSection)
 
 @(hecTaxCheckMatchRequest:HECTaxCheckMatchRequest, back: Call)(implicit request: Request[_], messages: Messages)
 @key = @{"taxCheckNoMatch"}
@@ -42,9 +41,9 @@
         <li>@messages(s"$key.bullet3")</li>
     </ul>
 
-    <p class="govuk-body govuk-!-margin-bottom-9">
+    <p class="govuk-body govuk-!-margin-bottom-6">
         <a class="govuk-button" role="button" data-module="govuk-button" href="@{routes.StartController.start}">@messages(s"$key.viewAnother.link")</a>
-        <p class="govuk-body">@Html(messages("exitSurvey.linkText", routes.ExitSurveyController.exitSurvey.url))</p>
     </p>
 
+    @feedbackSection()
 }

@@ -141,5 +141,10 @@ tooManyAttempts.bullet3 = date of birth or company registration number
 tooManyAttempts.viewAnother.heading = Next applicant
 tooManyAttempts.viewAnother.link = Confirm another applicant’s tax check code
 
+# Feedback
 
+feedback.title = Before you go
+feedback.p1 = Your feedback helps us make our service better.
+feedback.link = Take a short survey
+feedback.p2 = to share your feedback on this service.
 

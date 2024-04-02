@@ -168,11 +168,16 @@ class TaxCheckResultControllerSpec
 
     }
 
-    def checkExitSurveyLink(doc: Document) =
-      doc.select(".govuk-body > .govuk-link").last().parents().first().html shouldBe messageFromMessageKey(
-        "exitSurvey.linkText",
-        routes.ExitSurveyController.exitSurvey.url
-      )
+    def checkExitSurveyLink(doc: Document) = {
+      val feedbackSection = doc.getElementById("feedback-section")
+
+      feedbackSection.text() should include(messageFromMessageKey("feedback.title"))
+      feedbackSection.text() should include(messageFromMessageKey("feedback.p1"))
+      feedbackSection.text() should include(messageFromMessageKey("feedback.link"))
+      feedbackSection.text() should include(messageFromMessageKey("feedback.p2"))
+
+      feedbackSection.html() should include(routes.ExitSurveyController.exitSurvey.url)
+    }
 
     "handling request to tax check Valid page " must {
 
