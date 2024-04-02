@@ -112,4 +112,7 @@ tooManyAttempts.bullet2=y math o drwydded
 tooManyAttempts.bullet3=dyddiad geni neu rif cofrestru’r cwmni
 tooManyAttempts.viewAnother.heading=Yr ymgeisydd nesaf
 tooManyAttempts.viewAnother.link=Cadarnhau cod gwirio treth ymgeisydd arall
-
+feedback.title=Cyn i chi fynd
+feedback.p1=Mae’ch adborth yn ein helpu i wella ein gwasanaeth.
+feedback.link=Llenwch arolwg byr
+feedback.p2=i rannu’ch adborth ar y gwasanaeth hwn.

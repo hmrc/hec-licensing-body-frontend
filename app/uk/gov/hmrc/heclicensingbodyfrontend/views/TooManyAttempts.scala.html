@@ -23,7 +23,7 @@
 @import java.time.ZonedDateTime
 @import uk.gov.hmrc.heclicensingbodyfrontend.util.TimeUtils
 
-@this(layout: Layout, detailsEntered: LockedOutDetailsEntered)
+@this(layout: Layout, detailsEntered: LockedOutDetailsEntered, feedbackSection: FeedbackSection)
 
 @(userAnswers:UserAnswers, lockAttemptExpiresAt: ZonedDateTime)(implicit request: Request[_], messages: Messages)
 @key = @{"tooManyAttempts"}
@@ -46,9 +46,9 @@
   </ul>
 
   <h2 class="govuk-heading-m">@messages(s"$key.viewAnother.heading")</h2>
-  <p class="govuk-body govuk-!-margin-bottom-9">
+  <p class="govuk-body">
     <a class="govuk-link" role="button" data-module="govuk-link" href="@{routes.StartController.start}">@messages(s"$key.viewAnother.link")</a>
-    <p class="govuk-body">@Html(messages("exitSurvey.linkText", routes.ExitSurveyController.exitSurvey.url))</p>
   </p>
 
+  @feedbackSection()
 }
