@@ -11,11 +11,11 @@ will lock the user from verifying that tax check code for a period of time.
 ## Running the service
 When running locally, the dependant services can be run using the service manager command
 ```
-sm --start HEC_DEP -r
+sm2 --start HEC_DEP
 ```
 All HEC services can run via
 ```
-sm --start HEC_ALL -r
+sm2 --start HEC_ALL
 ```
 By default, this service runs on port `10107`.
 
