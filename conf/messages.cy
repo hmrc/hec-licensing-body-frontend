@@ -99,8 +99,8 @@ taxCheckExpired.whatNext.p2=Mae’n rhaid i chi ofyn i’r ymgeisydd wneud gwiri
 taxCheckExpired.viewAnother.heading=Cadarnhau cod gwirio treth arall
 taxCheckExpired.viewAnother.link=Cadarnhau cod gwirio treth ymgeisydd arall
 crn.title=Beth yw rhif cofrestru cwmni’r ymgeisydd?
-crn.hint=Anfonodd Tŷ’r Cwmnïau hyn at yr ymgeisydd pan sefydlodd ei gwmni. Gelwir hyn hefyd yn rhif cwmni. Er enghraifft, SC898989 neu 12345678.
-crn.link=Chwiliwch am rif cofrestru cwmni
+crn.hint=Mae hwn yn 8 o gymeriadau. Er enghraifft, 01234567 neu AC012345.
+crn.link=Gallwch <a href="{0}" class="govuk-link" target="_blank"> chwilio am rif cofrestru’ch cwmni ar wefan Tŷ’r Cwmnïau (yn agor tab newydd)</a>.
 crn.error.required=Nodwch rif cofrestru cwmni’r ymgeisydd
 crn.error.nonAlphanumericChars=Mae’n rhaid i rif cofrestru cwmni’r ymgeisydd gynnwys y llythrennau a i z a’r rhifau 0 i 9 yn unig
 crn.error.crnInvalid=Nodwch rif cofrestru cwmni’r ymgeisydd yn y fformat cywir
