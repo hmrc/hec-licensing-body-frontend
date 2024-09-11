@@ -62,10 +62,10 @@
     )
 }
 @beforeContent = {
-  <div class="govuk-!-display-none-print">
+  <nav class="govuk-!-display-none-print" aria-label="Sign out navigation">
     @hmrcLanguageSelectHelper()
     @backUrl.map(back => govukBackLink(BackLink(href = back, attributes = Map("id" -> "back"), content = Text(messages("button.back")))))
-  </div>
+  </nav>
 }
 @content = {
 
