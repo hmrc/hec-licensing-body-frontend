@@ -174,7 +174,7 @@ class CRNControllerSpec
 
           checkPageIsDisplayed(
             performAction(),
-            messageFromMessageKey("crn.title"),
+            s"${messageFromMessageKey("crn.title")} ${messageFromMessageKey("crn.label")}",
             { doc =>
               doc.select("#back").attr("href") shouldBe mockPreviousCall.url
               doc.select(".govuk-hint").text() shouldBe messageFromMessageKey("crn.hint")
@@ -208,7 +208,7 @@ class CRNControllerSpec
 
           checkPageIsDisplayed(
             performAction(),
-            messageFromMessageKey("crn.title"),
+            s"${messageFromMessageKey("crn.title")} ${messageFromMessageKey("crn.label")}",
             { doc =>
               doc.select("#back").attr("href") shouldBe mockPreviousCall.url
               doc.select(".govuk-hint").text() shouldBe messageFromMessageKey("crn.hint")
@@ -260,7 +260,7 @@ class CRNControllerSpec
 
           checkFormErrorIsDisplayed(
             performAction()(Language.English),
-            messageFromMessageKey("crn.title"),
+            s"${messageFromMessageKey("crn.title")} ${messageFromMessageKey("crn.label")}",
             messageFromMessageKey("crn.error.required")
           )
         }
@@ -275,7 +275,7 @@ class CRNControllerSpec
 
           checkFormErrorIsDisplayed(
             performAction("crn" -> "1234567890")(Language.English),
-            messageFromMessageKey("crn.title"),
+            s"${messageFromMessageKey("crn.title")} ${messageFromMessageKey("crn.label")}",
             messageFromMessageKey("crn.error.crnInvalid")
           )
         }
@@ -290,7 +290,7 @@ class CRNControllerSpec
 
           checkFormErrorIsDisplayed(
             performAction("crn" -> "12345")(Language.English),
-            messageFromMessageKey("crn.title"),
+            s"${messageFromMessageKey("crn.title")} ${messageFromMessageKey("crn.label")}",
             messageFromMessageKey("crn.error.crnInvalid")
           )
         }
@@ -308,7 +308,7 @@ class CRNControllerSpec
 
               checkFormErrorIsDisplayed(
                 performAction("crn" -> crn.value)(Language.English),
-                messageFromMessageKey("crn.title"),
+                s"${messageFromMessageKey("crn.title")} ${messageFromMessageKey("crn.label")}",
                 messageFromMessageKey("crn.error.nonAlphanumericChars")
               )
 
@@ -338,7 +338,7 @@ class CRNControllerSpec
 
               checkFormErrorIsDisplayed(
                 performAction("crn" -> crn.value)(Language.English),
-                messageFromMessageKey("crn.title"),
+                s"${messageFromMessageKey("crn.title")} ${messageFromMessageKey("crn.label")}",
                 messageFromMessageKey("crn.error.crnInvalid")
               )
 
