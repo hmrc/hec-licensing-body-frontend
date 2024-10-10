@@ -174,10 +174,12 @@ class CRNControllerSpec
 
           checkPageIsDisplayed(
             performAction(),
-            s"${messageFromMessageKey("crn.title")} ${messageFromMessageKey("crn.label")}",
+            s"${messageFromMessageKey("crn.title")}",
             { doc =>
-              doc.select("#back").attr("href") shouldBe mockPreviousCall.url
-              doc.select(".govuk-hint").text() shouldBe messageFromMessageKey("crn.hint")
+              doc.select("p").text                should include(messageFromMessageKey("crn.info"))
+              doc.select("label[for='crn']").text should include(messageFromMessageKey("crn.label"))
+              doc.select("#back").attr("href")  shouldBe mockPreviousCall.url
+              doc.select(".govuk-hint").text()  shouldBe messageFromMessageKey("crn.hint")
 
               val button = doc.select("form")
               button.attr("action") shouldBe routes.CRNController.companyRegistrationNumberSubmit.url
@@ -208,10 +210,12 @@ class CRNControllerSpec
 
           checkPageIsDisplayed(
             performAction(),
-            s"${messageFromMessageKey("crn.title")} ${messageFromMessageKey("crn.label")}",
+            s"${messageFromMessageKey("crn.title")}",
             { doc =>
-              doc.select("#back").attr("href") shouldBe mockPreviousCall.url
-              doc.select(".govuk-hint").text() shouldBe messageFromMessageKey("crn.hint")
+              doc.select("p").text                should include(messageFromMessageKey("crn.info"))
+              doc.select("label[for='crn']").text should include(messageFromMessageKey("crn.label"))
+              doc.select("#back").attr("href")  shouldBe mockPreviousCall.url
+              doc.select(".govuk-hint").text()  shouldBe messageFromMessageKey("crn.hint")
 
               val button = doc.select("form")
               button.attr("action") shouldBe routes.CRNController.companyRegistrationNumberSubmit.url
@@ -260,7 +264,7 @@ class CRNControllerSpec
 
           checkFormErrorIsDisplayed(
             performAction()(Language.English),
-            s"${messageFromMessageKey("crn.title")} ${messageFromMessageKey("crn.label")}",
+            s"${messageFromMessageKey("crn.title")}",
             messageFromMessageKey("crn.error.required")
           )
         }
@@ -275,7 +279,7 @@ class CRNControllerSpec
 
           checkFormErrorIsDisplayed(
             performAction("crn" -> "1234567890")(Language.English),
-            s"${messageFromMessageKey("crn.title")} ${messageFromMessageKey("crn.label")}",
+            s"${messageFromMessageKey("crn.title")}",
             messageFromMessageKey("crn.error.crnInvalid")
           )
         }
@@ -290,7 +294,7 @@ class CRNControllerSpec
 
           checkFormErrorIsDisplayed(
             performAction("crn" -> "12345")(Language.English),
-            s"${messageFromMessageKey("crn.title")} ${messageFromMessageKey("crn.label")}",
+            s"${messageFromMessageKey("crn.title")}",
             messageFromMessageKey("crn.error.crnInvalid")
           )
         }
@@ -308,7 +312,7 @@ class CRNControllerSpec
 
               checkFormErrorIsDisplayed(
                 performAction("crn" -> crn.value)(Language.English),
-                s"${messageFromMessageKey("crn.title")} ${messageFromMessageKey("crn.label")}",
+                s"${messageFromMessageKey("crn.title")}",
                 messageFromMessageKey("crn.error.nonAlphanumericChars")
               )
 
@@ -338,7 +342,7 @@ class CRNControllerSpec
 
               checkFormErrorIsDisplayed(
                 performAction("crn" -> crn.value)(Language.English),
-                s"${messageFromMessageKey("crn.title")} ${messageFromMessageKey("crn.label")}",
+                s"${messageFromMessageKey("crn.title")}",
                 messageFromMessageKey("crn.error.crnInvalid")
               )
 
