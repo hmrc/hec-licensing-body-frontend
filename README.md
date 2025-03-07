@@ -22,7 +22,7 @@ By default, this service runs on port **'10107'**.
 To stop the frontend microservice from running on service manager (e.g. to run your own version locally), you can run:
 
 ```
-sm2 -stop HEC_DEP
+sm2 -stop HEC_LICENSING_BODY_FRONTEND 
 ```
 
 
