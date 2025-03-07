@@ -86,6 +86,14 @@ test-only endpoint in the [back end microservice](https://github.com/hmrc/hec) t
 This code is open source software licensed under the [Apache 2.0 License]("http://www.apache.org/licenses/LICENSE-2.0.html").
 
 
+## Monitoring
+
+The following grafana and kibana dashboards are available for this service:
+
+* [Grafana](https://grafana.tools.production.tax.service.gov.uk/d/hec-licensing-body-frontend/hec-licensing-body-frontend?orgId=1&from=now-24h&to=now&timezone=browser&var-ecsServiceName=ecs-hec-licensing-body-frontend-public-Service-d7uvs4S29oO3&var-ecsServicePrefix=ecs-hec-licensing-body-frontend-public&refresh=15m)
+* [Kibana](https://kibana.tools.production.tax.service.gov.uk/app/dashboards#/view/hec-licensing-body-frontend?_g=(filters:!(),refreshInterval:(pause:!t,value:60000),time:(from:now-15m,to:now)))
+
+
 ## Other helpful documentation
 
 * [Service Runbook](https://confluence.tools.tax.service.gov.uk/display/ELSY/Hidden+Economy+Conditionality+%28HEC%29+Runbook)
