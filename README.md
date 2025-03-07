@@ -53,6 +53,13 @@ You can run tests in Intellij by running:
 sbt test
 ```
 
+This service uses sbt-scoverage to provide test coverage reports.
+Use the following command to run the tests with coverage and generate a report:
+
+```
+sbt clean coverage test coverageReport
+```
+
 ## Patterns
 
 ### Starting a journey
