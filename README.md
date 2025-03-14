@@ -17,8 +17,48 @@ All HEC services can run via
 ```
 sm2 --start HEC_ALL
 ```
-By default, this service runs on port `10107`.
+By default, this service runs on port **'10107'**.
 
+To stop the frontend microservice from running on service manager (e.g. to run your own version locally), you can run:
+
+```
+sm2 -stop HEC_LICENSING_BODY_FRONTEND 
+```
+
+
+### Using localhost
+
+To run this frontend microservice locally on the configured port **'10107'**, you can run:
+
+```
+sbt run 
+```
+
+**NOTE:** Ensure that you are not running the microservice via service manager before starting your service locally (vice versa)
+or the service will fail to start
+
+## Accessing the service
+
+This service requires authentication stubbing before it can be accessed. Details can be found on the
+[DDCY Live Services Credentials sheet](https://docs.google.com/spreadsheets/d/1ecLTROmzZtv97jxM-5LgoujinGxmDoAuZauu2tFoAVU/edit?gid=1186990023#gid=1186990023)
+for both staging and local url's or check the Tech Overview section in the
+[service summary page](https://confluence.tools.tax.service.gov.uk/display/ELSY/HEC+Service+Summary)
+
+
+## Running tests via terminal
+
+You can run tests in Intellij by running:
+
+```
+sbt test
+```
+
+This service uses sbt-scoverage to provide test coverage reports.
+Use the following command to run the tests with coverage and generate a report:
+
+```
+sbt clean coverage test coverageReport
+```
 
 ## Patterns
 
@@ -44,3 +84,18 @@ test-only endpoint in the [back end microservice](https://github.com/hmrc/hec) t
 ## License
 
 This code is open source software licensed under the [Apache 2.0 License]("http://www.apache.org/licenses/LICENSE-2.0.html").
+
+
+## Monitoring
+
+The following grafana and kibana dashboards are available for this service:
+
+* [Grafana](https://grafana.tools.production.tax.service.gov.uk/d/hec-licensing-body-frontend/hec-licensing-body-frontend?orgId=1&from=now-24h&to=now&timezone=browser&var-ecsServiceName=ecs-hec-licensing-body-frontend-public-Service-d7uvs4S29oO3&var-ecsServicePrefix=ecs-hec-licensing-body-frontend-public&refresh=15m)
+* [Kibana](https://kibana.tools.production.tax.service.gov.uk/app/dashboards#/view/hec-licensing-body-frontend?_g=(filters:!(),refreshInterval:(pause:!t,value:60000),time:(from:now-15m,to:now)))
+
+
+## Other helpful documentation
+
+* [Service Runbook](https://confluence.tools.tax.service.gov.uk/display/ELSY/Hidden+Economy+Conditionality+%28HEC%29+Runbook)
+
+* [Architecture Links](https://confluence.tools.tax.service.gov.uk/pages/viewpage.action?pageId=872972492)
