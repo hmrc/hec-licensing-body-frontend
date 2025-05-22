@@ -48,4 +48,5 @@ class AppConfig @Inject() (config: Configuration, contactFrontendConfig: Contact
     s"$baseUrl/feedback/$contactFormServiceIdentifier"
   }
 
+  val signOutUrl = s"http://localhost:9553/bas-gateway/sign-out-without-state?continue=$exitSurveyUrl"
 }
