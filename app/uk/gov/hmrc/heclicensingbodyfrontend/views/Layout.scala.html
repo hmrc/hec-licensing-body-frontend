@@ -79,7 +79,7 @@
 @govukLayout(
     pageTitle = Some(documentTitle),
     headBlock = Some(hmrcHead(headBlock = Some(head))),
-    headerBlock = Some(hmrcStandardHeader(signOutUrl = Some(appConfig.signOutUrl))),
+    headerBlock = Some(hmrcStandardHeader(signOutUrl = Some(routes.ExitSurveyController.exitSurvey.url))),
     scriptsBlock = Some(hmrcScripts(
         scriptsBlock = Some(scripts)
     )),
