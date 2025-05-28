@@ -28,7 +28,7 @@ class ExitSurveyController @Inject() (
 ) extends FrontendController(mcc) {
 
   val exitSurvey: Action[AnyContent] = Action { _ =>
-    Redirect(appConfig.exitSurveyUrl).withNewSession
+    Redirect(appConfig.signOutWithFeedbackUrl)
   }
 
 }
