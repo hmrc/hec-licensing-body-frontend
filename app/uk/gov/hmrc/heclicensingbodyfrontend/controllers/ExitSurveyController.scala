@@ -30,10 +30,6 @@ class ExitSurveyController @Inject() (
 
   val exitSurvey: Action[AnyContent] = Action { _ =>
     val signOutUrl = appConfig.signOutWithFeedbackUrl
-    println(s"[DEBUG] basGatewayUrl: ${appConfig.basGatewayUrl}")
-    println(s"[DEBUG] signOutWithFeedbackUrl: $signOutUrl")
-    println(s"[DEBUG] contactFormServiceIdentifier: ${appConfig.contactFormServiceIdentifier}")
-
     Redirect(signOutUrl)
   }
 
