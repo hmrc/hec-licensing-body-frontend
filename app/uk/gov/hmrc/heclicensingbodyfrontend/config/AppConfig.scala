@@ -43,9 +43,17 @@ class AppConfig @Inject() (config: Configuration, contactFrontendConfig: Contact
 
   val verificationAttemptsLockTimeHours: Long = config.get[Long]("tax-check-verification-attempts-lock-hours")
 
-  val exitSurveyUrl: String = {
-    val baseUrl = platformHost.getOrElse(config.get[String]("feedback-frontend.base-url"))
-    s"$baseUrl/feedback/$contactFormServiceIdentifier"
+  val basGatewayUrl: String = {
+    val protocol = config.get[String]("microservice.services.bas-gateway.protocol")
+    val host     = config.get[String]("microservice.services.bas-gateway.host")
+    val port     = config.get[Int]("microservice.services.bas-gateway.port")
+    s"$protocol://$host:$port"
   }
 
+  val signOutUrl: String = s"$basGatewayUrl/bas-gateway/sign-out-without-state"
+
+  val signOutWithFeedbackUrl: String = {
+    val feedbackUrl = platformHost.getOrElse(config.get[String]("feedback-frontend.base-url"))
+    s"$basGatewayUrl/bas-gateway/sign-out-without-state?continue=$feedbackUrl/feedback/$contactFormServiceIdentifier"
+  }
 }

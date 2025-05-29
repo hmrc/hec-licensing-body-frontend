@@ -19,6 +19,7 @@ package uk.gov.hmrc.heclicensingbodyfrontend.controllers
 import com.google.inject.{Inject, Singleton}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.heclicensingbodyfrontend.config.AppConfig
+import uk.gov.hmrc.hmrcfrontend.config
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 @Singleton
@@ -28,7 +29,8 @@ class ExitSurveyController @Inject() (
 ) extends FrontendController(mcc) {
 
   val exitSurvey: Action[AnyContent] = Action { _ =>
-    Redirect(appConfig.exitSurveyUrl).withNewSession
+    val signOutUrl = appConfig.signOutWithFeedbackUrl
+    Redirect(signOutUrl)
   }
 
 }
