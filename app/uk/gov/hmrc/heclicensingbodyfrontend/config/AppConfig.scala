@@ -1,18 +1,18 @@
 /*
- * Copyright 2023 HM Revenue & Customs
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+* Copyright 2023 HM Revenue & Customs
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 
 package uk.gov.hmrc.heclicensingbodyfrontend.config
 
@@ -44,10 +44,8 @@ class AppConfig @Inject() (config: Configuration, contactFrontendConfig: Contact
   val verificationAttemptsLockTimeHours: Long = config.get[Long]("tax-check-verification-attempts-lock-hours")
 
   val basGatewayUrl: String = {
-    val protocol = config.get[String]("microservice.services.bas-gateway.protocol")
-    val host     = config.get[String]("microservice.services.bas-gateway.host")
-    val port     = config.get[Int]("microservice.services.bas-gateway.port")
-    s"$protocol://$host:$port"
+    val baseUrl = platformHost.getOrElse("http://localhost:9553")
+    baseUrl
   }
 
   val signOutUrl: String = s"$basGatewayUrl/bas-gateway/sign-out-without-state"
@@ -56,4 +54,5 @@ class AppConfig @Inject() (config: Configuration, contactFrontendConfig: Contact
     val feedbackUrl = platformHost.getOrElse(config.get[String]("feedback-frontend.base-url"))
     s"$basGatewayUrl/bas-gateway/sign-out-without-state?continue=$feedbackUrl/feedback/$contactFormServiceIdentifier"
   }
+}
 }
