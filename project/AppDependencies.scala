@@ -1,7 +1,7 @@
 import sbt._
 
 object AppDependencies {
-  val bootStrapVersion = "9.11.0"
+  val bootStrapVersion = "9.12.0"
   val hmrcMongoVersion = "2.6.0"
 
   val compile: Seq[ModuleID] = Seq(
