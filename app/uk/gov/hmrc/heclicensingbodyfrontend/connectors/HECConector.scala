@@ -19,10 +19,10 @@ package uk.gov.hmrc.heclicensingbodyfrontend.connectors
 import cats.data.EitherT
 import com.google.inject.{ImplementedBy, Inject, Singleton}
 import play.api.Configuration
-import play.api.libs.json.Writes
+import play.api.libs.json.Json
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECTaxCheckMatchRequest}
-import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, HttpClient, HttpReads, HttpResponse}
+import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, HttpResponse, StringContextOps}
+import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -35,7 +35,7 @@ trait HECConnector {
 }
 
 @Singleton
-class HECConnectorImpl @Inject() (http: HttpClient, config: Configuration)(implicit
+class HECConnectorImpl @Inject() (httpClientV2: HttpClientV2, config: Configuration)(implicit
   ec: ExecutionContext
 ) extends HECConnector {
   private val servicesConfig           = new ServicesConfig(config)
@@ -46,14 +46,15 @@ class HECConnectorImpl @Inject() (http: HttpClient, config: Configuration)(impli
   override def matchTaxCheck(taxCheckMatchRequest: HECTaxCheckMatchRequest)(implicit
     hc: HeaderCarrier
   ): EitherT[Future, Error, HttpResponse] = EitherT[Future, Error, HttpResponse] {
-    val headers = Seq(HeaderNames.authorisation -> internalAuthToken)
-    http
-      .POST[HECTaxCheckMatchRequest, HttpResponse](matchTaxCheckUrl, taxCheckMatchRequest, headers)(
-        implicitly[Writes[HECTaxCheckMatchRequest]],
-        implicitly[HttpReads[HttpResponse]],
-        implicitly[HeaderCarrier].copy(authorization = None),
-        ec
-      )
+
+    val updatedHc = hc
+      .copy(authorization = None)
+      .withExtraHeaders(HeaderNames.authorisation -> internalAuthToken)
+
+    httpClientV2
+      .post(url"$matchTaxCheckUrl")
+      .withBody(Json.toJson(taxCheckMatchRequest))
+      .execute[HttpResponse]
       .map(Right(_))
       .recover { case e => Left(Error(e)) }
   }
