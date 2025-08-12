@@ -16,33 +16,45 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.connectors
 
+import izumi.reflect.Tag
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.matchers.should._
-import play.api.libs.json.Writes
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpReads, HttpResponse}
+import play.api.libs.json.{JsValue, Writes}
+import play.api.libs.ws.BodyWritable
+import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse}
+import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
 
+import java.net.URL
 import scala.concurrent.{ExecutionContext, Future}
 
 trait HttpSupport { this: MockFactory with Matchers ⇒
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
-  val mockHttp: HttpClient = mock[HttpClient]
+  val mockHttp: HttpClientV2             = mock[HttpClientV2]
+  val mockRequestBuilder: RequestBuilder = mock[RequestBuilder]
 
   def mockPost[A](url: String, headers: Seq[(String, String)], body: A, hc: HeaderCarrier)(
     result: Option[HttpResponse]
-  ): Unit =
+  ): Unit = {
+
     (mockHttp
-      .POST(_: String, _: A, _: Seq[(String, String)])(
-        _: Writes[A],
-        _: HttpReads[HttpResponse],
-        _: HeaderCarrier,
-        _: ExecutionContext
-      ))
-      .expects(url, body, headers.toSeq, *, *, hc, *)
-      .returning(
+      .post(_: URL)(_: HeaderCarrier))
+      .expects(*, *)
+      .returns(mockRequestBuilder)
+
+    (mockRequestBuilder
+      .withBody(_: JsValue)(_: BodyWritable[JsValue], _: Tag[JsValue], _: ExecutionContext))
+      .expects(*, *, *, *)
+      .returns(mockRequestBuilder)
+
+    (mockRequestBuilder
+      .execute(_: HttpReads[HttpResponse], _: ExecutionContext))
+      .expects(*, *)
+      .returns(
         result.fold[Future[HttpResponse]](
           Future.failed(new Exception("Test exception message"))
         )(Future.successful)
       )
+  }
 
 }
