@@ -24,6 +24,7 @@ import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECTaxCheckMatchReque
 import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, HttpResponse, StringContextOps}
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import play.api.libs.ws.WSBodyWritables._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -47,12 +48,11 @@ class HECConnectorImpl @Inject() (httpClientV2: HttpClientV2, config: Configurat
     hc: HeaderCarrier
   ): EitherT[Future, Error, HttpResponse] = EitherT[Future, Error, HttpResponse] {
 
-    val updatedHc = hc
-      .copy(authorization = None)
+    val updatedHc = HeaderCarrier()
       .withExtraHeaders(HeaderNames.authorisation -> internalAuthToken)
 
     httpClientV2
-      .post(url"$matchTaxCheckUrl")
+      .post(url"$matchTaxCheckUrl")(updatedHc)
       .withBody(Json.toJson(taxCheckMatchRequest))
       .execute[HttpResponse]
       .map(Right(_))
