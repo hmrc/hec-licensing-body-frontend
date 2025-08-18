@@ -48,7 +48,8 @@ class HECConnectorImpl @Inject() (httpClientV2: HttpClientV2, config: Configurat
     hc: HeaderCarrier
   ): EitherT[Future, Error, HttpResponse] = EitherT[Future, Error, HttpResponse] {
 
-    val updatedHc = HeaderCarrier()
+    val updatedHc = hc
+      .copy(authorization = None)
       .withExtraHeaders(HeaderNames.authorisation -> internalAuthToken)
 
     httpClientV2
