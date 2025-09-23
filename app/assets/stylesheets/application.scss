@@ -2,6 +2,8 @@ $govuk-assets-path: "/confirm-tax-check-code/assets/lib/govuk-frontend/dist/govu
 
 @import "lib/govuk-frontend/dist/govuk/index";
 
+$govuk-new-organisation-colours: true;
+
 body:not(.js-enabled) .js-visible {
   display: none;
 }
