@@ -59,7 +59,7 @@ trait JourneyServiceSupport { this: ControllerSpec =>
       .returning(result)
 
   def mockFirstPge(result: Call) =
-    (mockJourneyService.firstPage _)
+    (() => mockJourneyService.firstPage)
       .expects()
       .returning(result)
 

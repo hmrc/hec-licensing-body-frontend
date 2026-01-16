@@ -31,9 +31,10 @@ import uk.gov.hmrc.heclicensingbodyfrontend.models._
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
 import uk.gov.hmrc.heclicensingbodyfrontend.services.JourneyService
 import uk.gov.hmrc.heclicensingbodyfrontend.util.TimeUtils
+import scala.jdk.CollectionConverters.*
 
 import java.time.{LocalDate, ZoneId, ZonedDateTime}
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 

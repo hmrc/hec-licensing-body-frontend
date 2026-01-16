@@ -17,7 +17,7 @@
 package uk.gov.hmrc.heclicensingbodyfrontend.models
 
 import cats.Eq
-import play.api.libs.json._
+import play.api.libs.json.*
 
 sealed trait EntityType extends Product with Serializable
 

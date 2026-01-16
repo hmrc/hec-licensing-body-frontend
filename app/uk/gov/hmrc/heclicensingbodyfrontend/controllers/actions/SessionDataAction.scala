@@ -16,10 +16,10 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions
 
-import cats.syntax.either._
+import cats.syntax.either.*
 import com.google.inject.{Inject, Singleton}
 import play.api.mvc.Results.Redirect
-import play.api.mvc._
+import play.api.mvc.*
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.{routes, toFuture}
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{HECSession, Language}
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore

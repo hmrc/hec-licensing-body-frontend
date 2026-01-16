@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.controllers
 
-import cats.instances.future._
+import cats.instances.future.*
 import com.google.inject.Inject
 import play.api.data.Form
 import play.api.data.Forms.{mapping, nonEmptyText}
@@ -45,7 +45,7 @@ class HECTaxCheckCodeController @Inject() (
     with I18nSupport
     with Logging {
 
-  import HECTaxCheckCodeController._
+  import HECTaxCheckCodeController.*
 
   val hecTaxCheckCode: Action[AnyContent] = sessionDataAction { implicit request =>
     val taxCheckCode = request.sessionData.userAnswers.taxCheckCode

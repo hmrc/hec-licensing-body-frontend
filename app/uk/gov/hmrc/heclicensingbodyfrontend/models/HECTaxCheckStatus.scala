@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.models
 
-import play.api.libs.json._
+import play.api.libs.json.*
 
 sealed trait HECTaxCheckStatus extends Product with Serializable
 
@@ -42,7 +42,7 @@ object HECTaxCheckStatus {
     override def reads(json: JsValue): JsResult[HECTaxCheckStatus] = json match {
       case JsString("Match")   => JsSuccess(Match)
       case JsString("Expired") => JsSuccess(Expired)
-      case _: JsObject         => (json \ "failureReason").validate[MatchFailureReason].map(NoMatch)
+      case _: JsObject         => (json \ "failureReason").validate[MatchFailureReason].map(HECTaxCheckStatus.NoMatch.apply)
       case _                   => JsError(s"Unknown failure reason ${json.toString()}")
     }
 

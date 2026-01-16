@@ -19,7 +19,7 @@ package uk.gov.hmrc.heclicensingbodyfrontend.models
 import cats.Eq
 import play.api.libs.json.MapWrites.mapWrites
 import play.api.libs.json.Reads.mapReads
-import play.api.libs.json._
+import play.api.libs.json.*
 
 import java.time.ZonedDateTime
 

@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.controllers
 
-import cats.instances.future._
+import cats.instances.future.*
 import com.google.inject.{Inject, Singleton}
 import play.api.data.Form
 import play.api.data.Forms.{mapping, of}

@@ -17,13 +17,13 @@
 package uk.gov.hmrc.heclicensingbodyfrontend.controllers
 
 import cats.data.EitherT
-import cats.implicits._
+import cats.implicits.*
 import com.google.inject.{Inject, Singleton}
 import play.api.data.Form
 import play.api.data.Forms.{mapping, nonEmptyText}
 import play.api.data.validation.{Constraint, Invalid, Valid}
 import play.api.i18n.I18nSupport
-import play.api.mvc._
+import play.api.mvc.*
 import uk.gov.hmrc.heclicensingbodyfrontend.config.AppConfig
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.{RequestWithSessionData, SessionDataAction}
 import uk.gov.hmrc.heclicensingbodyfrontend.models.AuditEvent.TaxCheckCodeChecked
@@ -55,7 +55,7 @@ class CRNController @Inject() (
     with I18nSupport
     with Logging {
 
-  import CRNController._
+  import CRNController.*
 
   val companyRegistrationNumber: Action[AnyContent] = sessionDataAction { implicit request =>
     val back = journeyService.previous(routes.CRNController.companyRegistrationNumber)

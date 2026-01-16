@@ -59,7 +59,7 @@ class VerificationServiceSpec extends ControllerSpec {
     RequestWithSessionData(FakeRequest(), s, Language.English)
 
   def mockTimeProviderNow(now: ZonedDateTime) =
-    (mockTimeProvider.now _).expects().returning(now)
+    (() => mockTimeProvider.now).expects().returning(now)
 
   "VerificationServiceSpec" when {
 

@@ -18,14 +18,14 @@ package uk.gov.hmrc.heclicensingbodyfrontend.services
 
 import cats.Eq
 import cats.data.EitherT
-import cats.instances.future._
-import cats.instances.string._
-import cats.syntax.eq._
+import cats.instances.future.*
+import cats.instances.string.*
+import cats.syntax.eq.*
 import com.google.inject.{ImplementedBy, Inject, Singleton}
 import play.api.mvc.Call
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.RequestWithSessionData
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.routes
-import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus._
+import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus.*
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{EntityType, Error, HECSession, HECTaxCheckMatchResult, InconsistentSessionState}
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
