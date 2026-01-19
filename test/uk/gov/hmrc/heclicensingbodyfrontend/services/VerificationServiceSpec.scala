@@ -55,7 +55,7 @@ class VerificationServiceSpec extends ControllerSpec {
   val zonedDateTimeNow = ZonedDateTime.of(2021, 10, 9, 12, 30, 0, 0, ZoneId.of("Europe/London"))
   val lockExpiresAt    = zonedDateTimeNow.plusHours(appConfig.verificationAttemptsLockTimeHours)
 
-  def requestWithSessionData(s: HECSession): RequestWithSessionData[_] =
+  def requestWithSessionData(s: HECSession): RequestWithSessionData[?] =
     RequestWithSessionData(FakeRequest(), s, Language.English)
 
   def mockTimeProviderNow(now: ZonedDateTime) =

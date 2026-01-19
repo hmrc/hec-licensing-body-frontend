@@ -27,7 +27,7 @@
 
 
 
-@(form: Form[models.EntityType], back: Call, entityTypes: List[models.EntityType])(implicit request: Request[_], messages: Messages)
+@(form: Form[models.EntityType], back: Call, entityTypes: List[models.EntityType])(implicit request: Request[?], messages: Messages)
 @key = @{"entityType"}
 @title = @{messages(s"$key.title")}
 @radioOptions = @{entityTypes.zipWithIndex.map{ case (option, index) => RadioItem(

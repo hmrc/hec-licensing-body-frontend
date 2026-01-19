@@ -42,7 +42,7 @@
         scriptsBlock: Option[Html] = None,
         hasErrors: Boolean = false,
         backLocation: Option[Call] = None
-)(contentBlock: Html)(implicit request: Request[_], messages: Messages)
+)(contentBlock: Html)(implicit request: Request[?], messages: Messages)
 
 @serviceNameAndHeading = @{pageTitle.fold(messages("service.name"))(t => s"""$t - ${messages("service.name")}""")}
 @govTitle = @{serviceNameAndHeading + " - GOV.UK"}

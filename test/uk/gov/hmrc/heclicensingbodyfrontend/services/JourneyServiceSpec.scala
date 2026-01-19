@@ -35,7 +35,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 class JourneyServiceSpec extends ControllerSpec with SessionSupport {
 
-  def requestWithSessionData(s: HECSession): RequestWithSessionData[_] =
+  def requestWithSessionData(s: HECSession): RequestWithSessionData[?] =
     RequestWithSessionData(FakeRequest(), s, Language.Welsh)
 
   implicit val hc: HeaderCarrier                                                                          = HeaderCarrier()
@@ -91,7 +91,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
 
         "the next page cannot be determined" in {
           val session                                     = HECSession(UserAnswers.empty.copy(taxCheckCode = Some(HECTaxCheckCode(""))), None)
-          implicit val request: RequestWithSessionData[_] =
+          implicit val request: RequestWithSessionData[?] =
             requestWithSessionData(session)
 
           val result = journeyService.updateAndNext(
@@ -105,7 +105,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
         "there is an error updating the session" in {
           val currentSession                              = HECSession(UserAnswers.empty, None)
           val updatedSession                              = HECSession(UserAnswers.empty.copy(taxCheckCode = Some(HECTaxCheckCode(""))), None)
-          implicit val request: RequestWithSessionData[_] =
+          implicit val request: RequestWithSessionData[?] =
             requestWithSessionData(currentSession)
 
           mockStoreSession(updatedSession)(Left(Error("")))
@@ -126,7 +126,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
           "there is a tax check code in session" in {
             val currentSession                              = HECSession(UserAnswers.empty, None)
             val updatedSession                              = HECSession(UserAnswers.empty.copy(taxCheckCode = Some(HECTaxCheckCode(""))), None)
-            implicit val request: RequestWithSessionData[_] =
+            implicit val request: RequestWithSessionData[?] =
               requestWithSessionData(currentSession)
 
             mockStoreSession(updatedSession)(Right(()))
@@ -140,7 +140,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
 
           "there is a no tax check code in session" in {
             val session                                     = HECSession(UserAnswers.empty, None)
-            implicit val request: RequestWithSessionData[_] = requestWithSessionData(session)
+            implicit val request: RequestWithSessionData[?] = requestWithSessionData(session)
 
             assertThrows[InconsistentSessionState](
               await(
@@ -159,7 +159,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
 
           "there is no licence type in session" in {
             val session                                     = HECSession(UserAnswers.empty, None)
-            implicit val request: RequestWithSessionData[_] =
+            implicit val request: RequestWithSessionData[?] =
               requestWithSessionData(session)
 
             assertThrows[InconsistentSessionState] {
@@ -179,7 +179,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
               ),
               None
             )
-            implicit val request: RequestWithSessionData[_] =
+            implicit val request: RequestWithSessionData[?] =
               requestWithSessionData(currentSession)
 
             mockStoreSession(updatedSession)(Right(()))
@@ -208,7 +208,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                     None
                   )
 
-                implicit val request: RequestWithSessionData[_] =
+                implicit val request: RequestWithSessionData[?] =
                   requestWithSessionData(session)
 
                 mockStoreSession(updatedSession)(Right(()))
@@ -237,7 +237,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
               ),
               None
             )
-            implicit val request: RequestWithSessionData[_] =
+            implicit val request: RequestWithSessionData[?] =
               requestWithSessionData(currentSession)
 
             mockStoreSession(updatedSession)(Right(()))
@@ -251,7 +251,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
 
           "there is no entity type in session" in {
             val session                                     = HECSession(UserAnswers.empty, None)
-            implicit val request: RequestWithSessionData[_] =
+            implicit val request: RequestWithSessionData[?] =
               requestWithSessionData(session)
 
             assertThrows[InconsistentSessionState] {
@@ -276,7 +276,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
           def nextPageTest(updatedHecSession: HECSession, nextCall: Call, maxVerificationAttemptsReached: Boolean) = {
             val currentSession                              = HECSession(UserAnswers.empty, None)
             val updatedSession                              = updatedHecSession
-            implicit val request: RequestWithSessionData[_] =
+            implicit val request: RequestWithSessionData[?] =
               requestWithSessionData(currentSession)
             inSequence {
               mockVerificationAttemptReached(hecTaxCheckCode, updatedHecSession)(maxVerificationAttemptsReached)
@@ -294,7 +294,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
             val session =
               HECSession(userAnswersWithAllAnswers, None)
 
-            implicit val request: RequestWithSessionData[_] =
+            implicit val request: RequestWithSessionData[?] =
               requestWithSessionData(session)
 
             mockVerificationAttemptReached(hecTaxCheckCode, session)(false)
@@ -480,7 +480,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
           def nextPageTest(updatedHecSession: HECSession, nextCall: Call, maxAttemptHasReached: Boolean) = {
             val currentSession                              = HECSession(UserAnswers.empty, None)
             val updatedSession                              = updatedHecSession
-            implicit val request: RequestWithSessionData[_] =
+            implicit val request: RequestWithSessionData[?] =
               requestWithSessionData(currentSession)
 
             inSequence {
@@ -499,7 +499,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
             val session =
               HECSession(userAnswersForCompany, None)
 
-            implicit val request: RequestWithSessionData[_] =
+            implicit val request: RequestWithSessionData[?] =
               requestWithSessionData(session)
 
             mockVerificationAttemptReached(hecTaxCheckCode, session)(false)
@@ -685,7 +685,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
 
         "the current session and the updated session are the same" in {
           val session                                     = HECSession(UserAnswers.empty.copy(taxCheckCode = Some(HECTaxCheckCode(""))), None)
-          implicit val request: RequestWithSessionData[_] =
+          implicit val request: RequestWithSessionData[?] =
             requestWithSessionData(session)
 
           val result = journeyService.updateAndNext(
@@ -706,7 +706,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
 
         "the start endpoint" in {
           val session                                     = HECSession(UserAnswers.empty, None)
-          implicit val request: RequestWithSessionData[_] =
+          implicit val request: RequestWithSessionData[?] =
             requestWithSessionData(session)
 
           val result = journeyService.previous(
@@ -718,7 +718,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
 
         "the tax check code page" in {
           val session                                     = HECSession(UserAnswers.empty, None)
-          implicit val request: RequestWithSessionData[_] =
+          implicit val request: RequestWithSessionData[?] =
             requestWithSessionData(session)
 
           val result = journeyService.previous(
@@ -730,7 +730,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
 
         "the licence type page" in {
           val session                                     = HECSession(UserAnswers.empty.copy(taxCheckCode = Some(HECTaxCheckCode(""))), None)
-          implicit val request: RequestWithSessionData[_] =
+          implicit val request: RequestWithSessionData[?] =
             requestWithSessionData(session)
 
           val result = journeyService.previous(
@@ -751,7 +751,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
             ),
             None
           )
-          implicit val request: RequestWithSessionData[_] =
+          implicit val request: RequestWithSessionData[?] =
             requestWithSessionData(session)
 
           val result = journeyService.previous(
@@ -772,7 +772,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
             ),
             None
           )
-          implicit val request: RequestWithSessionData[_] =
+          implicit val request: RequestWithSessionData[?] =
             requestWithSessionData(session)
 
           val result = journeyService.previous(
@@ -799,7 +799,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
                 ),
                 None
               )
-              implicit val request: RequestWithSessionData[_] =
+              implicit val request: RequestWithSessionData[?] =
                 requestWithSessionData(session)
 
               val result = journeyService.previous(
@@ -822,7 +822,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
             ),
             None
           )
-          implicit val request: RequestWithSessionData[_] =
+          implicit val request: RequestWithSessionData[?] =
             requestWithSessionData(session)
 
           val result = journeyService.previous(
@@ -843,7 +843,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
               )
             )
           )
-          implicit val request: RequestWithSessionData[_] =
+          implicit val request: RequestWithSessionData[?] =
             requestWithSessionData(session)
 
           inSequence {
@@ -868,7 +868,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
               )
             )
           )
-          implicit val request: RequestWithSessionData[_] =
+          implicit val request: RequestWithSessionData[?] =
             requestWithSessionData(session)
           inSequence {
             mockVerificationAttemptReached(hecTaxCheckCode, session)(false)
@@ -886,7 +886,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
             userAnswersWithAllAnswers,
             Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Expired))
           )
-          implicit val request: RequestWithSessionData[_] =
+          implicit val request: RequestWithSessionData[?] =
             requestWithSessionData(session)
           inSequence {
             mockVerificationAttemptReached(hecTaxCheckCode, session)(false)
@@ -903,7 +903,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
             userAnswersForCompany,
             Some(HECTaxCheckMatchResult(taxCheckMatchCompanyRequest, dateTimeChecked, Expired))
           )
-          implicit val request: RequestWithSessionData[_] =
+          implicit val request: RequestWithSessionData[?] =
             requestWithSessionData(session)
           inSequence {
             mockVerificationAttemptReached(hecTaxCheckCode, session)(false)
@@ -920,7 +920,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
             userAnswersWithAllAnswers,
             Some(HECTaxCheckMatchResult(taxCheckMatchRequest, dateTimeChecked, Match))
           )
-          implicit val request: RequestWithSessionData[_] =
+          implicit val request: RequestWithSessionData[?] =
             requestWithSessionData(session)
           inSequence {
             mockVerificationAttemptReached(hecTaxCheckCode, session)(false)
@@ -937,7 +937,7 @@ class JourneyServiceSpec extends ControllerSpec with SessionSupport {
             userAnswersForCompany,
             Some(HECTaxCheckMatchResult(taxCheckMatchCompanyRequest, dateTimeChecked, Match))
           )
-          implicit val request: RequestWithSessionData[_] =
+          implicit val request: RequestWithSessionData[?] =
             requestWithSessionData(session)
           inSequence {
             mockVerificationAttemptReached(hecTaxCheckCode, session)(false)

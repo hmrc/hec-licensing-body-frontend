@@ -38,11 +38,11 @@ import scala.concurrent.{ExecutionContext, Future}
 trait JourneyService {
 
   def updateAndNext(current: Call, updatedSession: HECSession)(implicit
-    r: RequestWithSessionData[_],
+    r: RequestWithSessionData[?],
     hc: HeaderCarrier
   ): EitherT[Future, Error, Call]
 
-  def previous(current: Call)(implicit r: RequestWithSessionData[_]): Call
+  def previous(current: Call)(implicit r: RequestWithSessionData[?]): Call
 
   def firstPage: Call
 
@@ -73,7 +73,7 @@ class JourneyServiceImpl @Inject() (
   lazy val firstPage: Call = routes.HECTaxCheckCodeController.hecTaxCheckCode
 
   override def updateAndNext(current: Call, updatedSession: HECSession)(implicit
-    r: RequestWithSessionData[_],
+    r: RequestWithSessionData[?],
     hc: HeaderCarrier
   ): EitherT[Future, Error, Call] =
     paths.get(current).map(_(updatedSession)) match {
@@ -87,7 +87,7 @@ class JourneyServiceImpl @Inject() (
     }
 
   override def previous(current: Call)(implicit
-    r: RequestWithSessionData[_]
+    r: RequestWithSessionData[?]
   ): Call = {
     @tailrec
     def loop(previous: Call): Option[Call] =

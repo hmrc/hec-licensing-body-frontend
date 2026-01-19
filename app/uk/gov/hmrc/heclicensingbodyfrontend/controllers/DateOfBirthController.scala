@@ -98,7 +98,7 @@ class DateOfBirthController @Inject() (
   }
 
   private def handleValidDateOfBirth(dob: DateOfBirth, taxCheckCode: HECTaxCheckCode, licenceType: LicenceType)(implicit
-    r: RequestWithSessionData[_]
+    r: RequestWithSessionData[?]
   ): Future[Result] =
     getTaxMatchResult(dob, taxCheckCode, licenceType)
       .fold(
@@ -110,7 +110,7 @@ class DateOfBirthController @Inject() (
     dateOfBirth: DateOfBirth,
     taxCheckCode: HECTaxCheckCode,
     licenceType: LicenceType
-  )(implicit request: RequestWithSessionData[_]): EitherT[Future, Error, Call] =
+  )(implicit request: RequestWithSessionData[?]): EitherT[Future, Error, Call] =
     for {
       taxMatch      <- taxMatchService.matchTaxCheck(HECTaxCheckMatchRequest(taxCheckCode, licenceType, Right(dateOfBirth)))
       updatedSession =
@@ -128,7 +128,7 @@ class DateOfBirthController @Inject() (
     licenceType: LicenceType,
     matchResult: Option[HECTaxCheckMatchResult],
     session: HECSession
-  )(implicit hc: HeaderCarrier, r: RequestWithSessionData[_]): Unit = {
+  )(implicit hc: HeaderCarrier, r: RequestWithSessionData[?]): Unit = {
     val submittedData =
       TaxCheckCodeChecked.SubmittedData(
         taxCheckCode,

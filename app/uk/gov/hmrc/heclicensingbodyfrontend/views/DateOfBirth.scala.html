@@ -25,7 +25,7 @@
 
 @this(layout: Layout, govukErrorSummary: GovukErrorSummary, govukDateInput: GovukDateInput, govukButton: GovukButton, formWithCSRF: FormWithCSRF)
 
-@(form: Form[models.DateOfBirth], back: Call)(implicit request: Request[_], messages: Messages)
+@(form: Form[models.DateOfBirth], back: Call)(implicit request: Request[?], messages: Messages)
 @key = @{"dateOfBirth"}
 @dayKey = @{ s"$key-day" }
 @monthKey = @{ s"$key-month" }

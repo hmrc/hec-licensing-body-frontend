@@ -74,7 +74,7 @@ class LicenceTypeController @Inject() (
 
   private def handleValidLicenceType(
     licenceType: LicenceType
-  )(implicit request: RequestWithSessionData[_]): Future[Result] = {
+  )(implicit request: RequestWithSessionData[?]): Future[Result] = {
 
     val updatedAnswers: UserAnswers = request.sessionData.userAnswers.copy(licenceType = Some(licenceType))
     val updatedSession: HECSession  = request.sessionData.copy(userAnswers = updatedAnswers)

@@ -103,7 +103,7 @@ class CRNController @Inject() (
   }
 
   private def handleValidCrn(crn: CRN, taxCheckCode: HECTaxCheckCode, licenceType: LicenceType)(implicit
-    request: RequestWithSessionData[_]
+    request: RequestWithSessionData[?]
   ): Future[Result] =
     getTaxMatchResult(crn, taxCheckCode, licenceType)
       .fold(
@@ -112,7 +112,7 @@ class CRNController @Inject() (
       )
 
   private def getTaxMatchResult(crn: CRN, taxCheckCode: HECTaxCheckCode, licenceType: LicenceType)(implicit
-    request: RequestWithSessionData[_]
+    request: RequestWithSessionData[?]
   ): EitherT[Future, Error, Call] =
     for {
       taxMatch      <- taxMatchService.matchTaxCheck(HECTaxCheckMatchRequest(taxCheckCode, licenceType, Left(crn)))
@@ -129,7 +129,7 @@ class CRNController @Inject() (
     licenceType: LicenceType,
     matchResult: Option[HECTaxCheckMatchResult],
     session: HECSession
-  )(implicit hc: HeaderCarrier, r: RequestWithSessionData[_]): Unit = {
+  )(implicit hc: HeaderCarrier, r: RequestWithSessionData[?]): Unit = {
     val submittedData =
       TaxCheckCodeChecked.SubmittedData(
         taxCheckCode,

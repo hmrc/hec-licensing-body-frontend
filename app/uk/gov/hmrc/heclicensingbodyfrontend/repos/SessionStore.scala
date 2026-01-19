@@ -32,9 +32,9 @@ import scala.concurrent.{ExecutionContext, Future}
 @ImplementedBy(classOf[SessionStoreImpl])
 trait SessionStore {
 
-  def get()(implicit request: Request[_]): EitherT[Future, Error, Option[HECSession]]
+  def get()(implicit request: Request[?]): EitherT[Future, Error, Option[HECSession]]
 
-  def store(sessionData: HECSession)(implicit request: Request[_]): EitherT[Future, Error, Unit]
+  def store(sessionData: HECSession)(implicit request: Request[?]): EitherT[Future, Error, Unit]
 
 }
 
@@ -55,7 +55,7 @@ class SessionStoreImpl @Inject() (
 
   val sessionKey: String = "hec-session"
 
-  def get()(implicit request: Request[_]): EitherT[Future, Error, Option[HECSession]] =
+  def get()(implicit request: Request[?]): EitherT[Future, Error, Option[HECSession]] =
     EitherT(
       preservingMdc {
         getFromSession[HECSession](DataKey(sessionKey))
@@ -66,7 +66,7 @@ class SessionStoreImpl @Inject() (
 
   def store(
     sessionData: HECSession
-  )(implicit request: Request[_]): EitherT[Future, Error, Unit] =
+  )(implicit request: Request[?]): EitherT[Future, Error, Unit] =
     EitherT(preservingMdc {
       putSession[HECSession](DataKey(sessionKey), sessionData)
         .map(_ => Right(()))

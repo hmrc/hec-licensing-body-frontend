@@ -23,7 +23,7 @@
 
 @this(layout: Layout, detailsEntered: DetailsEntered, feedbackSection: FeedbackSection)
 
-@(hecTaxCheckMatchRequest:HECTaxCheckMatchRequest, back: Call)(implicit request: Request[_], messages: Messages)
+@(hecTaxCheckMatchRequest:HECTaxCheckMatchRequest, back: Call)(implicit request: Request[?], messages: Messages)
 @key = @{"taxCheckNoMatch"}
 @title = @{messages(s"$key.title")}
 

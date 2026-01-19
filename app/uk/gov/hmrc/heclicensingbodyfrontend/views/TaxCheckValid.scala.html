@@ -26,7 +26,7 @@
 
 @this(layout: Layout, govukPanel : GovukPanel, detailsEntered: DetailsEntered, feedbackSection: FeedbackSection)
 
-@(hecTaxCheckMatchRequest:HECTaxCheckMatchRequest, dateTimeChecked: ZonedDateTime)(implicit request: Request[_], messages: Messages)
+@(hecTaxCheckMatchRequest:HECTaxCheckMatchRequest, dateTimeChecked: ZonedDateTime)(implicit request: Request[?], messages: Messages)
 @key = @{"taxCheckValid"}
 @title = @{messages(s"$key.title")}
 

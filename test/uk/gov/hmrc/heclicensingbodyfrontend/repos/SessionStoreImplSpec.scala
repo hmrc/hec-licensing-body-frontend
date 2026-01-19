@@ -48,7 +48,7 @@ class SessionStoreImplSpec extends AnyWordSpec with Matchers with MongoSupportSp
     val sessionId                    = SessionId(UUID.randomUUID().toString)
     val fakeRequest                  = FakeRequest().withSession(("sessionId", sessionId.toString))
     implicit val hc: HeaderCarrier   = HeaderCarrier()
-    implicit val request: Request[_] =
+    implicit val request: Request[?] =
       RequestWithSessionData(fakeRequest, sessionData, Language.English)
   }
 

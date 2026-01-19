@@ -35,7 +35,7 @@ trait AuditService {
   def sendEvent[A <: AuditEvent](auditEvent: A)(implicit
     hc: HeaderCarrier,
     writes: Writes[A],
-    request: Request[_]
+    request: Request[?]
   ): Unit
 
 }
@@ -52,7 +52,7 @@ class AuditServiceImpl @Inject() (auditConnector: AuditConnector)(implicit ec: E
   )(implicit
     hc: HeaderCarrier,
     writes: Writes[A],
-    request: Request[_]
+    request: Request[?]
   ): Unit = {
     val extendedDataEvent = ExtendedDataEvent(
       auditSource = auditSource,
