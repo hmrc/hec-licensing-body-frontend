@@ -19,7 +19,7 @@
 @import play.api.mvc.{Call, Request}
 @import uk.gov.hmrc.heclicensingbodyfrontend.models
 @import uk.gov.hmrc.heclicensingbodyfrontend.controllers.routes
-@import uk.gov.hmrc.govukfrontend.views.html.components._
+@import uk.gov.hmrc.govukfrontend.views.html.components.*
 @import uk.gov.hmrc.heclicensingbodyfrontend.config.AppConfig
 @import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcNewTabLink
 @import uk.gov.hmrc.hmrcfrontend.views.viewmodels.newtablink.NewTabLink
@@ -27,7 +27,7 @@
 
 @this(layout: Layout, govukInput: GovukInput, govukButton: GovukButton, formWithCSRF: FormWithCSRF, govukErrorSummary : GovukErrorSummary, hmrcNewTabLink: HmrcNewTabLink)
 
-@(form: Form[models.HECTaxCheckCode], back: Call)(implicit request: Request[_], messages: Messages, appConfig: AppConfig)
+@(form: Form[models.HECTaxCheckCode], back: Call)(implicit request: Request[?], messages: Messages, appConfig: AppConfig)
 @key = @{"taxCheckCode"}
 @title = @{messages(s"$key.title")}
 

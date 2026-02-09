@@ -17,7 +17,7 @@
 @import play.api.i18n.Messages
 @import play.api.data.Form
 @import play.api.mvc.{Call, Request}
-@import uk.gov.hmrc.govukfrontend.views.html.components._
+@import uk.gov.hmrc.govukfrontend.views.html.components.*
 @import uk.gov.hmrc.heclicensingbodyfrontend.controllers.routes
 @import uk.gov.hmrc.heclicensingbodyfrontend.models
 @import uk.gov.hmrc.heclicensingbodyfrontend.views.helpers.FormErrorMessage.formErrorMessage
@@ -27,7 +27,7 @@
 
 
 
-@(form: Form[models.EntityType], back: Call, entityTypes: List[models.EntityType])(implicit request: Request[_], messages: Messages)
+@(form: Form[models.EntityType], back: Call, entityTypes: List[models.EntityType])(implicit request: Request[?], messages: Messages)
 @key = @{"entityType"}
 @title = @{messages(s"$key.title")}
 @radioOptions = @{entityTypes.zipWithIndex.map{ case (option, index) => RadioItem(

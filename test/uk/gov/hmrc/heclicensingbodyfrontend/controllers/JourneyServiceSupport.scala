@@ -38,9 +38,9 @@ trait JourneyServiceSupport { this: ControllerSpec =>
     result: Either[Error, Call]
   ) =
     (mockJourneyService
-      .updateAndNext(_: Call, _: HECSession)(_: RequestWithSessionData[_], _: HeaderCarrier))
-      .expects(where[Call, HECSession, RequestWithSessionData[_], HeaderCarrier] {
-        case (call: Call, s: HECSession, r: RequestWithSessionData[_], _: HeaderCarrier) =>
+      .updateAndNext(_: Call, _: HECSession)(_: RequestWithSessionData[?], _: HeaderCarrier))
+      .expects(where[Call, HECSession, RequestWithSessionData[?], HeaderCarrier] {
+        case (call: Call, s: HECSession, r: RequestWithSessionData[?], _: HeaderCarrier) =>
           assert(call === currentPage)
           assert(s === updatedSession)
           assert(r.sessionData === currentSession)
@@ -50,8 +50,8 @@ trait JourneyServiceSupport { this: ControllerSpec =>
 
   def mockJourneyServiceGetPrevious(currentPage: Call, currentSession: HECSession)(result: Call) =
     (mockJourneyService
-      .previous(_: Call)(_: RequestWithSessionData[_]))
-      .expects(where[Call, RequestWithSessionData[_]] { case (c: Call, r: RequestWithSessionData[_]) =>
+      .previous(_: Call)(_: RequestWithSessionData[?]))
+      .expects(where[Call, RequestWithSessionData[?]] { case (c: Call, r: RequestWithSessionData[?]) =>
         assert(c === currentPage)
         assert(r.sessionData === currentSession)
         true
@@ -59,7 +59,7 @@ trait JourneyServiceSupport { this: ControllerSpec =>
       .returning(result)
 
   def mockFirstPge(result: Call) =
-    (mockJourneyService.firstPage _)
+    (() => mockJourneyService.firstPage)
       .expects()
       .returning(result)
 

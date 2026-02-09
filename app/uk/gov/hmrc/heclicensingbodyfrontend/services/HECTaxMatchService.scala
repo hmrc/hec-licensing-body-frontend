@@ -17,15 +17,15 @@
 package uk.gov.hmrc.heclicensingbodyfrontend.services
 
 import cats.data.EitherT
-import cats.instances.future._
-import cats.instances.int._
-import cats.syntax.either._
-import cats.syntax.eq._
+import cats.instances.future.*
+import cats.instances.int.*
+import cats.syntax.either.*
+import cats.syntax.eq.*
 import play.mvc.Http.Status.OK
 import com.google.inject.ImplementedBy
 import uk.gov.hmrc.heclicensingbodyfrontend.connectors.HECConnector
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECTaxCheckMatchRequest, HECTaxCheckMatchResult}
-import uk.gov.hmrc.heclicensingbodyfrontend.util.HttpResponseOps._
+import uk.gov.hmrc.heclicensingbodyfrontend.util.HttpResponseOps.*
 import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.{Inject, Singleton}

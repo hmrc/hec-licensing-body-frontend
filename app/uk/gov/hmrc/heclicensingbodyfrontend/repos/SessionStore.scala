@@ -24,7 +24,7 @@ import uk.gov.hmrc.heclicensingbodyfrontend.models.{Error, HECSession}
 import uk.gov.hmrc.http.SessionKeys
 import uk.gov.hmrc.mongo.cache.{DataKey, SessionCacheRepository}
 import uk.gov.hmrc.mongo.{CurrentTimestampSupport, MongoComponent}
-import uk.gov.hmrc.play.http.logging.Mdc.preservingMdc
+import uk.gov.hmrc.mdc.Mdc.preservingMdc
 
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ExecutionContext, Future}
@@ -32,9 +32,9 @@ import scala.concurrent.{ExecutionContext, Future}
 @ImplementedBy(classOf[SessionStoreImpl])
 trait SessionStore {
 
-  def get()(implicit request: Request[_]): EitherT[Future, Error, Option[HECSession]]
+  def get()(implicit request: Request[?]): EitherT[Future, Error, Option[HECSession]]
 
-  def store(sessionData: HECSession)(implicit request: Request[_]): EitherT[Future, Error, Unit]
+  def store(sessionData: HECSession)(implicit request: Request[?]): EitherT[Future, Error, Unit]
 
 }
 
@@ -55,7 +55,7 @@ class SessionStoreImpl @Inject() (
 
   val sessionKey: String = "hec-session"
 
-  def get()(implicit request: Request[_]): EitherT[Future, Error, Option[HECSession]] =
+  def get()(implicit request: Request[?]): EitherT[Future, Error, Option[HECSession]] =
     EitherT(
       preservingMdc {
         getFromSession[HECSession](DataKey(sessionKey))
@@ -66,7 +66,7 @@ class SessionStoreImpl @Inject() (
 
   def store(
     sessionData: HECSession
-  )(implicit request: Request[_]): EitherT[Future, Error, Unit] =
+  )(implicit request: Request[?]): EitherT[Future, Error, Unit] =
     EitherT(preservingMdc {
       putSession[HECSession](DataKey(sessionKey), sessionData)
         .map(_ => Right(()))

@@ -62,7 +62,7 @@ class AuditServiceImplSpec extends Matchers with AnyWordSpecLike with MockFactor
 
         val requestUri = "/uri"
 
-        implicit val request: Request[_] = FakeRequest("GET", requestUri, Headers(), "")
+        implicit val request: Request[?] = FakeRequest("GET", requestUri, Headers(), "")
 
         implicit val hc: HeaderCarrier = HeaderCarrier()
 

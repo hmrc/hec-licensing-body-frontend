@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.models
 
-import play.api.libs.json._
+import play.api.libs.json.*
 
 sealed trait MatchFailureReason extends Product with Serializable
 

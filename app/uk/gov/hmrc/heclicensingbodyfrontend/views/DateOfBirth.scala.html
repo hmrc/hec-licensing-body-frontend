@@ -14,18 +14,18 @@
  * limitations under the License.
  *@
 
-@import cats.syntax.eq._
-@import cats.instances.string._
+@import cats.syntax.eq.*
+@import cats.instances.string.*
 @import play.api.i18n.Messages
 @import play.api.data.Form
 @import play.api.mvc.{Call, Request}
-@import uk.gov.hmrc.govukfrontend.views.html.components._
+@import uk.gov.hmrc.govukfrontend.views.html.components.*
 @import uk.gov.hmrc.heclicensingbodyfrontend.models
 @import uk.gov.hmrc.heclicensingbodyfrontend.controllers.routes
 
 @this(layout: Layout, govukErrorSummary: GovukErrorSummary, govukDateInput: GovukDateInput, govukButton: GovukButton, formWithCSRF: FormWithCSRF)
 
-@(form: Form[models.DateOfBirth], back: Call)(implicit request: Request[_], messages: Messages)
+@(form: Form[models.DateOfBirth], back: Call)(implicit request: Request[?], messages: Messages)
 @key = @{"dateOfBirth"}
 @dayKey = @{ s"$key-day" }
 @monthKey = @{ s"$key-month" }

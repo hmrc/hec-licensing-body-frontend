@@ -16,7 +16,8 @@
 
 package uk.gov.hmrc.heclicensingbodyfrontend.models
 
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.functional.syntax.*
+import play.api.libs.json.{OFormat, __}
 
 import java.time.ZonedDateTime
 
@@ -28,6 +29,10 @@ final case class HECTaxCheckMatchResult(
 
 object HECTaxCheckMatchResult {
 
-  implicit val format: OFormat[HECTaxCheckMatchResult] = Json.format[HECTaxCheckMatchResult]
+  implicit lazy val format: OFormat[HECTaxCheckMatchResult] = (
+    (__ \ "matchRequest").format[HECTaxCheckMatchRequest] and
+      (__ \ "dateTimeChecked").format[ZonedDateTime] and
+      (__ \ "status").format[HECTaxCheckStatus]
+  )(HECTaxCheckMatchResult.apply, o => Tuple.fromProductTyped(o))
 
 }

@@ -17,7 +17,7 @@
 package uk.gov.hmrc.heclicensingbodyfrontend.util
 
 import cats.implicits.{catsKernelStdOrderForInt, catsSyntaxEq}
-import cats.syntax.either._
+import cats.syntax.either.*
 import play.api.data.FormError
 import play.api.data.format.Formatter
 import play.api.i18n.Messages

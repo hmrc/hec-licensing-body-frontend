@@ -19,14 +19,14 @@
 @import play.api.mvc.Request
 @import play.twirl.api.Html
 @import java.time.ZonedDateTime
-@import uk.gov.hmrc.govukfrontend.views.html.components._
-@import uk.gov.hmrc.heclicensingbodyfrontend.views.html.components._
+@import uk.gov.hmrc.govukfrontend.views.html.components.*
+@import uk.gov.hmrc.heclicensingbodyfrontend.views.html.components.*
 @import uk.gov.hmrc.heclicensingbodyfrontend.controllers.routes
 @import uk.gov.hmrc.heclicensingbodyfrontend.util.TimeUtils
 
 @this(layout: Layout, govukPanel : GovukPanel, detailsEntered: DetailsEntered, feedbackSection: FeedbackSection)
 
-@(hecTaxCheckMatchRequest:HECTaxCheckMatchRequest, dateTimeChecked: ZonedDateTime)(implicit request: Request[_], messages: Messages)
+@(hecTaxCheckMatchRequest:HECTaxCheckMatchRequest, dateTimeChecked: ZonedDateTime)(implicit request: Request[?], messages: Messages)
 @key = @{"taxCheckValid"}
 @title = @{messages(s"$key.title")}
 

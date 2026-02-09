@@ -31,19 +31,19 @@ trait SessionSupport { this: MockFactory =>
 
   def mockGetSession(result: Either[Error, Option[HECSession]])(implicit ec: ExecutionContext) =
     (mockSessionStore
-      .get()(_: Request[_]))
+      .get()(_: Request[?]))
       .expects(*)
       .returning(EitherT.fromEither(result))
 
   def mockGetSession(session: HECSession)(implicit ec: ExecutionContext) =
     (mockSessionStore
-      .get()(_: Request[_]))
+      .get()(_: Request[?]))
       .expects(*)
       .returning(EitherT.pure(Some(session)))
 
   def mockStoreSession(session: HECSession)(result: Either[Error, Unit])(implicit ec: ExecutionContext) =
     (mockSessionStore
-      .store(_: HECSession)(_: Request[_]))
+      .store(_: HECSession)(_: Request[?]))
       .expects(session, *)
       .returning(EitherT.fromEither(result))
 

@@ -17,12 +17,12 @@
 package uk.gov.hmrc.heclicensingbodyfrontend.controllers
 
 import cats.data.EitherT
-import cats.instances.future._
+import cats.instances.future.*
 import com.google.inject.{Inject, Singleton}
 import play.api.data.Form
 import play.api.data.Forms.{mapping, of}
 import play.api.i18n.{I18nSupport, Messages}
-import play.api.mvc._
+import play.api.mvc.*
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.DateOfBirthController.dateOfBirthForm
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.{RequestWithSessionData, SessionDataAction}
 import uk.gov.hmrc.heclicensingbodyfrontend.models.AuditEvent.TaxCheckCodeChecked
@@ -98,7 +98,7 @@ class DateOfBirthController @Inject() (
   }
 
   private def handleValidDateOfBirth(dob: DateOfBirth, taxCheckCode: HECTaxCheckCode, licenceType: LicenceType)(implicit
-    r: RequestWithSessionData[_]
+    r: RequestWithSessionData[?]
   ): Future[Result] =
     getTaxMatchResult(dob, taxCheckCode, licenceType)
       .fold(
@@ -110,7 +110,7 @@ class DateOfBirthController @Inject() (
     dateOfBirth: DateOfBirth,
     taxCheckCode: HECTaxCheckCode,
     licenceType: LicenceType
-  )(implicit request: RequestWithSessionData[_]): EitherT[Future, Error, Call] =
+  )(implicit request: RequestWithSessionData[?]): EitherT[Future, Error, Call] =
     for {
       taxMatch      <- taxMatchService.matchTaxCheck(HECTaxCheckMatchRequest(taxCheckCode, licenceType, Right(dateOfBirth)))
       updatedSession =
@@ -128,7 +128,7 @@ class DateOfBirthController @Inject() (
     licenceType: LicenceType,
     matchResult: Option[HECTaxCheckMatchResult],
     session: HECSession
-  )(implicit hc: HeaderCarrier, r: RequestWithSessionData[_]): Unit = {
+  )(implicit hc: HeaderCarrier, r: RequestWithSessionData[?]): Unit = {
     val submittedData =
       TaxCheckCodeChecked.SubmittedData(
         taxCheckCode,

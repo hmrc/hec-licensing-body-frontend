@@ -21,7 +21,7 @@ import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.SessionDataAction
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{HECTaxCheckMatchResult, InconsistentSessionState}
-import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus._
+import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus.*
 import uk.gov.hmrc.heclicensingbodyfrontend.services.JourneyService
 import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging
 import uk.gov.hmrc.heclicensingbodyfrontend.views.html

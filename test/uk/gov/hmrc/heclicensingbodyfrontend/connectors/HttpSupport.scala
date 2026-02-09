@@ -27,7 +27,7 @@ import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
 import java.net.URL
 import scala.concurrent.{ExecutionContext, Future}
 
-trait HttpSupport { this: MockFactory with Matchers ⇒
+trait HttpSupport { this: MockFactory with Matchers =>
 
   @SuppressWarnings(Array("org.wartremover.warts.Any"))
   val mockHttp: HttpClientV2             = mock[HttpClientV2]

@@ -18,14 +18,14 @@ package uk.gov.hmrc.heclicensingbodyfrontend.services
 
 import cats.Eq
 import cats.data.EitherT
-import cats.instances.future._
-import cats.instances.string._
-import cats.syntax.eq._
+import cats.instances.future.*
+import cats.instances.string.*
+import cats.syntax.eq.*
 import com.google.inject.{ImplementedBy, Inject, Singleton}
 import play.api.mvc.Call
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.actions.RequestWithSessionData
 import uk.gov.hmrc.heclicensingbodyfrontend.controllers.routes
-import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus._
+import uk.gov.hmrc.heclicensingbodyfrontend.models.HECTaxCheckStatus.*
 import uk.gov.hmrc.heclicensingbodyfrontend.models.licence.LicenceType
 import uk.gov.hmrc.heclicensingbodyfrontend.models.{EntityType, Error, HECSession, HECTaxCheckMatchResult, InconsistentSessionState}
 import uk.gov.hmrc.heclicensingbodyfrontend.repos.SessionStore
@@ -38,11 +38,11 @@ import scala.concurrent.{ExecutionContext, Future}
 trait JourneyService {
 
   def updateAndNext(current: Call, updatedSession: HECSession)(implicit
-    r: RequestWithSessionData[_],
+    r: RequestWithSessionData[?],
     hc: HeaderCarrier
   ): EitherT[Future, Error, Call]
 
-  def previous(current: Call)(implicit r: RequestWithSessionData[_]): Call
+  def previous(current: Call)(implicit r: RequestWithSessionData[?]): Call
 
   def firstPage: Call
 
@@ -73,7 +73,7 @@ class JourneyServiceImpl @Inject() (
   lazy val firstPage: Call = routes.HECTaxCheckCodeController.hecTaxCheckCode
 
   override def updateAndNext(current: Call, updatedSession: HECSession)(implicit
-    r: RequestWithSessionData[_],
+    r: RequestWithSessionData[?],
     hc: HeaderCarrier
   ): EitherT[Future, Error, Call] =
     paths.get(current).map(_(updatedSession)) match {
@@ -87,7 +87,7 @@ class JourneyServiceImpl @Inject() (
     }
 
   override def previous(current: Call)(implicit
-    r: RequestWithSessionData[_]
+    r: RequestWithSessionData[?]
   ): Call = {
     @tailrec
     def loop(previous: Call): Option[Call] =
