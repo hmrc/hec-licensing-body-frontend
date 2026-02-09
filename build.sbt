@@ -26,6 +26,7 @@ lazy val scoverageSettings =
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(PlayScala)
   .enablePlugins(ScoverageSbtPlugin)
+  .enablePlugins(SbtDistributablesPlugin)
   .disablePlugins(JUnitXmlReportPlugin)
   .settings(
     majorVersion := 1,
