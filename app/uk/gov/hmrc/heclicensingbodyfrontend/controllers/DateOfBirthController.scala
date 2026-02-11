@@ -102,7 +102,10 @@ class DateOfBirthController @Inject() (
   ): Future[Result] =
     getTaxMatchResult(dob, taxCheckCode, licenceType)
       .fold(
-        _.doThrow("Couldn't match tax check"),
+        err => {
+          logger.error(s"[tax-check] match failed. taxCheckCode=$taxCheckCode licenceType=$licenceType dob=$dob error=$err")
+          err.doThrow("Couldn't match tax check")
+        },
         Redirect
       )
 
