@@ -9,7 +9,6 @@ object AppDependencies {
     "uk.gov.hmrc.mongo"       %% "hmrc-mongo-play-30"                 % hmrcMongoVersion,
     "uk.gov.hmrc"             %% "play-frontend-hmrc-play-30"         % "12.31.0",
     "org.typelevel"           %% "cats-core"                          % "2.13.0",
-    "com.beachape"            %% "enumeratum-play"                    % "1.9.4",
     "org.apache.commons"      % "commons-lang3"                       % "3.18.0",
     "ch.qos.logback"          % "logback-core"                        % "1.5.21",
     "at.yawk.lz4"             %  "lz4-java"                           % "1.10.3"
