@@ -34,7 +34,6 @@
         hmrcStandardHeader: HmrcStandardHeader,
         hmrcStandardFooter: HmrcStandardFooter,
         hmrcScripts: HmrcScripts,
-        hmrcLanguageSelectHelper: HmrcLanguageSelectHelper,
         hmrcReportTechnicalIssueHelper: HmrcReportTechnicalIssueHelper
 )
 @(pageTitle: Option[String] = None,
@@ -63,7 +62,6 @@
 }
 @beforeContent = {
   <nav class="govuk-!-display-none-print" aria-label="Sign out navigation">
-    @hmrcLanguageSelectHelper()
     @backUrl.map(back => govukBackLink(BackLink(href = back, attributes = Map("id" -> "back"), content = Text(messages("button.back")))))
   </nav>
 }
@@ -79,7 +77,7 @@
 @govukLayout(
     pageTitle = Some(documentTitle),
     headBlock = Some(hmrcHead(headBlock = Some(head))),
-    headerBlock = Some(hmrcStandardHeader(signOutUrl = Some(routes.ExitSurveyController.exitSurvey.url))),
+    headerBlock = Some(hmrcStandardHeader(signOutUrl = Some(routes.ExitSurveyController.exitSurvey.url), isWelshTranslationAvailable = true)),
     scriptsBlock = Some(hmrcScripts(
         scriptsBlock = Some(scripts)
     )),
