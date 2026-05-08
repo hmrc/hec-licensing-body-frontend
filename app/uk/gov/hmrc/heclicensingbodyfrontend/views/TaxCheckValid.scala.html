@@ -30,7 +30,10 @@
 @key = @{"taxCheckValid"}
 @title = @{messages(s"$key.title")}
 
-@layout(pageTitle = Some(title)) {
+@layout(
+    pageTitle = Some(title),
+    showResearchBanner = true
+) {
 
     @govukPanel(Panel(
         title = HtmlContent(s"""<span aria-hidden="true" class="check"></span>${title}"""),

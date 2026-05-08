@@ -43,6 +43,12 @@ class AppConfig @Inject() (config: Configuration, contactFrontendConfig: Contact
 
   val verificationAttemptsLockTimeHours: Long = config.get[Long]("tax-check-verification-attempts-lock-hours")
 
+  val researchBannerEnabled: Boolean =
+    config.get[Boolean]("features.researchBannerEnabled")
+
+  val researchBannerUrl: String =
+    config.get[String]("urls.researchBanner")
+
   val basGatewayUrl: String = {
     val baseUrl = platformHost.getOrElse("http://localhost:9553")
     baseUrl

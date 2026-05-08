@@ -21,6 +21,9 @@
 @import views.html.helper.CSPNonce
 @import uk.gov.hmrc.govukfrontend.views.html.components.*
 @import uk.gov.hmrc.hmrcfrontend.views.html.helpers.*
+@import uk.gov.hmrc.hmrcfrontend.views.Aliases.UserResearchBanner
+@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.language.{Cy, En}
+@import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcUserResearchBanner
 
 @import play.api.i18n.Messages
 @import play.api.mvc.{Call, Request}
@@ -35,13 +38,15 @@
         hmrcStandardFooter: HmrcStandardFooter,
         hmrcScripts: HmrcScripts,
         hmrcLanguageSelectHelper: HmrcLanguageSelectHelper,
-        hmrcReportTechnicalIssueHelper: HmrcReportTechnicalIssueHelper
+        hmrcReportTechnicalIssueHelper: HmrcReportTechnicalIssueHelper,
+        hmrcUserResearchBanner: HmrcUserResearchBanner
 )
 @(pageTitle: Option[String] = None,
         headBlock: Option[Html] = None,
         scriptsBlock: Option[Html] = None,
         hasErrors: Boolean = false,
-        backLocation: Option[Call] = None
+        backLocation: Option[Call] = None,
+        showResearchBanner: Boolean = false
 )(contentBlock: Html)(implicit request: Request[?], messages: Messages)
 
 @serviceNameAndHeading = @{pageTitle.fold(messages("service.name"))(t => s"""$t - ${messages("service.name")}""")}
@@ -79,7 +84,19 @@
 @govukLayout(
     pageTitle = Some(documentTitle),
     headBlock = Some(hmrcHead(headBlock = Some(head))),
-    headerBlock = Some(hmrcStandardHeader(signOutUrl = Some(routes.ExitSurveyController.exitSurvey.url))),
+    headerBlock = Some(
+        hmrcStandardHeader(
+            signOutUrl = Some(routes.ExitSurveyController.exitSurvey.url),
+            additionalBannersBlock =
+                if(showResearchBanner && appConfig.researchBannerEnabled)
+                Some(hmrcUserResearchBanner(UserResearchBanner(
+                        language = if(messages.lang.code == "cy") Cy else En,
+                        url = appConfig.researchBannerUrl,
+                        hideCloseButton = true
+                    )))
+                else None
+        )
+    ),
     scriptsBlock = Some(hmrcScripts(
         scriptsBlock = Some(scripts)
     )),
