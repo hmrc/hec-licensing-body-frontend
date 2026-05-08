@@ -88,9 +88,9 @@ class HECTaxCheckCodeControllerCYSpec
               link.attr("href") shouldBe appConfig.taxCheckGuidanceUrl
 
               val input = doc.select(".govuk-input")
-              input.attr("value")                          shouldBe taxCheckCode.value
-              doc.select(".hmrc-language-select__list").text should include regex "English"
-              doc.select(".hmrc-language-select__list").text should include regex "Cymraeg"
+              input.attr("value")                                             shouldBe taxCheckCode.value
+              doc.select(".hmrc-service-navigation-language-select__list").text should include regex "ENG"
+              doc.select(".hmrc-service-navigation-language-select__list").text should include regex "CYM"
 
             }
           )

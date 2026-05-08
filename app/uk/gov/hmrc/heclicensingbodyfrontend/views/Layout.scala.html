@@ -68,7 +68,6 @@
 }
 @beforeContent = {
   <nav class="govuk-!-display-none-print" aria-label="Sign out navigation">
-    @hmrcLanguageSelectHelper()
     @backUrl.map(back => govukBackLink(BackLink(href = back, attributes = Map("id" -> "back"), content = Text(messages("button.back")))))
   </nav>
 }
@@ -89,7 +88,7 @@
             signOutUrl = Some(routes.ExitSurveyController.exitSurvey.url),
             additionalBannersBlock =
                 if(showResearchBanner && appConfig.researchBannerEnabled)
-                Some(hmrcUserResearchBanner(UserResearchBanner(
+                    Some(hmrcUserResearchBanner(UserResearchBanner(
                         language = if(messages.lang.code == "cy") Cy else En,
                         url = appConfig.researchBannerUrl,
                         hideCloseButton = true

@@ -1,6 +1,8 @@
 import scoverage.ScoverageKeys
 import play.sbt.PlayScala
 
+import scala.collection.Seq
+
 val appName = "hec-licensing-body-frontend"
 
 ThisBuild / scalaVersion := "3.3.6"
@@ -44,7 +46,10 @@ lazy val microservice = Project(appName, file("."))
     Compile / doc / sources := Seq.empty,
     scalafmtOnCompile := true
   )
+  .settings(routesImport := Seq.empty)
+  .settings(TwirlKeys.templateImports := Seq.empty)
   .settings(scoverageSettings: _*)
+  .settings(PlayKeys.playDefaultPort := 10107)
 
 
 
