@@ -28,6 +28,7 @@ import play.api.libs.ws.WSBodyWritables.*
 import uk.gov.hmrc.http.HttpReads.Implicits.*
 
 import scala.concurrent.{ExecutionContext, Future}
+import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging
 
 @ImplementedBy(classOf[HECConnectorImpl])
 trait HECConnector {
@@ -39,7 +40,8 @@ trait HECConnector {
 @Singleton
 class HECConnectorImpl @Inject() (httpClientV2: HttpClientV2, config: Configuration)(implicit
   ec: ExecutionContext
-) extends HECConnector {
+) extends HECConnector
+    with Logging {
   private val servicesConfig           = new ServicesConfig(config)
   private val baseUrl: String          = servicesConfig.baseUrl("hec")
   private val matchTaxCheckUrl: String = s"$baseUrl/hec/match-tax-check"
@@ -58,6 +60,8 @@ class HECConnectorImpl @Inject() (httpClientV2: HttpClientV2, config: Configurat
       .withBody(Json.toJson(taxCheckMatchRequest))
       .execute[HttpResponse]
       .map(Right(_))
-      .recover { case e => Left(Error(e)) }
+      .recover { case e =>
+        logger.warn("[HECConnector][matchTaxCheck] POST hec match-tax-check failed", e); Left(Error(e))
+      }
   }
 }

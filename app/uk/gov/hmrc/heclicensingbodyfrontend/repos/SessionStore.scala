@@ -27,7 +27,9 @@ import uk.gov.hmrc.mongo.{CurrentTimestampSupport, MongoComponent}
 import uk.gov.hmrc.mdc.Mdc.preservingMdc
 
 import scala.concurrent.duration.FiniteDuration
+import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging
 import scala.concurrent.{ExecutionContext, Future}
+import uk.gov.hmrc.heclicensingbodyfrontend.util.Logging
 
 @ImplementedBy(classOf[SessionStoreImpl])
 trait SessionStore {
@@ -51,6 +53,7 @@ class SessionStoreImpl @Inject() (
       timestampSupport = new CurrentTimestampSupport(),
       sessionIdKey = SessionKeys.sessionId
     )
+    with Logging
     with SessionStore {
 
   val sessionKey: String = "hec-session"
@@ -60,7 +63,7 @@ class SessionStoreImpl @Inject() (
       preservingMdc {
         getFromSession[HECSession](DataKey(sessionKey))
           .map(Right(_))
-          .recover { case e => Left(Error(e)) }
+          .recover { case e => logger.warn("[SessionStore][get] Mongo read of hec-session failed", e); Left(Error(e)) }
       }
     )
 
@@ -70,7 +73,7 @@ class SessionStoreImpl @Inject() (
     EitherT(preservingMdc {
       putSession[HECSession](DataKey(sessionKey), sessionData)
         .map(_ => Right(()))
-        .recover { case e => Left(Error(e)) }
+        .recover { case e => logger.warn("[SessionStore][store] Mongo write of hec-session failed", e); Left(Error(e)) }
     })
 
 }

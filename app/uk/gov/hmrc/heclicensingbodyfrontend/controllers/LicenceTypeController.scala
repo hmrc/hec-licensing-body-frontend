@@ -82,7 +82,7 @@ class LicenceTypeController @Inject() (
     journeyService
       .updateAndNext(routes.LicenceTypeController.licenceType, updatedSession)
       .fold(
-        _.doThrow("Could not update session and proceed"),
+        _.doThrow("[LicenceTypeController][handleValidLicenceType] Could not update session"),
         Redirect
       )
   }

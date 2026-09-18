@@ -48,7 +48,7 @@ class ErrorHandler @Inject() (
 
   override def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = exception match {
     case InconsistentSessionState(message) =>
-      logger.warn(s"Inconsistent session state at ${request.uri}: $message")
+      logger.warn(s"[ErrorHandler][onServerError] Inconsistent session state at ${request.uri}: $message")
       Future.successful(Redirect(routes.StartController.start))
     case other                             =>
       super.onServerError(request, other)
