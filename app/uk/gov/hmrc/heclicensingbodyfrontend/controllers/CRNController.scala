@@ -67,10 +67,10 @@ class CRNController @Inject() (
   val companyRegistrationNumberSubmit: Action[AnyContent] = sessionDataAction.async { implicit request =>
     val taxCheckCode =
       request.sessionData.userAnswers.taxCheckCode
-        .getOrElse(InconsistentSessionState("Could not find tax check code").doThrow)
+        .getOrElse(InconsistentSessionState("[CRNController][crnSubmit] Could not find tax check code").doThrow)
     val licenceType  =
       request.sessionData.userAnswers.licenceType
-        .getOrElse(InconsistentSessionState("Could not find licence type").doThrow)
+        .getOrElse(InconsistentSessionState("[CRNController][crnSubmit] Could not find licence type").doThrow)
 
     def updateAndGoToNextPage(crn: CRN): Future[Result] =
       journeyService
@@ -79,7 +79,7 @@ class CRNController @Inject() (
           request.sessionData.copy(userAnswers = request.sessionData.userAnswers.copy(crn = Some(crn)))
         )
         .fold(
-          _.doThrow("Could not update session and proceed"),
+          _.doThrow("[CRNController][crnSubmit] Could not update session"),
           Redirect
         )
 
@@ -107,7 +107,7 @@ class CRNController @Inject() (
   ): Future[Result] =
     getTaxMatchResult(crn, taxCheckCode, licenceType)
       .fold(
-        _.doThrow("Couldn't match tax check"),
+        _.doThrow("[CRNController][handleValidCrn] Couldn't match tax check"),
         Redirect
       )
 

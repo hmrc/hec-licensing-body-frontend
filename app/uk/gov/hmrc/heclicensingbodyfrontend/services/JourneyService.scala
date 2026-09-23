@@ -103,13 +103,15 @@ class JourneyServiceImpl @Inject() (
       current
     else
       loop(routes.StartController.start)
-        .getOrElse(InconsistentSessionState(s"Could not find previous for $current").doThrow)
+        .getOrElse(InconsistentSessionState(s"[JourneyService][previous] Could not find previous for $current").doThrow)
   }
 
   private def taxCheckCodeRoute(session: HECSession): Call =
     session.userAnswers.taxCheckCode match {
       case None =>
-        InconsistentSessionState("Could not find tax check code for tax check code route").doThrow
+        InconsistentSessionState(
+          "[JourneyService][taxCheckCodeRoute] Could not find tax check code for tax check code route"
+        ).doThrow
 
       case Some(_) =>
         routes.LicenceTypeController.licenceType
@@ -118,7 +120,9 @@ class JourneyServiceImpl @Inject() (
   private def licenceTypeRoute(session: HECSession): Call =
     session.userAnswers.licenceType match {
       case None =>
-        InconsistentSessionState("Could not find licence type for licence type route").doThrow
+        InconsistentSessionState(
+          "[JourneyService][licenceTypeRoute] Could not find licence type for licence type route"
+        ).doThrow
 
       case Some(licenceType) =>
         if (licenceTypeForIndividualAndCompany(licenceType)) routes.EntityTypeController.entityType
@@ -132,7 +136,9 @@ class JourneyServiceImpl @Inject() (
   private def entityTypeRoute(session: HECSession): Call =
     session.userAnswers.entityType match {
       case None =>
-        InconsistentSessionState("Could not find entity type for entity type route").doThrow
+        InconsistentSessionState(
+          "[JourneyService][entityTypeRoute] Could not find entity type for entity type route"
+        ).doThrow
 
       case Some(EntityType.Individual) =>
         routes.DateOfBirthController.dateOfBirth
@@ -144,7 +150,9 @@ class JourneyServiceImpl @Inject() (
 
   private def dateOfBirthOrCRNRoute(session: HECSession): Call = {
     val taxCode           =
-      session.userAnswers.taxCheckCode.getOrElse(InconsistentSessionState("taxCheckCode is not in session").doThrow)
+      session.userAnswers.taxCheckCode.getOrElse(
+        InconsistentSessionState("[JourneyService][dateOfBirthOrCRNRoute] taxCheckCode is not in session").doThrow
+      )
     val maxAttemptReached = verificationService.maxVerificationAttemptReached(taxCode)(session)
     if (maxAttemptReached) {
       routes.TaxCheckResultController.tooManyVerificationAttempts
@@ -159,10 +167,18 @@ class JourneyServiceImpl @Inject() (
 
         case None =>
           session.taxCheckMatch.map(_.matchRequest.verifier) match {
-            case Some(Left(_))  => InconsistentSessionState("Could not find tax match result for crn route").doThrow
+            case Some(Left(_))  =>
+              InconsistentSessionState(
+                "[JourneyService][dateOfBirthOrCRNRoute] Could not find tax match result for crn route"
+              ).doThrow
             case Some(Right(_)) =>
-              InconsistentSessionState("Could not find tax match result for date of birth route").doThrow
-            case None           => InconsistentSessionState("Neither date of birth nor crn in session").doThrow
+              InconsistentSessionState(
+                "[JourneyService][dateOfBirthOrCRNRoute] Could not find tax match result for date of birth route"
+              ).doThrow
+            case None           =>
+              InconsistentSessionState(
+                "[JourneyService][dateOfBirthOrCRNRoute] Neither date of birth nor crn in session"
+              ).doThrow
           }
 
       }

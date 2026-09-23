@@ -65,10 +65,14 @@ class DateOfBirthController @Inject() (
   val dateOfBirthSubmit: Action[AnyContent] = sessionDataAction.async { implicit request =>
     val taxCheckCode =
       request.sessionData.userAnswers.taxCheckCode
-        .getOrElse(InconsistentSessionState("Could not find tax check code").doThrow)
+        .getOrElse(
+          InconsistentSessionState("[DateOfBirthController][dateOfBirthSubmit] Could not find tax check code").doThrow
+        )
     val licenceType  =
       request.sessionData.userAnswers.licenceType
-        .getOrElse(InconsistentSessionState("Could not find licence type").doThrow)
+        .getOrElse(
+          InconsistentSessionState("[DateOfBirthController][dateOfBirthSubmit] Could not find licence type").doThrow
+        )
 
     def updateAndGoToNextPage(dob: DateOfBirth): Future[Result] =
       journeyService
@@ -77,7 +81,7 @@ class DateOfBirthController @Inject() (
           request.sessionData.copy(userAnswers = request.sessionData.userAnswers.copy(dateOfBirth = Some(dob)))
         )
         .fold(
-          _.doThrow("Could not update session and proceed"),
+          _.doThrow("[DateOfBirthController][dateOfBirthSubmit] Could not update session"),
           Redirect
         )
 
@@ -104,9 +108,9 @@ class DateOfBirthController @Inject() (
       .fold(
         err => {
           logger.error(
-            s"[tax-check] match failed. taxCheckCode=$taxCheckCode licenceType=$licenceType dob=$dob error=$err"
+            s"[DateOfBirthController][handleValidDateOfBirth] [tax-check] match failed. taxCheckCode=$taxCheckCode licenceType=$licenceType dob=$dob error=$err"
           )
-          err.doThrow("Couldn't match tax check")
+          err.doThrow("[DateOfBirthController][handleValidDateOfBirth] Couldn't match tax check")
         },
         Redirect
       )

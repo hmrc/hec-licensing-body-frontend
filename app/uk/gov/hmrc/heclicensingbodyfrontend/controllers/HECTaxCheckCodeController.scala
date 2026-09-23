@@ -62,7 +62,7 @@ class HECTaxCheckCodeController @Inject() (
       journeyService
         .updateAndNext(routes.HECTaxCheckCodeController.hecTaxCheckCode, updatedSession)
         .fold(
-          _.doThrow("Could not store session and find next location"),
+          _.doThrow("[HECTaxCheckCodeController][handleValidTaxCheckCode] Could not store session"),
           Redirect
         )
     }

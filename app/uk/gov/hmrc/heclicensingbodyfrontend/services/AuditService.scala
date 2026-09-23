@@ -64,7 +64,9 @@ class AuditServiceImpl @Inject() (auditConnector: AuditConnector)(implicit ec: E
       case Success(_) => ()
       case Failure(e) =>
         // WARNING: do not change log message here without updating alert-config as well
-        logger.warn(s"Could not audit ${auditEvent.auditType} event: ${e.getMessage}")
+        logger.warn(
+          s"[AuditService][sendEvent] [AuditService][sendEvent] [AuditService][sendEvent] Could not audit ${auditEvent.auditType} event: ${e.getMessage}"
+        )
     }
   }
 

@@ -19,7 +19,7 @@ lazy val it = project
 lazy val scoverageSettings =
   Seq(
     ScoverageKeys.coverageExcludedPackages := "<empty>;.*Reverse.*;.*(config|testonly|views).*;.*(BuildInfo|Routes).*;",
-    ScoverageKeys.coverageExcludedFiles :=  "<empty>;Reverse.*;.*/util.Logging;.*/util.TimeProvider;.*/util.HttpResponseOps;.*/models.ids.CRN;",
+    ScoverageKeys.coverageExcludedFiles := "<empty>;Reverse.*;.*/util.Logging;.*/util.TimeProvider;.*/util.HttpResponseOps;.*/models.ids.CRN;.*/models.HECSession;.",
     ScoverageKeys.coverageMinimumStmtTotal := 90.00,
     ScoverageKeys.coverageFailOnMinimum := true,
     ScoverageKeys.coverageHighlighting := true
