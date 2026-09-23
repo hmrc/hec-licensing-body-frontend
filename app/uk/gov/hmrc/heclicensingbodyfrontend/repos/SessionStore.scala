@@ -63,7 +63,9 @@ class SessionStoreImpl @Inject() (
       preservingMdc {
         getFromSession[HECSession](DataKey(sessionKey))
           .map(Right(_))
+          // $COVERAGE-OFF$ untriggerable with Mongo
           .recover { case e => logger.warn("[SessionStore][get] Mongo read of hec-session failed", e); Left(Error(e)) }
+        // $COVERAGE-ON$
       }
     )
 
@@ -73,7 +75,9 @@ class SessionStoreImpl @Inject() (
     EitherT(preservingMdc {
       putSession[HECSession](DataKey(sessionKey), sessionData)
         .map(_ => Right(()))
+        // $COVERAGE- - untriggerable with Mongo
         .recover { case e => logger.warn("[SessionStore][store] Mongo write of hec-session failed", e); Left(Error(e)) }
+      // $COVERAGE-ON$
     })
 
 }
