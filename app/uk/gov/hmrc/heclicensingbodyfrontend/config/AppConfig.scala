@@ -33,7 +33,7 @@ class AppConfig @Inject() (config: Configuration, contactFrontendConfig: Contact
 
   val betaFeedbackUrl: String = s"$contactFrontendUrl/contact/beta-feedback?service=$contactFormServiceIdentifier"
 
-  lazy val researchBannerUrl: String      = config.get[String]("external-url.userResearchUrl")
+  lazy val researchBannerUrl: String      = config.get[String]("external-url.researchBanner")
   lazy val researchBannerEnabled: Boolean = config.get[Boolean]("features.researchBannerEnabled")
 
   val taxCheckGuidanceUrl: String = config.get[String]("external-url.tax-check-guidance")

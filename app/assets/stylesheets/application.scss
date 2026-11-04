@@ -1,7 +1,7 @@
 $govuk-suppressed-warnings: ("libsass");
 $govuk-assets-path: "/confirm-tax-check-code/assets/lib/govuk-frontend/dist/govuk/assets/";
 
-@import "lib/govuk-frontend/dist/govuk/index";
+@import "lib/govuk-frontend/dist/govuk/base";
 
 $govuk-new-organisation-colours: true;
 
